@@ -1132,9 +1132,6 @@
     <button id="expandAllBtn" class="left-menu-button">Expand All</button>
     <button id="resetClearBtn" class="left-menu-button">Reset / Clear All</button>
     <div class="separator"></div>
-    <button id="sortByIdentifierBtn" class="left-menu-button">Sort by Identifier</button>
-    <button id="sortBySeverityBtn" class="left-menu-button">Sort by Severity</button>
-    <div class="separator"></div>
     <div class="theme-switch-wrapper">
       <span class="theme-switch-label-text">Dark Mode</span>
       <label class="theme-switch" for="checkbox">
@@ -2693,37 +2690,7 @@ Original description:
     }
 
     // --- Auto-Sort Functions ---
-    function sortLabels(sortBy) {
-        const currentLabelsData = getLabelsData(); // Get current state of labels
-
-        let sortedLabels;
-        if (sortBy === 'identifier') {
-            sortedLabels = currentLabelsData.sort((a, b) => a.identifier.localeCompare(b.identifier));
-        } else if (sortBy === 'severity') {
-            const severityOrder = { 'none': 0, 'inform': 1, 'warn': 2, 'alert': 3 };
-            sortedLabels = currentLabelsData.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
-        } else {
-            return; // No valid sort key
-        }
-
-        // Re-render labels in the sorted order
-        document.getElementById('labels-container').innerHTML = ''; // Clear existing DOM elements
-        sortedLabels.forEach(label => {
-            createLabelBlock(
-                label.identifier,
-                label.severity,
-                label.blurs,
-                label.defaultSetting,
-                label.adultOnly,
-                label.enabled,
-                label.locales,
-                label.category
-            );
-        });
-        saveFullSessionStateToLocalStorage();
-        updateJSONOutput(); // Update JSON output and trigger history save
-        showCustomModal(`Labels sorted by ${sortBy}.`, 'alert');
-    }
+    // Removed sortLabels function as sorting buttons are removed.
 
 
     // --- Session File Save/Load ---
@@ -2991,9 +2958,9 @@ Original description:
     document.getElementById('versionHistoryBtn').onclick = showVersionHistory;
     document.getElementById('saveBtn').onclick = addVersionToHistory;
 
-    // New sort buttons
-    document.getElementById('sortByIdentifierBtn').onclick = () => sortLabels('identifier');
-    document.getElementById('sortBySeverityBtn').onclick = () => sortLabels('severity');
+    // Removed sorting button event listeners
+    // document.getElementById('sortByIdentifierBtn').onclick = () => sortLabels('identifier');
+    // document.getElementById('sortBySeverityBtn').onclick = () => sortLabels('severity');
 
     // New session save/load buttons
     document.getElementById('saveSessionFileBtn').onclick = saveSessionFile;
