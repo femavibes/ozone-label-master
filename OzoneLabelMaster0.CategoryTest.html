@@ -251,11 +251,6 @@
     transform: none; /* Ensure no unwanted transform from previous styles */
   }
 
-  .move-up-btn:hover,
-  .move-down-btn:hover {
-    background: #4b5563; /* Darker grey on hover */
-  }
-
   .move-up-btn:disabled,
   .move-down-btn:disabled {
     background: #9ca3af;
@@ -850,6 +845,35 @@
   @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+  }
+
+  /* Category dropdown in header */
+  .label-header .category-in-header {
+    margin-left: auto; /* Push to the right, before move buttons */
+    margin-right: 0.5em; /* Small space before move buttons */
+    display: flex;
+    align-items: center;
+    gap: 0.2em;
+    font-weight: normal; /* Override header's bold */
+    color: var(--text-color);
+  }
+
+  .label-header .category-in-header label {
+    margin: 0;
+    font-size: 0.85rem;
+    white-space: nowrap; /* Prevent text wrapping */
+  }
+
+  .label-header .category-in-header select {
+    width: auto; /* Allow select to size to content */
+    max-width: 100px; /* Limit width */
+    padding: 0.2em 0.4em;
+    font-size: 0.85rem;
+    margin: 0;
+    background-color: var(--block-background); /* Match block background */
+    border: 1px solid var(--input-border);
+    border-radius: var(--border-radius);
+    color: var(--text-color);
   }
 </style>
 
@@ -1542,6 +1566,12 @@ Original description:
         <div class="label-header" title="Click to expand/collapse">
           <button class="collapse-btn">Collapse</button>
           <span class="label-identifier-display" style="flex:1; user-select:text;">${id || identifierPlaceholder}</span>
+          <div class="category-in-header">
+            <label for="${uniqueHtmlId}-category">Category:</label>
+            <select id="${uniqueHtmlId}-category" class="label-category">
+              <option value="">(No Category)</option>
+            </select>
+          </div>
           <button class="move-up-btn" title="Move label up">▲</button>
           <button class="move-down-btn" title="Move label down">▼</button>
           <button class="remove-btn" title="Remove label">×</button>
@@ -1549,11 +1579,6 @@ Original description:
         <div class="label-content">
           <label>Enabled: <input type="checkbox" class="enabled" ${enabled ? 'checked' : ''}></label>
           <label>Identifier: <input type="text" class="identifier" value="${id}"></label>
-          <label>Category:
-            <select class="label-category">
-              <option value="">(No Category)</option>
-            </select>
-          </label>
           <label>Severity:
             <select class="severity">
               <option value="inform" ${severity === 'inform' ? 'selected' : ''}>inform</option>
