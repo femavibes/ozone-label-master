@@ -518,28 +518,39 @@
     border-radius: 50%;
   }
 
-  /* Right Floating Menu Styles */
-  #floating-menu, #category-menu { /* Combined styles for both right menus */
-    position: sticky; /* Sticky on desktop */
-    top: 2em;
+  /* Right Floating Menu Wrapper Styles */
+  #right-menu-wrapper {
+    position: sticky; /* Make the wrapper sticky */
+    top: 2em; /* Stick it 2em from the top */
     width: 200px;
+    max-height: calc(100vh - 4em); /* Max height for the entire wrapper */
+    overflow-y: auto; /* Enable scrolling for the entire wrapper */
+    display: flex;
+    flex-direction: column;
+    gap: 1em; /* Space between the child menus */
+    z-index: 9999; /* Ensure it's above other content */
+    transition: transform 0.3s ease-out; /* For mobile slide effect */
+  }
+
+  /* Individual Right Menu Styles (children of the wrapper) */
+  #floating-menu, #category-menu, #bulk-actions-menu {
     background: var(--background);
     border: 1px solid var(--block-border);
     border-radius: var(--border-radius);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     padding: 1em;
-    z-index: 9999; /* Increased z-index significantly */
-    max-height: calc(100vh - 4em);
-    overflow-y: auto;
-    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease-out; /* Add transform transition */
-    margin-bottom: 1em; /* Space between category and quick access menus */
+    /* Remove sticky positioning and max-height/overflow from children */
+    position: static; /* No longer sticky individually */
+    max-height: none; /* Allow content to dictate height */
+    overflow-y: visible; /* Let parent handle overflow */
+    margin-bottom: 0; /* Gap handled by parent wrapper */
   }
 
-  #floating-menu .mobile-menu-header, #category-menu .mobile-menu-header {
+  #floating-menu .mobile-menu-header, #category-menu .mobile-menu-header, #bulk-actions-menu .mobile-menu-header {
     display: none; /* Hide mobile header on desktop */
   }
 
-  #floating-menu h3, #category-menu h3 {
+  #floating-menu h3, #category-menu h3, #bulk-actions-menu h3 {
     margin-top: 0;
     color: var(--primary);
     font-size: 1.2rem;
@@ -659,9 +670,7 @@
   /* Media query for smaller screens */
   @media (max-width: 992px) {
     /* Hide desktop menus */
-    #left-floating-menu,
-    #floating-menu,
-    #category-menu { /* Added category menu */
+    #left-floating-menu {
       position: fixed; /* Fixed on mobile */
       bottom: 0;
       width: 80%;
@@ -681,34 +690,50 @@
       left: 0;
     }
 
-    #floating-menu, #category-menu { /* Both right menus slide from right */
-      right: 0;
-    }
-    #category-menu {
-        margin-bottom: 0; /* Remove margin between them on mobile as they'll be separate */
+    /* Right menu wrapper for mobile */
+    #right-menu-wrapper {
+        position: fixed; /* Fixed on mobile */
+        bottom: 0;
+        right: 0;
+        width: 80%;
+        max-width: 300px;
+        height: auto;
+        max-height: 80vh; /* Max height for the entire wrapper */
+        overflow-y: auto; /* Enable scrolling for the entire wrapper */
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
+        border-bottom: none;
+        transform: translateY(calc(100% + 50px)); /* Hide by default */
+        pointer-events: none; /* Initially non-interactive */
+        z-index: 9998; /* Ensure it's below bulk actions if both open */
     }
 
-    /* Add relative positioning to menus for absolute close button */
-    #left-floating-menu,
-    #floating-menu,
-    #category-menu {
-        position: relative; /* Crucial for absolute positioning of close button */
+    /* When right menu wrapper is open, stack its children */
+    #right-menu-wrapper.open {
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    /* Individual Right Menu Styles (children of the wrapper) on mobile */
+    #floating-menu, #category-menu, #bulk-actions-menu {
+        border-radius: 0; /* Remove individual border radius */
+        box-shadow: none; /* Remove individual shadows */
+        border: none; /* Remove individual borders */
+        border-bottom: 1px solid var(--block-border); /* Add separator between them */
+    }
+
+    #bulk-actions-menu {
+        border-radius: var(--border-radius) var(--border-radius) 0 0; /* Rounded top only */
+    }
+    #floating-menu {
+        border-bottom: none; /* No border at the very bottom of the last menu */
+        border-radius: 0 0 var(--border-radius) var(--border-radius); /* Rounded bottom only */
     }
 
 
     /* Show mobile menu header when menus are open on mobile */
     #left-floating-menu.open .mobile-menu-header,
-    #floating-menu.open .mobile-menu-header,
-    #category-menu.open .mobile-menu-header { /* Added category menu */
+    #right-menu-wrapper.open .mobile-menu-header { /* Only need to check wrapper open state */
       display: flex; /* Show mobile header on mobile */
-    }
-
-    /* When a menu is "open" on mobile */
-    #left-floating-menu.open,
-    #floating-menu.open,
-    #category-menu.open { /* Added category menu */
-      transform: translateY(0); /* Expand */
-      pointer-events: auto; /* Make menu interactive when open */
     }
 
     /* Show the mobile toggle buttons */
@@ -965,8 +990,9 @@
 
   /* Mobile specific adjustments for bulk action menu */
   @media (max-width: 992px) {
-    #bulk-actions-menu {
-      position: fixed;
+    /* Left menu on mobile */
+    #left-floating-menu {
+      position: fixed; /* Fixed on mobile */
       bottom: 0;
       width: 80%;
       max-width: 300px;
@@ -975,44 +1001,31 @@
       border-radius: var(--border-radius) var(--border-radius) 0 0;
       border-bottom: none;
       transform: translateY(calc(100% + 50px)); /* Start collapsed and fully hidden */
-      display: flex; /* Ensure it's a flex container when active */
-      margin-right: 0;
-      pointer-events: none;
-      z-index: 9999;
-      left: 50%; /* Center horizontally */
-      transform: translateX(-50%) translateY(calc(100% + 50px)); /* Center and hide */
-      transition: transform 0.3s ease-out;
+      display: flex; /* Ensure they are flex containers when active */
+      margin-right: 0; /* Remove desktop margin */
+      pointer-events: none; /* Make menu non-interactive when collapsed */
+      z-index: 9999; /* Ensure they are on top */
     }
 
-    #bulk-actions-menu.open {
-      transform: translateX(-50%) translateY(0); /* Center and show */
-      pointer-events: auto;
+    #left-floating-menu {
+      left: 0;
     }
 
-    #bulk-actions-menu .mobile-menu-header {
-      display: flex; /* Show mobile header */
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1em;
-      padding: 0.5em 1em;
-      border-bottom: 1px solid var(--block-border);
-      box-sizing: border-box;
-      width: 100%;
-    }
-
-    /* Adjust right menu wrapper for mobile */
+    /* Right menu wrapper for mobile */
     #right-menu-wrapper {
-        position: fixed;
+        position: fixed; /* Fixed on mobile */
         bottom: 0;
         right: 0;
         width: 80%;
         max-width: 300px;
-        flex-direction: column; /* Stack menus vertically */
-        gap: 0; /* Remove gap between them as they will be separate */
-        z-index: 9998; /* Ensure they are below bulk actions if both open */
-        pointer-events: none; /* Initially non-interactive */
+        height: auto;
+        max-height: 80vh; /* Max height for the entire wrapper */
+        overflow-y: auto; /* Enable scrolling for the entire wrapper */
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
+        border-bottom: none;
         transform: translateY(calc(100% + 50px)); /* Hide by default */
-        transition: transform 0.3s ease-out;
+        pointer-events: none; /* Initially non-interactive */
+        z-index: 9998; /* Ensure it's below bulk actions if both open */
     }
 
     /* When right menu wrapper is open, stack its children */
@@ -1021,27 +1034,703 @@
         pointer-events: auto;
     }
 
-    #floating-menu, #category-menu {
-        position: static; /* Remove sticky positioning */
-        width: 100%; /* Take full width of wrapper */
-        max-height: none; /* Allow content to dictate height */
+    /* Individual Right Menu Styles (children of the wrapper) on mobile */
+    #floating-menu, #category-menu, #bulk-actions-menu {
+        border-radius: 0; /* Remove individual border radius */
         box-shadow: none; /* Remove individual shadows */
         border: none; /* Remove individual borders */
-        border-radius: 0; /* Remove individual border radius */
-        padding: 1em;
-        margin-bottom: 0; /* No margin between them */
+        border-bottom: 1px solid var(--block-border); /* Add separator between them */
     }
 
-    #category-menu {
-        border-bottom: 1px solid var(--block-border); /* Add separator between category and quick access */
+    #bulk-actions-menu {
         border-radius: var(--border-radius) var(--border-radius) 0 0; /* Rounded top only */
     }
-
     #floating-menu {
+        border-bottom: none; /* No border at the very bottom of the last menu */
         border-radius: 0 0 var(--border-radius) var(--border-radius); /* Rounded bottom only */
+    }
+
+
+    /* Show mobile menu header when menus are open on mobile */
+    #left-floating-menu.open .mobile-menu-header,
+    #right-menu-wrapper.open .mobile-menu-header { /* Only need to check wrapper open state */
+      display: flex; /* Show mobile header on mobile */
+    }
+
+    /* Show the mobile toggle buttons */
+    .mobile-menu-toggle-button {
+      display: flex; /* Show the buttons */
+    }
+
+    /* Adjust main container on mobile */
+    #container {
+      margin-left: auto; /* Center main content */
+      margin-right: auto;
+    }
+
+    /* Removed backdrop and blur styles */
+    body.menu-active::before,
+    body.menu-active #container {
+      /* No styles here, effectively removing the dimming/blurring */
     }
   }
 
+  /* Even smaller screens for overall padding adjustment */
+  @media (max-width: 768px) {
+    body {
+      padding: 1em;
+    }
+    #container {
+      padding: 1.5em;
+    }
+    .mobile-menu-toggle-button {
+      width: 45px;
+      height: 45px;
+      font-size: 1.5rem;
+    }
+  }
+
+  /* Custom Modal for alerts/confirms */
+  .custom-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+  }
+
+  .custom-modal-content {
+    background: var(--background);
+    padding: 2em;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    color: var(--text-color);
+  }
+
+  .custom-modal-content button {
+    margin: 0.5em;
+    padding: 0.7em 1.5em;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.2s;
+  }
+
+  .custom-modal-content button.confirm-btn {
+    background: var(--primary);
+    color: white;
+  }
+
+  .custom-modal-content button.cancel-btn {
+    background: var(--gray);
+    color: white;
+  }
+
+  .custom-modal-content textarea {
+    width: calc(100% - 20px); /* Adjust for padding */
+    min-height: 150px;
+    margin-bottom: 1em;
+    padding: 10px;
+    border: 1px solid var(--input-border);
+    border-radius: var(--border-radius);
+    background: var(--block-background);
+    color: var(--text-color);
+    box-sizing: border-box;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+  }
+
+  .copy-feedback {
+    display: inline-block;
+    margin-left: 0.5em;
+    color: var(--primary);
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+  }
+
+  .copy-feedback.show {
+    opacity: 1;
+  }
+
+  /* Loading Spinner Styles */
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10001; /* Higher than modal overlay */
+    color: white;
+    font-size: 1.2rem;
+    flex-direction: column;
+    gap: 1em;
+  }
+
+  .spinner {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid #fff;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Category dropdown in header */
+  .label-header .category-in-header {
+    margin-left: auto; /* Push to the right, before move buttons */
+    margin-right: 0.5em; /* Small space before move buttons */
+    display: flex;
+    align-items: center;
+    gap: 0.2em;
+    font-weight: normal; /* Override header's bold */
+    color: var(--text-color);
+  }
+
+  .label-header .category-in-header label {
+    margin: 0;
+    font-size: 0.85rem;
+    white-space: nowrap; /* Prevent text wrapping */
+  }
+
+  .label-header .category-in-header select {
+    width: auto; /* Allow select to size to content */
+    max-width: 100px; /* Limit width */
+    padding: 0.2em 0.4em;
+    font-size: 0.85rem;
+    margin: 0;
+    background-color: var(--block-background); /* Match block background */
+    border: 1px solid var(--input-border);
+    border-radius: var(--border-radius);
+    color: var(--text-color);
+  }
+
+  /* Bulk Actions Section Styling */
+  #bulk-actions-menu {
+    background: var(--background);
+    border: 1px solid var(--block-border);
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 1em;
+    margin-bottom: 1em; /* Space between bulk actions and categories */
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+  }
+
+  #bulk-actions-menu h3 {
+    margin-top: 0;
+    color: var(--primary);
+    font-size: 1.2rem;
+    margin-bottom: 0.8em;
+  }
+
+  #bulk-actions-menu .bulk-action-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    margin-bottom: 1em;
+    border-bottom: 1px solid var(--block-border);
+    padding-bottom: 1em;
+  }
+
+  #bulk-actions-menu .bulk-action-group:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+      margin-bottom: 0;
+  }
+
+  #bulk-actions-menu .bulk-action-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      flex-wrap: wrap; /* Allow wrapping on small screens */
+  }
+
+  #bulk-actions-menu .bulk-action-row label {
+      margin: 0; /* Override default label margin */
+      flex-shrink: 0;
+  }
+
+  #bulk-actions-menu .bulk-action-row select,
+  #bulk-actions-menu .bulk-action-row input[type="checkbox"] {
+      margin: 0; /* Override default input/select margin */
+  }
+
+  #bulk-actions-menu .bulk-action-row select {
+      flex-grow: 1; /* Allow select to take available space */
+      max-width: 120px; /* Limit width */
+      padding: 0.3em 0.5em;
+      font-size: 0.9rem;
+  }
+
+  #bulk-actions-menu .bulk-action-row button {
+      padding: 0.4em 0.8em;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+  }
+
+  #bulk-actions-menu .bulk-action-row .full-width-button {
+      width: 100%;
+      margin-top: 0.5em;
+  }
+
+  #bulk-actions-menu .bulk-action-row .danger-button {
+      background-color: var(--danger);
+  }
+
+  #bulk-actions-menu .bulk-action-row .danger-button:hover {
+      background-color: #dc2626;
+  }
+
+  /* Checkbox styling for bulk select */
+  .label-header .bulk-select-checkbox {
+    margin-left: 0.5em; /* Space from identifier */
+    margin-right: 0.5em;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  /* Mobile specific adjustments for bulk action menu */
+  @media (max-width: 992px) {
+    /* Left menu on mobile */
+    #left-floating-menu {
+      position: fixed; /* Fixed on mobile */
+      bottom: 0;
+      width: 80%;
+      max-width: 300px;
+      height: auto;
+      max-height: 80vh;
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
+      border-bottom: none;
+      transform: translateY(calc(100% + 50px)); /* Start collapsed and fully hidden */
+      display: flex; /* Ensure they are flex containers when active */
+      margin-right: 0; /* Remove desktop margin */
+      pointer-events: none; /* Make menu non-interactive when collapsed */
+      z-index: 9999; /* Ensure they are on top */
+    }
+
+    #left-floating-menu {
+      left: 0;
+    }
+
+    /* Right menu wrapper for mobile */
+    #right-menu-wrapper {
+        position: fixed; /* Fixed on mobile */
+        bottom: 0;
+        right: 0;
+        width: 80%;
+        max-width: 300px;
+        height: auto;
+        max-height: 80vh; /* Max height for the entire wrapper */
+        overflow-y: auto; /* Enable scrolling for the entire wrapper */
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
+        border-bottom: none;
+        transform: translateY(calc(100% + 50px)); /* Hide by default */
+        pointer-events: none; /* Initially non-interactive */
+        z-index: 9998; /* Ensure it's below bulk actions if both open */
+    }
+
+    /* When right menu wrapper is open, stack its children */
+    #right-menu-wrapper.open {
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    /* Individual Right Menu Styles (children of the wrapper) on mobile */
+    #floating-menu, #category-menu, #bulk-actions-menu {
+        border-radius: 0; /* Remove individual border radius */
+        box-shadow: none; /* Remove individual shadows */
+        border: none; /* Remove individual borders */
+        border-bottom: 1px solid var(--block-border); /* Add separator between them */
+    }
+
+    #bulk-actions-menu {
+        border-radius: var(--border-radius) var(--border-radius) 0 0; /* Rounded top only */
+    }
+    #floating-menu {
+        border-bottom: none; /* No border at the very bottom of the last menu */
+        border-radius: 0 0 var(--border-radius) var(--border-radius); /* Rounded bottom only */
+    }
+
+
+    /* Show mobile menu header when menus are open on mobile */
+    #left-floating-menu.open .mobile-menu-header,
+    #right-menu-wrapper.open .mobile-menu-header { /* Only need to check wrapper open state */
+      display: flex; /* Show mobile header on mobile */
+    }
+
+    /* Show the mobile toggle buttons */
+    .mobile-menu-toggle-button {
+      display: flex; /* Show the buttons */
+    }
+
+    /* Adjust main container on mobile */
+    #container {
+      margin-left: auto; /* Center main content */
+      margin-right: auto;
+    }
+
+    /* Removed backdrop and blur styles */
+    body.menu-active::before,
+    body.menu-active #container {
+      /* No styles here, effectively removing the dimming/blurring */
+    }
+  }
+
+  /* Even smaller screens for overall padding adjustment */
+  @media (max-width: 768px) {
+    body {
+      padding: 1em;
+    }
+    #container {
+      padding: 1.5em;
+    }
+    .mobile-menu-toggle-button {
+      width: 45px;
+      height: 45px;
+      font-size: 1.5rem;
+    }
+  }
+
+  /* Custom Modal for alerts/confirms */
+  .custom-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+  }
+
+  .custom-modal-content {
+    background: var(--background);
+    padding: 2em;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    color: var(--text-color);
+  }
+
+  .custom-modal-content button {
+    margin: 0.5em;
+    padding: 0.7em 1.5em;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.2s;
+  }
+
+  .custom-modal-content button.confirm-btn {
+    background: var(--primary);
+    color: white;
+  }
+
+  .custom-modal-content button.cancel-btn {
+    background: var(--gray);
+    color: white;
+  }
+
+  .custom-modal-content textarea {
+    width: calc(100% - 20px); /* Adjust for padding */
+    min-height: 150px;
+    margin-bottom: 1em;
+    padding: 10px;
+    border: 1px solid var(--input-border);
+    border-radius: var(--border-radius);
+    background: var(--block-background);
+    color: var(--text-color);
+    box-sizing: border-box;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+  }
+
+  .copy-feedback {
+    display: inline-block;
+    margin-left: 0.5em;
+    color: var(--primary);
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+  }
+
+  .copy-feedback.show {
+    opacity: 1;
+  }
+
+  /* Loading Spinner Styles */
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10001; /* Higher than modal overlay */
+    color: white;
+    font-size: 1.2rem;
+    flex-direction: column;
+    gap: 1em;
+  }
+
+  .spinner {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid #fff;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Category dropdown in header */
+  .label-header .category-in-header {
+    margin-left: auto; /* Push to the right, before move buttons */
+    margin-right: 0.5em; /* Small space before move buttons */
+    display: flex;
+    align-items: center;
+    gap: 0.2em;
+    font-weight: normal; /* Override header's bold */
+    color: var(--text-color);
+  }
+
+  .label-header .category-in-header label {
+    margin: 0;
+    font-size: 0.85rem;
+    white-space: nowrap; /* Prevent text wrapping */
+  }
+
+  .label-header .category-in-header select {
+    width: auto; /* Allow select to size to content */
+    max-width: 100px; /* Limit width */
+    padding: 0.2em 0.4em;
+    font-size: 0.85rem;
+    margin: 0;
+    background-color: var(--block-background); /* Match block background */
+    border: 1px solid var(--input-border);
+    border-radius: var(--border-radius);
+    color: var(--text-color);
+  }
+
+  /* Bulk Actions Section Styling */
+  #bulk-actions-menu {
+    background: var(--background);
+    border: 1px solid var(--block-border);
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 1em;
+    margin-bottom: 1em; /* Space between bulk actions and categories */
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+  }
+
+  #bulk-actions-menu h3 {
+    margin-top: 0;
+    color: var(--primary);
+    font-size: 1.2rem;
+    margin-bottom: 0.8em;
+  }
+
+  #bulk-actions-menu .bulk-action-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    margin-bottom: 1em;
+    border-bottom: 1px solid var(--block-border);
+    padding-bottom: 1em;
+  }
+
+  #bulk-actions-menu .bulk-action-group:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+      margin-bottom: 0;
+  }
+
+  #bulk-actions-menu .bulk-action-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      flex-wrap: wrap; /* Allow wrapping on small screens */
+  }
+
+  #bulk-actions-menu .bulk-action-row label {
+      margin: 0; /* Override default label margin */
+      flex-shrink: 0;
+  }
+
+  #bulk-actions-menu .bulk-action-row select,
+  #bulk-actions-menu .bulk-action-row input[type="checkbox"] {
+      margin: 0; /* Override default input/select margin */
+  }
+
+  #bulk-actions-menu .bulk-action-row select {
+      flex-grow: 1; /* Allow select to take available space */
+      max-width: 120px; /* Limit width */
+      padding: 0.3em 0.5em;
+      font-size: 0.9rem;
+  }
+
+  #bulk-actions-menu .bulk-action-row button {
+      padding: 0.4em 0.8em;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+  }
+
+  #bulk-actions-menu .bulk-action-row .full-width-button {
+      width: 100%;
+      margin-top: 0.5em;
+  }
+
+  #bulk-actions-menu .bulk-action-row .danger-button {
+      background-color: var(--danger);
+  }
+
+  #bulk-actions-menu .bulk-action-row .danger-button:hover {
+      background-color: #dc2626;
+  }
+
+  /* Checkbox styling for bulk select */
+  .label-header .bulk-select-checkbox {
+    margin-left: 0.5em; /* Space from identifier */
+    margin-right: 0.5em;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  /* Mobile specific adjustments for bulk action menu */
+  @media (max-width: 992px) {
+    /* Left menu on mobile */
+    #left-floating-menu {
+      position: fixed; /* Fixed on mobile */
+      bottom: 0;
+      width: 80%;
+      max-width: 300px;
+      height: auto;
+      max-height: 80vh;
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
+      border-bottom: none;
+      transform: translateY(calc(100% + 50px)); /* Start collapsed and fully hidden */
+      display: flex; /* Ensure they are flex containers when active */
+      margin-right: 0; /* Remove desktop margin */
+      pointer-events: none; /* Make menu non-interactive when collapsed */
+      z-index: 9999; /* Ensure they are on top */
+    }
+
+    #left-floating-menu {
+      left: 0;
+    }
+
+    /* Right menu wrapper for mobile */
+    #right-menu-wrapper {
+        position: fixed; /* Fixed on mobile */
+        bottom: 0;
+        right: 0;
+        width: 80%;
+        max-width: 300px;
+        height: auto;
+        max-height: 80vh; /* Max height for the entire wrapper */
+        overflow-y: auto; /* Enable scrolling for the entire wrapper */
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
+        border-bottom: none;
+        transform: translateY(calc(100% + 50px)); /* Hide by default */
+        pointer-events: none; /* Initially non-interactive */
+        z-index: 9998; /* Ensure it's below bulk actions if both open */
+    }
+
+    /* When right menu wrapper is open, stack its children */
+    #right-menu-wrapper.open {
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    /* Individual Right Menu Styles (children of the wrapper) on mobile */
+    #floating-menu, #category-menu, #bulk-actions-menu {
+        border-radius: 0; /* Remove individual border radius */
+        box-shadow: none; /* Remove individual shadows */
+        border: none; /* Remove individual borders */
+        border-bottom: 1px solid var(--block-border); /* Add separator between them */
+    }
+
+    #bulk-actions-menu {
+        border-radius: var(--border-radius) var(--border-radius) 0 0; /* Rounded top only */
+    }
+    #floating-menu {
+        border-bottom: none; /* No border at the very bottom of the last menu */
+        border-radius: 0 0 var(--border-radius) var(--border-radius); /* Rounded bottom only */
+    }
+
+
+    /* Show mobile menu header when menus are open on mobile */
+    #left-floating-menu.open .mobile-menu-header,
+    #right-menu-wrapper.open .mobile-menu-header { /* Only need to check wrapper open state */
+      display: flex; /* Show mobile header on mobile */
+    }
+
+    /* Show the mobile toggle buttons */
+    .mobile-menu-toggle-button {
+      display: flex; /* Show the buttons */
+    }
+
+    /* Adjust main container on mobile */
+    #container {
+      margin-left: auto; /* Center main content */
+      margin-right: auto;
+    }
+
+    /* Removed backdrop and blur styles */
+    body.menu-active::before,
+    body.menu-active #container {
+      /* No styles here, effectively removing the dimming/blurring */
+    }
+  }
+
+  /* Even smaller screens for overall padding adjustment */
+  @media (max-width: 768px) {
+    body {
+      padding: 1em;
+    }
+    #container {
+      padding: 1.5em;
+    }
+    .mobile-menu-toggle-button {
+      width: 45px;
+      height: 45px;
+      font-size: 1.5rem;
+    }
+  }
 </style>
 
 </head>
@@ -1056,6 +1745,9 @@
     <button id="collapseAllBtn" class="left-menu-button">Collapse All</button>
     <button id="expandAllBtn" class="left-menu-button">Expand All</button>
     <button id="resetClearBtn" class="left-menu-button">Reset / Clear All</button>
+    <div class="separator"></div>
+    <button id="sortByIdentifierBtn" class="left-menu-button">Sort by Identifier</button>
+    <button id="sortBySeverityBtn" class="left-menu-button">Sort by Severity</button>
     <div class="separator"></div>
     <div class="theme-switch-wrapper">
       <span class="theme-switch-label-text">Dark Mode</span>
@@ -1101,7 +1793,7 @@
     <pre id="output"></pre>
   </div>
 
-  <div id="right-menu-wrapper" style="display: flex; flex-direction: column; gap: 1em;">
+  <div id="right-menu-wrapper">
     <div id="bulk-actions-menu">
         <div class="mobile-menu-header">
             <h3>Bulk Actions</h3>
@@ -2611,6 +3303,39 @@ Original description:
         }
     }
 
+    // --- Auto-Sort Functions ---
+    function sortLabels(sortBy) {
+        const currentLabelsData = getLabelsData(); // Get current state of labels
+
+        let sortedLabels;
+        if (sortBy === 'identifier') {
+            sortedLabels = currentLabelsData.sort((a, b) => a.identifier.localeCompare(b.identifier));
+        } else if (sortBy === 'severity') {
+            const severityOrder = { 'none': 0, 'inform': 1, 'warn': 2, 'alert': 3 };
+            sortedLabels = currentLabelsData.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity]);
+        } else {
+            return; // No valid sort key
+        }
+
+        // Re-render labels in the sorted order
+        document.getElementById('labels-container').innerHTML = ''; // Clear existing DOM elements
+        sortedLabels.forEach(label => {
+            createLabelBlock(
+                label.identifier,
+                label.severity,
+                label.blurs,
+                label.defaultSetting,
+                label.adultOnly,
+                label.enabled,
+                label.locales,
+                label.category
+            );
+        });
+        saveFullSessionStateToLocalStorage();
+        updateJSONOutput(); // Update JSON output and trigger history save
+        showCustomModal(`Labels sorted by ${sortBy}.`, 'alert');
+    }
+
 
     // --- Session File Save/Load ---
     function saveSessionFile() {
@@ -2732,79 +3457,62 @@ Original description:
     const mobileRightMenuToggle = document.getElementById('mobileRightMenuToggle');
     const mobileBulkActionsToggle = document.getElementById('mobileBulkActionsToggle'); // New bulk actions toggle
     const leftFloatingMenu = document.getElementById('left-floating-menu');
-    const rightFloatingMenu = document.getElementById('floating-menu'); // Quick Access
-    const categoryMenu = document.getElementById('category-menu'); // Category Menu
-    const bulkActionsMenu = document.getElementById('bulk-actions-menu'); // Bulk Actions Menu
+    const rightMenuWrapper = document.getElementById('right-menu-wrapper'); // The wrapper for right menus
     const closeLeftMenuBtn = document.getElementById('closeLeftMenuBtn');
-    const closeRightMenuBtn = document.getElementById('closeRightMenuBtn'); // Quick Access
-    const closeCategoryMenuBtn = document.getElementById('closeCategoryMenuBtn'); // Category Menu
-    const closeBulkActionsMenuBtn = document.getElementById('closeBulkActionsMenuBtn'); // New bulk actions close button
+    const closeRightMenuBtn = document.getElementById('closeRightMenuBtn'); // Quick Access is now child of wrapper
+    const closeCategoryMenuBtn = document.getElementById('closeCategoryMenuBtn'); // Category is now child of wrapper
+    const closeBulkActionsMenuBtn = document.getElementById('closeBulkActionsMenuBtn'); // Bulk Actions is now child of wrapper
     const body = document.body;
 
     // Function to open a specific mobile menu
     function openMobileMenu(menuElement) {
       // Close other menus if they're open
-      [leftFloatingMenu, rightFloatingMenu, categoryMenu, bulkActionsMenu].forEach(menu => {
+      [leftFloatingMenu, rightMenuWrapper].forEach(menu => { // Only consider the two main mobile menu containers
         if (menu !== menuElement && menu.classList.contains('open')) {
           closeMobileMenu(menu);
         }
       });
 
       menuElement.classList.add('open');
-      menuElement.style.transform = menuElement.id === 'bulk-actions-menu' ? 'translateX(-50%) translateY(0)' : 'translateY(0)'; // Slide in from bottom
+      menuElement.style.transform = menuElement.id === 'right-menu-wrapper' ? 'translateY(0)' : 'translateY(0)'; // Slide in from bottom
     }
 
     // Function to close a specific mobile menu
     function closeMobileMenu(menuElement) {
       menuElement.classList.remove('open');
-      menuElement.style.transform = menuElement.id === 'bulk-actions-menu' ? 'translateX(-50%) translateY(calc(100% + 50px))' : 'translateY(calc(100% + 50px))'; // Slide out to bottom, fully hidden
+      // Adjust transform based on which menu is being closed
+      if (menuElement.id === 'right-menu-wrapper') {
+          menuElement.style.transform = 'translateY(calc(100% + 50px))'; // Slide out to bottom, fully hidden
+      } else { // left menu
+          menuElement.style.transform = 'translateY(calc(100% + 50px))'; // Slide out to bottom, fully hidden
+      }
     }
 
     // Event listeners for mobile menu toggles
     mobileLeftMenuToggle.addEventListener('click', () => openMobileMenu(leftFloatingMenu));
-    mobileBulkActionsToggle.addEventListener('click', () => openMobileMenu(bulkActionsMenu)); // New toggle for bulk actions
+    mobileRightMenuToggle.addEventListener('click', () => openMobileMenu(rightMenuWrapper)); // Right toggle opens the wrapper
 
-    // The right toggle will now open the category menu first, then quick access
-    mobileRightMenuToggle.addEventListener('click', () => {
-        if (!categoryMenu.classList.contains('open') && !rightFloatingMenu.classList.contains('open')) {
-            openMobileMenu(categoryMenu); // Open category menu first
-        } else if (categoryMenu.classList.contains('open')) {
-            closeMobileMenu(categoryMenu);
-            openMobileMenu(rightFloatingMenu); // Then open quick access
-        } else {
-            closeMobileMenu(rightFloatingMenu);
-        }
-    });
-
-
-    // Event listeners for internal close buttons
+    // Event listeners for internal close buttons (these are children of the wrapper, but still need to close the wrapper)
     closeLeftMenuBtn.addEventListener('click', () => closeMobileMenu(leftFloatingMenu));
-    closeRightMenuBtn.addEventListener('click', () => closeMobileMenu(rightFloatingMenu));
-    closeCategoryMenuBtn.addEventListener('click', () => closeMobileMenu(categoryMenu));
-    closeBulkActionsMenuBtn.addEventListener('click', () => closeMobileMenu(bulkActionsMenu)); // New close button for bulk actions
+    closeRightMenuBtn.addEventListener('click', () => closeMobileMenu(rightMenuWrapper)); // Close button inside quick access
+    closeCategoryMenuBtn.addEventListener('click', () => closeMobileMenu(rightMenuWrapper)); // Close button inside category
+    closeBulkActionsMenuBtn.addEventListener('click', () => closeMobileMenu(rightMenuWrapper)); // Close button inside bulk actions
 
 
     // Close menu if clicking outside (on the backdrop)
     document.addEventListener('click', (event) => {
       const isClickInsideLeftMenu = leftFloatingMenu.contains(event.target);
-      const isClickInsideRightMenu = rightFloatingMenu.contains(event.target);
-      const isClickInsideCategoryMenu = categoryMenu.contains(event.target);
-      const isClickInsideBulkActionsMenu = bulkActionsMenu.contains(event.target); // New for bulk actions
+      const isClickInsideRightMenuWrapper = rightMenuWrapper.contains(event.target);
       const isClickOnLeftToggle = mobileLeftMenuToggle.contains(event.target);
       const isClickOnRightToggle = mobileRightMenuToggle.contains(event.target);
-      const isClickOnBulkActionsToggle = mobileBulkActionsToggle.contains(event.target); // New for bulk actions
 
       // Only close if a menu is open and the click is outside all menus and their toggles
       if (
         (leftFloatingMenu.classList.contains('open') && !isClickInsideLeftMenu && !isClickOnLeftToggle) ||
-        (rightFloatingMenu.classList.contains('open') && !isClickInsideRightMenu && !isClickOnRightToggle) ||
-        (categoryMenu.classList.contains('open') && !isClickInsideCategoryMenu && !isClickOnRightToggle) ||
-        (bulkActionsMenu.classList.contains('open') && !isClickInsideBulkActionsMenu && !isClickOnBulkActionsToggle) // New condition
+        (rightMenuWrapper.classList.contains('open') && !isClickInsideRightMenuWrapper && !isClickOnRightToggle)
       ) {
         closeMobileMenu(leftFloatingMenu);
-        closeMobileMenu(rightFloatingMenu);
-        closeMobileMenu(categoryMenu);
-        closeMobileMenu(bulkActionsMenu); // Close bulk actions menu
+        closeMobileMenu(rightMenuWrapper);
       }
     });
 
@@ -2893,6 +3601,10 @@ Original description:
     document.getElementById('resetClearBtn').onclick = resetClearLabels;
     document.getElementById('versionHistoryBtn').onclick = showVersionHistory;
     document.getElementById('saveBtn').onclick = addVersionToHistory;
+
+    // New sort buttons
+    document.getElementById('sortByIdentifierBtn').onclick = () => sortLabels('identifier');
+    document.getElementById('sortBySeverityBtn').onclick = () => sortLabels('severity');
 
     // New session save/load buttons
     document.getElementById('saveSessionFileBtn').onclick = saveSessionFile;
