@@ -102,9 +102,10 @@
 
   header {
     display: flex;
+    flex-direction: column; /* Changed to column to stack heading and version */
     align-items: center;
     justify-content: center;
-    gap: 16px;
+    gap: 8px; /* Reduced gap for stacked elements */
     margin-bottom: 1.5em;
     position: relative;
   }
@@ -117,11 +118,19 @@
     text-transform: uppercase;
   }
 
+  header p { /* Added style for the new version paragraph */
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--gray);
+  }
+
+
   header a img {
     height: 48px;
     width: auto;
     border-radius: 8px;
     transition: transform 0.2s ease;
+    margin-bottom: 8px; /* Add margin below the image to separate it from text */
   }
 
   header a img:hover {
@@ -791,9 +800,10 @@
   <div id="container">
     <header>
       <a href="https://fema.monster" target="_blank" rel="noopener noreferrer" title="Go to fema.monster">
-        <img src="https://lh4.googleusercontent.com/rSyH4R619xF9Cfghdvb2ZcRb5KkSQzRH8HbCeS8Awn5l4gq3ByinXXuuUYzYDD0t6jp7ztrmKFp-WfQs9JCqku8=w1280" alt="Ozone Logo" onerror="this.onerror=null;this.src='https://placehold.co/48x48/6b7280/ffffff?text=LOGO';" />
+        <img src="https://raw.githubusercontent.com/femavibes/ozone-label-master/refs/heads/main/femamonster.jpg" alt="Ozone Logo" onerror="this.onerror=null;this.src='https://placehold.co/48x48/6b7280/ffffff?text=LOGO';" />
       </a>
       <h1>OZONE LABEL MASTER</h1>
+      <p>version 0.67</p>
     </header>
 
     <input type="text" id="searchInput" placeholder="Search labels..." title="Filter labels by identifier or locale name" />
@@ -2066,7 +2076,8 @@ Original description:
       // Close the other menu if it's open
       if (menuElement === leftFloatingMenu && rightFloatingMenu.classList.contains('open')) {
         closeMobileMenu(rightFloatingMenu);
-      } else if (menuElement === rightFloatingMenu && leftFloatingMenu.classList.contains('open')) {
+      }
+      else if (menuElement === rightFloatingMenu && leftFloatingMenu.classList.contains('open')) {
         closeMobileMenu(leftFloatingMenu);
       }
 
