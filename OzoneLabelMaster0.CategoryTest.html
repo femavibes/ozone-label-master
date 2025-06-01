@@ -1,0 +1,2575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ozone Label Master</title>
+<style>
+  :root {
+    /* Light Mode Defaults */
+    --primary: #3b82f6;
+    --danger: #ef4444;
+    --gray: #6b7280;
+    --light-gray: #f3f4f6;
+    --background: #ffffff;
+    --text-color: #111827;
+    --block-background: #fff;
+    --block-border: #e5e7eb;
+    --header-background: #f9fafb;
+    --input-border: #d1d5db;
+    --output-background: #f3f4f6;
+    --output-border: #e5e7eb;
+    --border-radius: 8px;
+  }
+
+  /* Dark Mode Overrides */
+  body.dark-mode {
+    --primary: #60a5fa; /* Lighter blue for dark mode */
+    --danger: #f87171; /* Lighter red for dark mode */
+    --gray: #9ca3af;
+    --light-gray: #1f2937; /* Dark background */
+    --background: #111827; /* Even darker background for container */
+    --text-color: #e5e7eb; /* Light text */
+    --block-background: #1f2937; /* Darker block background */
+    --block-border: #374151; /* Darker border */
+    --header-background: #374151; /* Darker header background */
+    --input-border: #4b5563; /* Darker input border */
+    --output-background: #374151; /* Darker output background */
+    --output-border: #4b5563; /* Darker output border */
+  }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--light-gray);
+    color: var(--text-color); /* Use variable */
+    margin: 0;
+    padding: 2em;
+    transition: background 0.3s ease, color 0.3s ease; /* Smooth transition */
+    display: flex; /* Use flexbox for layout */
+    justify-content: center; /* Center content horizontally */
+    align-items: flex-start; /* Align items to the top */
+    min-height: 100vh; /* Ensure body takes full viewport height */
+    box-sizing: border-box; /* Include padding in element's total width and height */
+  }
+
+  /* Default (Desktop) Floating Menu Styles */
+  #left-floating-menu {
+    position: sticky; /* Sticky on desktop */
+    top: 2em;
+    width: 180px;
+    background: var(--background);
+    border: 1px solid var(--block-border);
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 1em;
+    z-index: 9999; /* Increased z-index significantly */
+    max-height: calc(100vh - 4em);
+    overflow-y: auto;
+    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease-out; /* Add transform transition */
+    margin-right: 2em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+  }
+
+  #left-floating-menu .mobile-menu-header {
+    display: none; /* Hide mobile header on desktop */
+  }
+
+  #left-floating-menu button {
+    width: 100%;
+    margin-top: 0;
+    margin-right: 0;
+  }
+
+  #left-floating-menu .separator {
+    height: 1px;
+    background-color: var(--block-border);
+    margin: 1em 0;
+    width: 100%;
+  }
+
+  #container {
+    max-width: 600px;
+    width: 100%;
+    background: var(--background);
+    padding: 2em;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+    margin-right: 2em;
+    z-index: 1; /* Ensure container is below menus if they are fixed/absolute */
+  }
+
+  header {
+    display: flex; /* Changed to flex for horizontal alignment */
+    flex-direction: row; /* Ensure horizontal layout */
+    align-items: center;
+    justify-content: center;
+    gap: 16px; /* Space between image and text */
+    margin-bottom: 1.5em;
+    position: relative;
+  }
+
+  header .header-text-group { /* New container for title and version */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0; /* No gap between h1 and p */
+  }
+
+  header h1 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 2rem;
+    color: var(--primary);
+    text-transform: uppercase;
+  }
+
+  header p { /* Style for the new version paragraph */
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--gray);
+  }
+
+
+  header a img {
+    height: 48px;
+    width: auto;
+    border-radius: 8px;
+    transition: transform 0.2s ease;
+    /* Removed margin-bottom here as it's handled by gap in header */
+  }
+
+  header a img:hover {
+    transform: scale(1.05);
+  }
+
+  #searchInput {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 1rem;
+    border: 1px solid var(--input-border);
+    border-radius: var(--border-radius);
+    margin-bottom: 1.5em;
+    box-sizing: border-box;
+    background: var(--block-background);
+    color: var(--text-color);
+    transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  }
+
+  .label-block {
+    background: var(--block-background);
+    border: 1px solid var(--block-border);
+    border-radius: var(--border-radius);
+    margin-bottom: 1.5em;
+    overflow: hidden;
+    transition: box-shadow 0.2s, background 0.3s ease, border-color 0.3s ease;
+    cursor: pointer;
+  }
+
+  .label-block:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .label-block.is-dragging {
+    opacity: 0.4;
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    transition: transform 0.1s ease-out, box-shadow 0.1s ease-out, opacity 0.1s ease-out;
+  }
+
+  .label-block.disabled {
+    opacity: 0.6;
+  }
+
+  .label-header {
+    background: var(--header-background);
+    padding: 0.75em 1em;
+    display: flex;
+    align-items: center;
+    gap: 0.2em;
+    font-weight: 600;
+    cursor: grab;
+    border-bottom: 1px solid var(--block-border);
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+
+  .collapse-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: background 0.3s ease;
+  }
+
+  /* Unified style for all 'X' buttons and small square buttons */
+  .remove-btn,
+  .locale-remove-btn,
+  .close-mobile-menu-btn,
+  .move-up-btn,
+  .move-down-btn,
+  .remove-category-btn { /* Added remove-category-btn */
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    display: flex; /* Use flexbox for centering 'X' or arrow */
+    justify-content: center;
+    align-items: center;
+    line-height: 1; /* Ensure content is vertically centered */
+    flex-shrink: 0; /* Prevent shrinking in flex containers */
+    width: 30px; /* Fixed width */
+    height: 30px; /* Fixed height */
+    padding: 0; /* Remove padding for consistent size */
+    font-size: 1.2rem; /* Larger 'X' or arrow for small buttons */
+    border-radius: 4px; /* Square with 4px radius */
+  }
+
+  /* Specific colors for different button types */
+  .remove-btn,
+  .locale-remove-btn,
+  .close-mobile-menu-btn,
+  .remove-category-btn { /* Added remove-category-btn */
+    background: var(--danger); /* Red color */
+    color: white;
+  }
+
+  .move-up-btn,
+  .move-down-btn {
+    background: var(--gray); /* Grey color */
+    color: white;
+  }
+
+  /* Hover states */
+  .remove-btn:hover,
+  .locale-remove-btn:hover,
+  .close-mobile-menu-btn:hover,
+  .remove-category-btn:hover { /* Added remove-category-btn */
+    background: #dc2626; /* Darker red on hover */
+    transform: none; /* Ensure no unwanted transform from previous styles */
+  }
+
+  .move-up-btn:hover,
+  .move-down-btn:hover {
+    background: #4b5563; /* Darker grey on hover */
+  }
+
+  .move-up-btn:disabled,
+  .move-down-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+  }
+
+
+  .label-content {
+    padding: 1em;
+  }
+
+  .locale-block {
+    border: 1px solid var(--block-border);
+    padding: 1em;
+    margin-top: 1em;
+    border-radius: var(--border-radius);
+    background: var(--header-background);
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+
+  .locale-header-row { /* New flex container for locale header elements */
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    margin-bottom: 0.5em; /* Space between header row and content */
+  }
+
+  .locale-header-row .collapse-btn { /* Style for locale collapse button */
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 6px 12px; /* Match main collapse button padding */
+    border-radius: var(--border-radius); /* Match main collapse button border-radius */
+    cursor: pointer;
+    font-size: 0.875rem; /* Match main collapse button font-size */
+    transition: background 0.3s ease;
+    flex-shrink: 0;
+  }
+
+  .locale-header-row .collapse-btn:hover {
+    background: #2563eb;
+  }
+
+  .locale-header-row .locale-identifier-display {
+    flex: 1; /* Take remaining space */
+    user-select: text;
+    font-weight: 600; /* Make it stand out */
+    color: var(--text-color); /* Ensure text color is visible */
+  }
+
+  .locale-content-area { /* Collapsible content for locale */
+    /* No specific styles needed here, just acts as a container */
+  }
+
+  .locale-block .llm-buttons {
+    display: flex;
+    gap: 0.5em;
+    margin-top: 0.5em;
+    justify-content: flex-start; /* Aligns content to the left */
+  }
+
+  .locale-block .llm-buttons button {
+    padding: 0.4em 0.8em;
+    font-size: 0.85rem;
+    border-radius: 4px;
+    background: #10b981;
+  }
+
+  .locale-block .llm-buttons button:hover {
+    background: #059669;
+  }
+
+  label {
+    display: block;
+    margin-top: 1em;
+    font-weight: 500;
+  }
+
+  input[type="text"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 0.5em 0.75em;
+    margin-top: 0.25em;
+    font-size: 1rem;
+    border: 1px solid var(--input-border);
+    border-radius: var(--border-radius);
+    background: var(--block-background);
+    color: var(--text-color);
+    box-sizing: border-box;
+    transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  /* General button styling */
+  button {
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  button:hover {
+    background: #2563eb;
+  }
+
+  button:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+  }
+
+  /* Specific styling for buttons at the bottom of the container */
+  .action-button {
+    padding: 0.4em 0.8em;
+    font-size: 0.9rem;
+    margin-top: 1em;
+    margin-right: 0.5em;
+    vertical-align: middle;
+  }
+
+  /* New class for left menu buttons to ensure consistent sizing */
+  .left-menu-button {
+    padding: 0.6em 1.2em;
+    font-size: 1rem;
+    width: 100%;
+    margin-top: 0;
+    margin-right: 0;
+  }
+
+  /* Styling for Add Locale button */
+  .add-locale-btn {
+    background: var(--primary); /* Keep blue */
+    color: white;
+    border: none;
+    border-radius: 4px; /* Match translate buttons */
+    cursor: pointer;
+    font-size: 0.85rem; /* Match translate buttons */
+    padding: 0.4em 0.8em; /* Match translate buttons */
+    transition: background 0.2s;
+    margin-top: 1em; /* Add more spacing from above */
+  }
+
+  .add-locale-btn:hover {
+    background: #2563eb;
+  }
+
+  /* Spacing for Locales: text and separator */
+  .locales-container {
+    border-top: 1px solid var(--block-border); /* Add a line separator */
+    padding-top: 1em; /* Space above the line */
+    margin-top: 1.5em; /* Space below the line and above this container */
+  }
+
+  .locales-container strong {
+    display: block; /* Ensure it takes its own line for margin to apply correctly */
+    margin-bottom: 0.5em; /* Space between "Locales:" and the first locale block */
+  }
+
+  #output {
+    white-space: pre-wrap;
+    background: var(--output-background);
+    padding: 1em;
+    margin-top: 2em;
+    border: 1px solid var(--output-border);
+    font-family: 'Courier New', monospace;
+    font-size: 0.95rem;
+    border-radius: var(--border-radius);
+    max-height: 300px;
+    overflow-y: auto;
+    color: var(--text-color);
+    transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  }
+
+  #duplicateWarning {
+    color: var(--danger);
+    font-weight: 600;
+    margin-bottom: 1em;
+    display: none;
+  }
+
+  /* Theme switch styles */
+  .theme-switch-wrapper {
+    background: var(--primary);
+    color: white;
+    padding: 0.5em 0.8em; /* Adjusted vertical padding */
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  .theme-switch-wrapper:hover {
+    background: #2563eb;
+  }
+
+  .theme-switch-label-text {
+    font-weight: 500;
+    color: white;
+    margin-bottom: 0.2em; /* Adjusted margin-bottom */
+    text-align: center;
+    font-size: 0.8rem;
+  }
+
+  .theme-switch {
+    display: inline-block;
+    height: 16px;
+    position: relative;
+    width: 60px;
+    margin-top: 0.2em; /* Move toggle up slightly */
+    margin-bottom: 0.2em; /* Move toggle down slightly */
+  }
+
+  .theme-switch input {
+    display: none;
+  }
+
+  .slider {
+    background-color: #9ca3af; /* Changed to a darker gray for visibility when unchecked */
+    bottom: 0;
+    cursor: pointer;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transition: .4s;
+  }
+
+  .slider:before {
+    background-color: #fff; /* This is the ball color */
+    bottom: 2px;
+    content: "";
+    height: 12px;
+    left: 2px;
+    position: absolute;
+    transition: .4s;
+    width: 12px;
+  }
+
+  input:checked + .slider {
+    background-color: var(--primary); /* Track color when checked */
+  }
+
+  input:checked + .slider:before {
+    transform: translateX(44px);
+  }
+
+  .slider.round {
+    border-radius: 34px;
+  }
+
+  .slider.round:before {
+    border-radius: 50%;
+  }
+
+  /* Right Floating Menu Styles */
+  #floating-menu, #category-menu { /* Combined styles for both right menus */
+    position: sticky; /* Sticky on desktop */
+    top: 2em;
+    width: 200px;
+    background: var(--background);
+    border: 1px solid var(--block-border);
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 1em;
+    z-index: 9999; /* Increased z-index significantly */
+    max-height: calc(100vh - 4em);
+    overflow-y: auto;
+    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease-out; /* Add transform transition */
+    margin-bottom: 1em; /* Space between category and quick access menus */
+  }
+
+  #floating-menu .mobile-menu-header, #category-menu .mobile-menu-header {
+    display: none; /* Hide mobile header on desktop */
+  }
+
+  #floating-menu h3, #category-menu h3 {
+    margin-top: 0;
+    color: var(--primary);
+    font-size: 1.2rem;
+    margin-bottom: 0.8em;
+  }
+
+  #floating-menu ul, #category-menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  #floating-menu li, #category-menu li {
+    margin-bottom: 0.5em;
+  }
+
+  #floating-menu a, #category-menu a {
+    display: block;
+    padding: 0.3em 0.5em;
+    color: var(--text-color);
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background 0.2s ease, color 0.2s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #floating-menu a:hover, #category-menu a:hover {
+    background: var(--light-gray);
+    color: var(--primary);
+  }
+
+  /* Category Menu Specifics */
+  #category-menu .category-input-group {
+    display: flex;
+    gap: 0.5em;
+    margin-bottom: 1em;
+  }
+
+  #category-menu .category-input-group input {
+    flex-grow: 1;
+    padding: 0.5em;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--input-border);
+  }
+
+  #category-menu .category-input-group button {
+    padding: 0.5em 0.8em;
+    border-radius: var(--border-radius);
+    background: var(--primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+
+  #category-menu .category-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.3em 0.5em;
+    background: var(--light-gray);
+    border-radius: 4px;
+  }
+
+  #category-menu .category-list-item span {
+    flex-grow: 1;
+    color: var(--text-color);
+  }
+
+  /* Mobile Menu Toggle Buttons (bottom corners) */
+  .mobile-menu-toggle-button {
+    display: none; /* Hidden by default on large screens */
+    position: fixed;
+    bottom: 1em;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 50%; /* Make it round */
+    width: 50px;
+    height: 50px;
+    font-size: 1.8rem;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 1000; /* Ensure it's above other content */
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .mobile-menu-toggle-button:hover {
+    background: #2563eb;
+    transform: scale(1.05);
+  }
+
+  #mobileLeftMenuToggle {
+    left: 1em;
+  }
+
+  #mobileRightMenuToggle {
+    right: 1em;
+  }
+
+  /* Mobile Menu Header (inside the menus when open) */
+  .mobile-menu-header {
+    display: none; /* Hidden by default, shown in media query */
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1em;
+    padding: 0.5em 1em; /* Adjusted padding to give space for absolute button */
+    border-bottom: 1px solid var(--block-border);
+    box-sizing: border-box; /* Include padding in width */
+  }
+
+
+  /* Media query for smaller screens */
+  @media (max-width: 992px) {
+    /* Hide desktop menus */
+    #left-floating-menu,
+    #floating-menu,
+    #category-menu { /* Added category menu */
+      position: fixed; /* Fixed on mobile */
+      bottom: 0;
+      width: 80%;
+      max-width: 300px;
+      height: auto;
+      max-height: 80vh;
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
+      border-bottom: none;
+      transform: translateY(calc(100% + 50px)); /* Start collapsed and fully hidden */
+      display: flex; /* Ensure they are flex containers when active */
+      margin-right: 0; /* Remove desktop margin */
+      pointer-events: none; /* Make menu non-interactive when collapsed */
+      z-index: 9999; /* Ensure they are on top */
+    }
+
+    #left-floating-menu {
+      left: 0;
+    }
+
+    #floating-menu, #category-menu { /* Both right menus slide from right */
+      right: 0;
+    }
+    #category-menu {
+        margin-bottom: 0; /* Remove margin between them on mobile as they'll be separate */
+    }
+
+    /* Add relative positioning to menus for absolute close button */
+    #left-floating-menu,
+    #floating-menu,
+    #category-menu {
+        position: relative; /* Crucial for absolute positioning of close button */
+    }
+
+
+    /* Show mobile menu header when menus are open on mobile */
+    #left-floating-menu.open .mobile-menu-header,
+    #floating-menu.open .mobile-menu-header,
+    #category-menu.open .mobile-menu-header { /* Added category menu */
+      display: flex; /* Show mobile header on mobile */
+    }
+
+    /* When a menu is "open" on mobile */
+    #left-floating-menu.open,
+    #floating-menu.open,
+    #category-menu.open { /* Added category menu */
+      transform: translateY(0); /* Expand */
+      pointer-events: auto; /* Make menu interactive when open */
+    }
+
+    /* Show the mobile toggle buttons */
+    .mobile-menu-toggle-button {
+      display: flex; /* Show the buttons */
+    }
+
+    /* Adjust main container on mobile */
+    #container {
+      margin-left: auto; /* Center main content */
+      margin-right: auto;
+    }
+
+    /* Removed backdrop and blur styles */
+    body.menu-active::before,
+    body.menu-active #container {
+      /* No styles here, effectively removing the dimming/blurring */
+    }
+  }
+
+  /* Even smaller screens for overall padding adjustment */
+  @media (max-width: 768px) {
+    body {
+      padding: 1em;
+    }
+    #container {
+      padding: 1.5em;
+    }
+    .mobile-menu-toggle-button {
+      width: 45px;
+      height: 45px;
+      font-size: 1.5rem;
+    }
+  }
+
+  /* Custom Modal for alerts/confirms */
+  .custom-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+  }
+
+  .custom-modal-content {
+    background: var(--background);
+    padding: 2em;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    color: var(--text-color);
+  }
+
+  .custom-modal-content button {
+    margin: 0.5em;
+    padding: 0.7em 1.5em;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.2s;
+  }
+
+  .custom-modal-content button.confirm-btn {
+    background: var(--primary);
+    color: white;
+  }
+
+  .custom-modal-content button.cancel-btn {
+    background: var(--gray);
+    color: white;
+  }
+
+  .custom-modal-content textarea {
+    width: calc(100% - 20px); /* Adjust for padding */
+    min-height: 150px;
+    margin-bottom: 1em;
+    padding: 10px;
+    border: 1px solid var(--input-border);
+    border-radius: var(--border-radius);
+    background: var(--block-background);
+    color: var(--text-color);
+    box-sizing: border-box;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+  }
+
+  .copy-feedback {
+    display: inline-block;
+    margin-left: 0.5em;
+    color: var(--primary);
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.3s ease-out;
+  }
+
+  .copy-feedback.show {
+    opacity: 1;
+  }
+
+  /* Loading Spinner Styles */
+  .loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10001; /* Higher than modal overlay */
+    color: white;
+    font-size: 1.2rem;
+    flex-direction: column;
+    gap: 1em;
+  }
+
+  .spinner {
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid #fff;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+</style>
+
+</head>
+<body>
+  <div id="left-floating-menu">
+    <div class="mobile-menu-header">
+      <h3>Main Menu</h3>
+      <button id="closeLeftMenuBtn" class="close-mobile-menu-btn">X</button>
+    </div>
+    <button id="addLabelBtn" class="left-menu-button">+ Add Label</button>
+    <div class="separator"></div>
+    <button id="collapseAllBtn" class="left-menu-button">Collapse All</button>
+    <button id="expandAllBtn" class="left-menu-button">Expand All</button>
+    <button id="resetClearBtn" class="left-menu-button">Reset / Clear All</button>
+    <div class="separator"></div>
+    <div class="theme-switch-wrapper">
+      <span class="theme-switch-label-text">Dark Mode</span>
+      <label class="theme-switch" for="checkbox">
+        <input type="checkbox" id="checkbox" />
+        <div class="slider round"></div>
+      </label>
+    </div>
+    <div class="separator"></div>
+    <button id="versionHistoryBtn" class="left-menu-button">Version History</button>
+    <button id="saveBtn" class="left-menu-button">Save Current Version</button>
+    <button id="undoBtn" class="left-menu-button" disabled>Undo</button>
+    <button id="redoBtn" class="left-menu-button" disabled>Redo</button>
+    <div class="separator"></div>
+    <button id="saveSessionFileBtn" class="left-menu-button">Save Session File</button>
+    <button id="loadSessionFileBtn" class="left-menu-button">Load Session File</button>
+    <input type="file" id="sessionFileInput" accept=".json,.ozm" style="display:none" />
+  </div>
+
+  <div id="container">
+    <header>
+      <a href="https://fema.monster" target="_blank" rel="noopener noreferrer" title="Go to fema.monster">
+        <img src="https://raw.githubusercontent.com/femavibes/ozone-label-master/refs/heads/main/femamonster.jpg" alt="Ozone Logo" onerror="this.onerror=null;this.src='https://placehold.co/48x48/6b7280/ffffff?text=LOGO';" />
+      </a>
+      <div class="header-text-group">
+        <h1>OZONE LABEL MASTER</h1>
+        <p>version 0.72</p>
+      </div>
+    </header>
+
+    <input type="text" id="searchInput" placeholder="Search labels..." title="Filter labels by identifier or locale name" />
+    <div id="duplicateWarning">⚠ Duplicate identifiers found!</div>
+
+    <div id="labels-container"></div>
+
+    <button id="pasteJsonBtn" class="action-button">Paste JSON</button>
+    <button id="copyJsonBtn" class="action-button">Copy JSON</button>
+    <span id="copyFeedback" class="copy-feedback">Copied!</span>
+    <button id="importJsonBtn" class="action-button">Import JSON</button>
+    <button id="exportJsonBtn" class="action-button">Export JSON</button>
+    <input type="file" id="fileInput" accept=".json" style="display:none" />
+
+    <pre id="output"></pre>
+  </div>
+
+  <div id="right-menu-wrapper" style="display: flex; flex-direction: column; gap: 1em;">
+    <div id="category-menu">
+        <div class="mobile-menu-header">
+            <h3>Categories</h3>
+            <button id="closeCategoryMenuBtn" class="close-mobile-menu-btn">X</button>
+        </div>
+        <h3>Label Categories</h3>
+        <div class="category-input-group">
+            <input type="text" id="newCategoryInput" placeholder="New category name" />
+            <button id="addCategoryBtn">Add</button>
+        </div>
+        <ul id="category-list">
+            </ul>
+    </div>
+
+    <div id="floating-menu">
+        <div class="mobile-menu-header">
+            <h3>Quick Access</h3>
+            <button id="closeRightMenuBtn" class="close-mobile-menu-btn">X</button>
+        </div>
+        <h3>Labels Quick Access</h3>
+        <ul id="label-quick-access-list">
+            </ul>
+    </div>
+  </div>
+
+
+  <button id="mobileLeftMenuToggle" class="mobile-menu-toggle-button">☰</button>
+  <button id="mobileRightMenuToggle" class="mobile-menu-toggle-button">⋮</button>
+
+  <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="spinner"></div>
+    <span>Loading...</span>
+  </div>
+
+  <script type="module">
+    // No Firebase SDK imports needed as we are using Local Storage only.
+
+    let dragSrcEl = null;
+
+    // --- State Management for Undo/Redo and Local Storage ---
+    const LOCAL_STORAGE_KEY = 'ozoneLabelMasterData'; // Now stores full session state
+    const HISTORY_LOCAL_STORAGE_KEY = 'ozoneLabelMasterHistory'; // New key for history
+    let history = []; // In-memory history for undo/redo
+    let historyIndex = -1;
+    let suppressSave = false; // Flag to prevent saving state during undo/redo operations
+    const MAX_HISTORY_SIZE = 50; // Limit in-memory history size
+
+    let categories = []; // Global array for categories
+
+    // Show/Hide loading overlay
+    function showLoadingOverlay(message = 'Loading...') {
+      const overlay = document.getElementById('loadingOverlay');
+      overlay.style.display = 'flex';
+      overlay.querySelector('span').textContent = message;
+    }
+
+    function hideLoadingOverlay() {
+      const overlay = document.getElementById('loadingOverlay');
+      overlay.style.display = 'none';
+    }
+
+    // Custom Modal for alerts/confirms
+    function showCustomModal(message, type = 'alert', onConfirm = null, customContent = null) {
+      const overlay = document.createElement('div');
+      overlay.className = 'custom-modal-overlay';
+
+      const content = document.createElement('div');
+      content.className = 'custom-modal-content';
+
+      if (customContent) {
+        content.appendChild(customContent);
+      } else {
+        content.innerHTML = `<p>${message}</p>`;
+      }
+
+
+      if (type === 'confirm') {
+        const confirmBtn = document.createElement('button');
+        confirmBtn.textContent = 'Confirm';
+        confirmBtn.className = 'confirm-btn';
+        confirmBtn.onclick = () => {
+          onConfirm(true);
+          overlay.remove();
+        };
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.className = 'cancel-btn';
+        cancelBtn.onclick = () => {
+          onConfirm(false);
+          overlay.remove();
+        };
+        content.appendChild(confirmBtn);
+        content.appendChild(cancelBtn);
+      } else if (type === 'alert') { // Explicitly check for 'alert'
+        const okBtn = document.createElement('button');
+        okBtn.textContent = 'OK';
+        okBtn.className = 'confirm-btn';
+        okBtn.onclick = () => overlay.remove();
+        content.appendChild(okBtn);
+      }
+      // No 'else' for 'custom' type, so no extra buttons are added if customContent is provided.
+
+      document.body.appendChild(overlay);
+      overlay.appendChild(content);
+    }
+
+    // This function saves the current working state to local storage for persistence across sessions.
+    function saveFullSessionStateToLocalStorage() {
+      const currentLabels = getLabelsData();
+      const currentSessionState = {
+        labels: currentLabels,
+        categories: categories // Save categories as part of the session
+      };
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentSessionState));
+      // console.log("Saved current session state to local storage:", currentSessionState); // Commented for less console noise
+    }
+
+    // This function saves the entire history array to local storage
+    function saveHistoryToLocalStorage() {
+        localStorage.setItem(HISTORY_LOCAL_STORAGE_KEY, JSON.stringify(history));
+        // console.log("Saved history to local storage:", history); // Commented for less console noise
+    }
+
+    // This function adds the current state as a new version to the history array.
+    function addVersionToHistory() {
+      showLoadingOverlay('Saving version...');
+      try {
+        const currentLabels = getLabelsData();
+        const versionData = {
+          labelValues: currentLabels.map(label => label.identifier), // New structure
+          labelValueDefinitions: currentLabels, // New structure
+          categories: categories, // Include categories in history snapshot
+          timestamp: new Date().toISOString() // Use ISO string for date
+        };
+
+        // Update in-memory history for undo/redo
+        if (historyIndex < history.length - 1) {
+          history = history.slice(0, historyIndex + 1);
+        }
+        history.push(JSON.stringify(versionData)); // Store the entire versionData object
+        historyIndex = history.length - 1;
+
+        // Limit in-memory history size
+        if (history.length > MAX_HISTORY_SIZE) {
+          history.shift();
+          historyIndex--;
+        }
+
+        saveHistoryToLocalStorage(); // Persist updated history to local storage
+        updateUndoRedoButtons();
+        showCustomModal('Current version saved to history!', 'alert');
+      } catch (error) {
+        console.error("Error saving version to history:", error);
+        showCustomModal("Failed to save version. Please check console for details.", "alert");
+      } finally {
+        hideLoadingOverlay();
+      }
+    }
+
+
+    // Loads a specific state from history (for undo/redo and version history revert) or from session file
+    function loadState(stateJson) {
+      suppressSave = true; // Prevent saving this load operation to history
+      const sessionData = JSON.parse(stateJson);
+
+      // Load Labels
+      const dataLabels = sessionData.labelValueDefinitions || sessionData.labels; // Support old and new formats
+      document.getElementById('labels-container').innerHTML = '';
+      dataLabels.forEach(label => {
+        const labelIdentifier = label.identifier !== undefined ? label.identifier : label.id; // Backward compatibility
+        createLabelBlock(
+          labelIdentifier || '',
+          label.severity || 'inform',
+          label.blurs || 'content',
+          label.defaultSetting || 'ignore',
+          label.adultOnly || false,
+          label.enabled !== undefined ? label.enabled : true,
+          label.locales || [],
+          label.category || '' // Load category
+        );
+      });
+
+      // Load Categories
+      categories = sessionData.categories || [];
+      renderCategoryMenu(); // Re-render category menu
+      updateLabelCategoryDropdowns(); // Update dropdowns in existing labels
+
+      updateJSONOutput(); // Update JSON output display
+      updateFloatingMenu();
+      suppressSave = false;
+      updateUndoRedoButtons();
+    }
+
+    // Undo the last change
+    function undo() {
+      if (historyIndex > 0) {
+        historyIndex--;
+        loadState(history[historyIndex]);
+      }
+    }
+
+    // Redo the last undone change
+    function redo() {
+      if (historyIndex < history.length - 1) {
+        historyIndex++;
+        loadState(history[historyIndex]);
+      }
+    }
+
+    // Update the disabled state of undo/redo buttons
+    function updateUndoRedoButtons() {
+      document.getElementById('undoBtn').disabled = historyIndex <= 0;
+      document.getElementById('redoBtn').disabled = historyIndex >= history.length - 1;
+    }
+    // --- End State Management ---
+
+    // Define common languages for the dropdown
+    const commonLanguages = [
+      { code: 'en', name: 'English' },
+      { code: 'es', name: 'Spanish' },
+      { code: 'fr', name: 'French' },
+      { code: 'de', name: 'German' },
+      { code: 'ja', name: 'Japanese' },
+      { code: 'zh', name: 'Chinese (Simplified)' },
+      { code: 'ar', name: 'Arabic' },
+      { code: 'pt', name: 'Portuguese' },
+      { code: 'ru', name: 'Russian' },
+      { code: 'it', name: 'Italian' },
+      { code: 'ko', name: 'Korean' },
+      { code: 'nl', name: 'Dutch' },
+      { code: 'sv', name: 'Swedish' },
+      { code: 'pl', 'name': 'Polish' },
+      { code: 'tr', 'name': 'Turkish' },
+      { code: 'vi', 'name': 'Vietnamese' },
+      { code: 'id', 'name': 'Indonesian' },
+      { code: 'th', 'name': 'Thai' },
+      { code: 'hi', 'name': 'Hindi' },
+      { code: 'bn', 'name': 'Bengali' },
+      // Add more languages as needed
+    ];
+
+
+    // Function to update the duplicate warning message based on identifiers
+    function updateDuplicateWarning(identifiers) {
+      const seen = new Set();
+      const dupes = new Set();
+      identifiers.forEach(id => {
+        if (seen.has(id)) dupes.add(id);
+        seen.add(id);
+      });
+      document.getElementById('duplicateWarning').style.display = dupes.size > 0 ? 'block' : 'none';
+    }
+
+    // Function to update the visual state (disabled/enabled) of a label block
+    function updateLabelBlockVisualState(labelDiv) {
+      const enabled = labelDiv.querySelector('.enabled').checked;
+      labelDiv.classList.toggle('disabled', !enabled);
+    }
+
+    // Function to update the display text for a locale block header
+    function updateLocaleDisplayName(localeDiv) {
+      const langSelect = localeDiv.querySelector('.lang');
+      const localeDisplayNameSpan = localeDiv.querySelector('.locale-identifier-display');
+      if (langSelect && localeDisplayNameSpan) {
+        const selectedOption = langSelect.options[langSelect.selectedIndex];
+        localeDisplayNameSpan.textContent = selectedOption.textContent || 'Select Language';
+      }
+    }
+
+    // Function to create a new locale block within a label
+    function createLocaleBlock(localesContainer, lang = '', name = '', description = '') {
+      const div = document.createElement('div');
+      div.className = 'locale-block';
+
+      let optionsHtml = '<option value="">Select Language</option>';
+      let foundExistingLang = false;
+
+      commonLanguages.forEach(langObj => {
+        const selected = (langObj.code === lang) ? 'selected' : '';
+        if (selected) foundExistingLang = true;
+        optionsHtml += `<option value="${langObj.code}" ${selected}>${langObj.name}</option>`;
+      });
+
+      // If the provided lang is not in our common list, add it as a selected option
+      if (lang && !foundExistingLang) {
+        optionsHtml += `<option value="${lang}" selected>${lang}</option>`; // Display code if name not found
+      }
+
+      let isCollapsed = false; // State for locale collapse
+
+      div.innerHTML = `
+        <div class="locale-header-row">
+          <button class="collapse-btn">Collapse</button>
+          <span class="locale-identifier-display" style="flex:1; user-select:text;"></span>
+          <button class="locale-remove-btn" title="Remove locale">×</button>
+        </div>
+        <div class="locale-content-area">
+          <label>Language:
+            <select class="lang">
+              ${optionsHtml}
+            </select>
+          </label>
+          <label>Name: <input type="text" class="name" value="${name}"></label>
+          <label>Description: <textarea class="description">${description}</textarea></label>
+          <div class="llm-buttons">
+            <button class="translate-name-btn">Translate Name ✨</button>
+            <button class="translate-description-btn">Translate Description ✨</button>
+          </div>
+        </div>
+      `;
+
+      const collapseBtn = div.querySelector('.collapse-btn');
+      const localeContentArea = div.querySelector('.locale-content-area');
+
+      collapseBtn.onclick = () => {
+        isCollapsed = !isCollapsed;
+        localeContentArea.style.display = isCollapsed ? 'none' : 'block';
+        collapseBtn.textContent = isCollapsed ? 'Expand' : 'Collapse';
+      };
+
+      div.querySelector('.locale-remove-btn').onclick = () => {
+        div.remove();
+        saveFullSessionStateToLocalStorage(); // Save full session state
+        updateJSONOutput(); // Update JSON output display
+      };
+
+      const nameInput = div.querySelector('.name');
+      const descriptionTextarea = div.querySelector('.description');
+      const langSelect = div.querySelector('.lang');
+      const translateNameBtn = div.querySelector('.translate-name-btn');
+      const translateDescriptionBtn = div.querySelector('.translate-description-btn');
+
+      // Event listener for Translate Name button
+      translateNameBtn.onclick = async () => {
+        const currentName = nameInput.value.trim();
+        if (!currentName) {
+          showCustomModal('Please enter a name to translate.', 'alert');
+          return;
+        }
+
+        const selectTargetLang = document.createElement('select');
+        selectTargetLang.innerHTML = '<option value="">Select Target Language</option>';
+        commonLanguages.forEach(langObj => {
+          selectTargetLang.innerHTML += `<option value="${langObj.code}">${langObj.name}</option>`;
+        });
+        selectTargetLang.style.width = '100%';
+        selectTargetLang.style.marginBottom = '1em';
+        selectTargetLang.style.padding = '0.5em';
+        selectTargetLang.style.border = '1px solid var(--input-border)';
+        selectTargetLang.style.borderRadius = 'var(--border-radius)';
+        selectTargetLang.style.background = 'var(--block-background)';
+        selectTargetLang.style.color = 'var(--text-color)';
+
+
+        const translatedTextarea = document.createElement('textarea');
+        translatedTextarea.readOnly = true;
+        translatedTextarea.placeholder = 'Translated text will appear here...';
+        translatedTextarea.style.width = '100%';
+        translatedTextarea.style.minHeight = '100px';
+        translatedTextarea.style.marginBottom = '1em';
+        translatedTextarea.style.padding = '10px';
+        translatedTextarea.style.border = '1px solid var(--input-border)';
+        translatedTextarea.style.borderRadius = 'var(--border-radius)';
+        translatedTextarea.style.background = 'var(--output-background)';
+        translatedTextarea.style.color = 'var(--text-color)';
+        translatedTextarea.style.fontFamily = 'monospace';
+
+
+        const translateActionBtn = document.createElement('button');
+        translateActionBtn.textContent = 'Translate';
+        translateActionBtn.className = 'confirm-btn';
+        translateActionBtn.style.marginRight = '0.5em';
+        translateActionBtn.disabled = true; // Disable until language is selected
+
+        const applyBtn = document.createElement('button');
+        applyBtn.textContent = 'Apply Translation';
+        applyBtn.className = 'confirm-btn';
+        applyBtn.style.marginRight = '0.5em';
+        applyBtn.disabled = true; // Disable until translation is done
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.className = 'cancel-btn';
+
+        const wrapper = document.createElement('div');
+        wrapper.appendChild(selectTargetLang);
+        wrapper.appendChild(translatedTextarea);
+        wrapper.appendChild(translateActionBtn);
+        wrapper.appendChild(applyBtn);
+        wrapper.appendChild(cancelBtn);
+
+        showCustomModal('Translate Name', 'custom', null, wrapper);
+
+        selectTargetLang.onchange = () => {
+          translateActionBtn.disabled = !selectTargetLang.value;
+        };
+
+        translateActionBtn.onclick = async () => {
+          const targetLangCode = selectTargetLang.value;
+          const targetLanguageName = selectTargetLang.options[selectTargetLang.selectedIndex].textContent;
+
+          if (!targetLangCode) {
+            showCustomModal('Please select a target language.', 'alert');
+            return;
+          }
+
+          showLoadingOverlay('Translating name...');
+          try {
+            const prompt = `Translate the following content moderation label name into ${targetLanguageName}. Only provide the translated text, no additional commentary.
+Original name:
+'${currentName}'`;
+
+            let chatHistory = [];
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            const payload = { contents: chatHistory };
+            const apiKey = ""; // If you want to use models other than gemini-2.0-flash or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            const response = await fetch(apiUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorBody = await response.text();
+                throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`);
+            }
+
+            const result = await response.json();
+
+            if (result.candidates && result.candidates.length > 0 &&
+                result.candidates[0].content && result.candidates[0].content.parts &&
+                result.candidates[0].content.parts.length > 0) {
+              const translatedText = result.candidates[0].content.parts[0].text;
+              translatedTextarea.value = translatedText;
+              applyBtn.disabled = false;
+            } else {
+              showCustomModal('Failed to translate name. Unexpected API response structure.', 'alert');
+              console.error('Gemini API response structure unexpected:', result);
+            }
+          } catch (error) {
+            console.error('Error translating name:', error);
+            showCustomModal('Error translating name: ' + error.message, 'alert');
+          } finally {
+            hideLoadingOverlay();
+          }
+        };
+
+        applyBtn.onclick = () => {
+          nameInput.value = translatedTextarea.value; // Apply to name input
+          saveFullSessionStateToLocalStorage(); // Save full session state
+          updateJSONOutput(); // Update JSON output display
+          document.querySelector('.custom-modal-overlay').remove(); // Close the modal
+        };
+
+        cancelBtn.onclick = () => {
+          document.querySelector('.custom-modal-overlay').remove();
+        };
+      };
+
+
+      // Event listener for Translate Description button
+      translateDescriptionBtn.onclick = async () => {
+        const currentDescription = descriptionTextarea.value.trim();
+        if (!currentDescription) {
+          showCustomModal('Please enter a description to translate.', 'alert');
+          return;
+        }
+
+        const selectTargetLang = document.createElement('select');
+        selectTargetLang.innerHTML = '<option value="">Select Target Language</option>';
+        commonLanguages.forEach(langObj => {
+          selectTargetLang.innerHTML += `<option value="${langObj.code}">${langObj.name}</option>`;
+        });
+        selectTargetLang.style.width = '100%';
+        selectTargetLang.style.marginBottom = '1em';
+        selectTargetLang.style.padding = '0.5em';
+        selectTargetLang.style.border = '1px solid var(--input-border)';
+        selectTargetLang.style.borderRadius = 'var(--border-radius)';
+        selectTargetLang.style.background = 'var(--block-background)';
+        selectTargetLang.style.color = 'var(--text-color)';
+
+
+        const translatedTextarea = document.createElement('textarea');
+        translatedTextarea.readOnly = true;
+        translatedTextarea.placeholder = 'Translated text will appear here...';
+        translatedTextarea.style.width = '100%';
+        translatedTextarea.style.minHeight = '100px';
+        translatedTextarea.style.marginBottom = '1em';
+        translatedTextarea.style.padding = '10px';
+        translatedTextarea.style.border = '1px solid var(--input-border)';
+        translatedTextarea.style.borderRadius = 'var(--border-radius)';
+        translatedTextarea.style.background = 'var(--output-background)';
+        translatedTextarea.style.color = 'var(--text-color)';
+        translatedTextarea.style.fontFamily = 'monospace';
+
+
+        const translateActionBtn = document.createElement('button');
+        translateActionBtn.textContent = 'Translate';
+        translateActionBtn.className = 'confirm-btn';
+        translateActionBtn.style.marginRight = '0.5em';
+        translateActionBtn.disabled = true; // Disable until language is selected
+
+        const applyBtn = document.createElement('button');
+        applyBtn.textContent = 'Apply Translation';
+        applyBtn.className = 'confirm-btn';
+        applyBtn.style.marginRight = '0.5em';
+        applyBtn.disabled = true; // Disable until translation is done
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.className = 'cancel-btn';
+
+        const wrapper = document.createElement('div');
+        wrapper.appendChild(selectTargetLang);
+        wrapper.appendChild(translatedTextarea);
+        wrapper.appendChild(translateActionBtn);
+        wrapper.appendChild(applyBtn);
+        wrapper.appendChild(cancelBtn);
+
+        showCustomModal('Translate Description', 'custom', null, wrapper);
+
+        selectTargetLang.onchange = () => {
+          translateActionBtn.disabled = !selectTargetLang.value;
+        };
+
+        translateActionBtn.onclick = async () => {
+          const targetLangCode = selectTargetLang.value;
+          const targetLanguageName = selectTargetLang.options[selectTargetLang.selectedIndex].textContent;
+
+          if (!targetLangCode) {
+            showCustomModal('Please select a target language.', 'alert');
+            return;
+          }
+
+          showLoadingOverlay('Translating description...');
+          try {
+            const prompt = `Translate the following content moderation label description into ${targetLanguageName}. Only provide the translated text, no additional commentary.
+Original description:
+'${currentDescription}'`;
+
+            let chatHistory = [];
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            const payload = { contents: chatHistory };
+            const apiKey = ""; // If you want to use models other than gemini-2.0-flash or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            const response = await fetch(apiUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errorBody = await response.text();
+                throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`);
+            }
+
+            const result = await response.json();
+
+            if (result.candidates && result.candidates.length > 0 &&
+                result.candidates[0].content && result.candidates[0].content.parts &&
+                result.candidates[0].content.parts.length > 0) {
+              const translatedText = result.candidates[0].content.parts[0].text;
+              translatedTextarea.value = translatedText;
+              applyBtn.disabled = false;
+            } else {
+              showCustomModal('Failed to translate description. Unexpected API response structure.', 'alert');
+              console.error('Gemini API response structure unexpected:', result);
+            }
+          } catch (error) {
+            console.error('Error translating description:', error);
+            showCustomModal('Error translating description: ' + error.message, 'alert');
+          } finally {
+            hideLoadingOverlay();
+          }
+        };
+
+        applyBtn.onclick = () => {
+          descriptionTextarea.value = translatedTextarea.value;
+          saveFullSessionStateToLocalStorage(); // Save full session state
+          updateJSONOutput(); // Update JSON output display
+          document.querySelector('.custom-modal-overlay').remove(); // Close the modal
+        };
+
+        cancelBtn.onclick = () => {
+          document.querySelector('.custom-modal-overlay').remove();
+        };
+      };
+
+      // Use 'change' event for select elements, 'input' for textareas/text inputs
+      langSelect.addEventListener('change', () => {
+        updateLocaleDisplayName(div); // Update display name on language change
+        saveFullSessionStateToLocalStorage(); // Save full session state
+        updateJSONOutput(); // Update JSON output display
+      });
+      nameInput.addEventListener('input', () => {
+        saveFullSessionStateToLocalStorage(); // Save full session state
+        updateJSONOutput(); // Update JSON output display
+      });
+      descriptionTextarea.addEventListener('input', () => {
+        saveFullSessionStateToLocalStorage(); // Save full session state
+        updateJSONOutput(); // Update JSON output display
+      });
+
+      localesContainer.appendChild(div); // Append the new locale block to the container
+      updateLocaleDisplayName(div); // Set initial display name
+    }
+
+    // Function to create a new label block
+    function createLabelBlock(id = '', severity = 'inform', blurs = 'content', defaultSetting = 'ignore', adultOnly = false, enabled = true, locales = [], category = '') {
+      const container = document.getElementById('labels-container');
+      const labelDiv = document.createElement('div');
+      labelDiv.className = 'label-block';
+      labelDiv.setAttribute('draggable', 'true');
+
+      // Generate a unique HTML ID for this label block
+      const uniqueHtmlId = `label-${crypto.randomUUID()}`;
+      labelDiv.id = uniqueHtmlId;
+
+      let isCollapsed = false;
+
+      // Define the user-friendly placeholder
+      const identifierPlaceholder = '(Untitled Label)';
+
+      labelDiv.innerHTML = `
+        <div class="label-header" title="Click to expand/collapse">
+          <button class="collapse-btn">Collapse</button>
+          <span class="label-identifier-display" style="flex:1; user-select:text;">${id || identifierPlaceholder}</span>
+          <button class="move-up-btn" title="Move label up">▲</button>
+          <button class="move-down-btn" title="Move label down">▼</button>
+          <button class="remove-btn" title="Remove label">×</button>
+        </div>
+        <div class="label-content">
+          <label>Enabled: <input type="checkbox" class="enabled" ${enabled ? 'checked' : ''}></label>
+          <label>Identifier: <input type="text" class="identifier" value="${id}"></label>
+          <label>Category:
+            <select class="label-category">
+              <option value="">(No Category)</option>
+            </select>
+          </label>
+          <label>Severity:
+            <select class="severity">
+              <option value="inform" ${severity === 'inform' ? 'selected' : ''}>inform</option>
+              <option value="warn" ${severity === 'warn' ? 'selected' : ''}>warn</option>
+              <option value="block" ${severity === 'block' ? 'selected' : ''}>block</option>
+            </select>
+          </label>
+          <label>Blurs:
+            <select class="blurs">
+              <option value="content" ${blurs === 'content' ? 'selected' : ''}>content</option>
+              <option value="media" ${blurs === 'media' ? 'selected' : ''}>media</option>
+              <option value="none" ${blurs === 'none' ? 'selected' : ''}>none</option>
+            </select>
+          </label>
+          <label>Default Setting:
+            <select class="defaultSetting">
+              <option value="ignore" ${defaultSetting === 'ignore' ? 'selected' : ''}>ignore</option>
+              <option value="warn" ${defaultSetting === 'warn' ? 'selected' : ''}>warn</option>
+              <option value="block" ${defaultSetting === 'block' ? 'selected' : ''}>block</option>
+            </select>
+          </label>
+          <label>Adult Only: <input type="checkbox" class="adultOnly" ${adultOnly ? 'checked' : ''}></label>
+          <div class="locales-container">
+            <strong>Locales:</strong>
+          </div>
+          <button class="add-locale-btn">+ Add Locale</button>
+        </div>
+      `;
+
+      container.appendChild(labelDiv);
+
+      const collapseBtn = labelDiv.querySelector('.collapse-btn');
+      const labelContent = labelDiv.querySelector('.label-content');
+      collapseBtn.onclick = () => {
+        isCollapsed = !isCollapsed;
+        labelContent.style.display = isCollapsed ? 'none' : 'block';
+        collapseBtn.textContent = isCollapsed ? 'Expand' : 'Collapse';
+      };
+
+      labelDiv.querySelector('.remove-btn').onclick = () => {
+        labelDiv.remove();
+        saveFullSessionStateToLocalStorage(); // Save full session state
+        updateJSONOutput(); // Update JSON output display
+      };
+
+      // New move buttons
+      labelDiv.querySelector('.move-up-btn').onclick = () => moveLabelUp(labelDiv);
+      labelDiv.querySelector('.move-down-btn').onclick = () => moveLabelDown(labelDiv);
+
+
+      const identifierInput = labelDiv.querySelector('.identifier');
+      const categorySelect = labelDiv.querySelector('.label-category'); // New category select
+      const severitySelect = labelDiv.querySelector('.severity');
+      const blursSelect = labelDiv.querySelector('.blurs');
+      const defaultSettingSelect = labelDiv.querySelector('.defaultSetting');
+      const adultOnlyCheckbox = labelDiv.querySelector('.adultOnly');
+      const enabledCheckbox = labelDiv.querySelector('.enabled');
+
+      // Set initial category
+      if (category) {
+          categorySelect.value = category;
+      }
+
+      // Use 'change' for select and checkbox, 'input' for text inputs
+      [severitySelect, blursSelect, defaultSettingSelect, categorySelect].forEach(elem => { // Added categorySelect
+        elem.addEventListener('change', () => {
+            saveFullSessionStateToLocalStorage(); // Save full session state
+            updateJSONOutput(); // Update JSON output display
+        });
+      });
+
+      [adultOnlyCheckbox, enabledCheckbox].forEach(elem => {
+        elem.addEventListener('change', () => {
+          if(elem.classList.contains('enabled')) {
+            updateLabelBlockVisualState(labelDiv);
+          }
+          saveFullSessionStateToLocalStorage(); // Save full session state
+          updateJSONOutput(); // Update JSON output display
+        });
+      });
+
+      identifierInput.addEventListener('input', () => {
+        labelDiv.querySelector('.label-identifier-display').textContent = identifierInput.value || identifierPlaceholder;
+        checkDuplicates();
+        saveFullSessionStateToLocalStorage(); // Save full session state
+        updateJSONOutput(); // Update JSON output display
+      });
+
+      enabledCheckbox.addEventListener('change', () => {
+        updateLabelBlockVisualState(labelDiv);
+      });
+
+      const localesContainer = labelDiv.querySelector('.locales-container');
+      const addLocaleBtn = labelDiv.querySelector('.add-locale-btn');
+
+      // Add default locale if none exist
+      if (locales.length === 0) {
+        createLocaleBlock(localesContainer); // Create one default locale
+      } else {
+        locales.forEach(loc => {
+          createLocaleBlock(localesContainer, loc.lang || '', loc.name || '', loc.description || '');
+        });
+      }
+
+      addLocaleBtn.onclick = () => {
+        // Get values from the first existing locale to pre-fill the new one
+        const existingLocales = localesContainer.querySelectorAll('.locale-block');
+        let defaultLang = '';
+        let defaultName = '';
+        let defaultDescription = '';
+
+        if (existingLocales.length > 0) {
+          const firstLocale = existingLocales[0];
+          defaultLang = firstLocale.querySelector('.lang').value;
+          defaultName = firstLocale.querySelector('.name').value;
+          defaultDescription = firstLocale.querySelector('.description').value;
+        }
+
+        createLocaleBlock(localesContainer, defaultLang, defaultName, defaultDescription);
+        saveFullSessionStateToLocalStorage(); // Save full session state
+        updateJSONOutput(); // Update JSON output display
+      };
+
+      updateLabelBlockVisualState(labelDiv);
+      addDragHandlers(labelDiv);
+      updateLabelCategoryDropdowns(); // Update category dropdown for this new label
+
+      return labelDiv;
+    }
+
+    function addDragHandlers(labelDiv) {
+      labelDiv.addEventListener('dragstart', dragStart);
+      labelDiv.addEventListener('dragenter', dragEnter);
+      labelDiv.addEventListener('dragover', dragOver);
+      labelDiv.addEventListener('dragleave', dragLeave);
+      labelDiv.addEventListener('drop', drop);
+      labelDiv.addEventListener('dragend', dragEnd);
+    }
+
+    function dragStart(e) {
+      dragSrcEl = this;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', '');
+      this.style.opacity = '0.4';
+      this.classList.add('is-dragging'); /* Add class for visual feedback */
+    }
+
+    function dragEnter(e) {
+      if (this !== dragSrcEl) {
+        this.classList.add('over');
+      }
+    }
+
+    function dragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      return false;
+    }
+
+    function dragLeave(e) {
+      this.classList.remove('over');
+    }
+
+    function drop(e) {
+      e.stopPropagation();
+      this.classList.remove('over');
+
+      if (dragSrcEl !== this) {
+        const container = document.getElementById('labels-container');
+        let nodes = Array.from(container.children);
+        let srcIndex = nodes.indexOf(dragSrcEl);
+        let tgtIndex = nodes.indexOf(this);
+
+        if (srcIndex < tgtIndex) {
+          container.insertBefore(dragSrcEl, this.nextSibling);
+        } else {
+          container.insertBefore(dragSrcEl, this);
+        }
+      }
+      saveFullSessionStateToLocalStorage(); // Save full session state
+      updateJSONOutput(); // Update JSON output display
+      return false;
+    }
+
+    function dragEnd(e) {
+      this.style.opacity = '1';
+      this.classList.remove('is-dragging'); /* Remove class after drag ends */
+      document.querySelectorAll('.label-block.over').forEach(el => el.classList.remove('over'));
+    }
+
+    // Extracts current label data from the DOM
+    function getLabelsData() {
+      const labels = [];
+      document.querySelectorAll('.label-block').forEach(labelDiv => {
+        const identifier = labelDiv.querySelector('.identifier').value.trim(); // Renamed from 'id' to 'identifier'
+        const severity = labelDiv.querySelector('.severity').value;
+        const blurs = labelDiv.querySelector('.blurs').value;
+        const defaultSetting = labelDiv.querySelector('.defaultSetting').value;
+        const adultOnly = labelDiv.querySelector('.adultOnly').checked;
+        const enabled = labelDiv.querySelector('.enabled').checked;
+        const category = labelDiv.querySelector('.label-category').value; // Get category
+
+        const locales = [];
+        labelDiv.querySelectorAll('.locale-block').forEach(localeDiv => {
+          const lang = localeDiv.querySelector('.lang').value; // Get value from select
+          const name = localeDiv.querySelector('.name').value.trim();
+          const description = localeDiv.querySelector('.description').value.trim();
+          if(lang || name || description) {
+            locales.push({lang, name, description});
+          }
+        });
+
+        labels.push({
+          identifier, // Use 'identifier' property name
+          severity,
+          blurs,
+          defaultSetting,
+          adultOnly,
+          enabled,
+          locales,
+          category: category || undefined // Only include if not empty
+        });
+      });
+      return labels;
+    }
+
+    // Function to generate and display the JSON output, and save state
+    function updateJSONOutput() { // Renamed from updateJSON
+      const currentLabels = getLabelsData(); // This returns the array of label objects as currently structured
+
+      const labelValues = currentLabels.map(label => label.identifier); // Extract only the identifiers
+      const labelValueDefinitions = currentLabels.map(label => {
+          const { category, ...rest } = label; // Exclude category from JSON output
+          return rest;
+      });
+
+      updateDuplicateWarning(labelValues); // Use labelValues for duplicate check
+
+      const output = {
+        labelValues: labelValues,
+        labelValueDefinitions: labelValueDefinitions
+      };
+
+      document.getElementById('output').textContent = JSON.stringify(output, null, 2);
+      saveFullSessionStateToLocalStorage(); // Save current state to local storage for persistence
+      updateFloatingMenu(); // Always update floating menu when JSON changes
+      updateMoveButtons(); // Update state of move buttons after JSON changes
+
+      // If not suppressing save (i.e., it's a user-initiated change), add to history
+      if (!suppressSave) {
+          addStateToHistoryForUndoAndRedo();
+      }
+    }
+
+    // Adds the current state to the in-memory history for undo/redo
+    function addStateToHistoryForUndoAndRedo() {
+        const currentLabels = getLabelsData();
+        // Ensure history also saves in the new format
+        const stateToSave = JSON.stringify({
+          labelValues: currentLabels.map(label => label.identifier),
+          labelValueDefinitions: currentLabels,
+          categories: categories, // Include categories in history snapshot
+          timestamp: new Date().toISOString()
+        });
+
+        if (historyIndex < history.length - 1) {
+            history = history.slice(0, historyIndex + 1);
+        }
+        history.push(stateToSave);
+        historyIndex = history.length - 1;
+
+        if (history.length > MAX_HISTORY_SIZE) {
+            history.shift();
+            historyIndex--;
+        }
+        saveHistoryToLocalStorage(); // Persist the updated history array
+        updateUndoRedoButtons();
+    }
+
+
+    function checkDuplicates() {
+      const identifiers = Array.from(document.querySelectorAll('.label-block .identifier'))
+        .map(input => input.value.trim());
+      updateDuplicateWarning(identifiers);
+    }
+
+    function filterLabels() {
+      const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+      document.querySelectorAll('.label-block').forEach(labelDiv => {
+        const id = labelDiv.querySelector('.identifier').value.toLowerCase();
+        const category = labelDiv.querySelector('.label-category').value.toLowerCase(); // Get category for filtering
+        const locales = Array.from(labelDiv.querySelectorAll('.locale-block')).map(locDiv => {
+          // Get the display name from the selected option, or fallback to value
+          const langSelect = locDiv.querySelector('.lang');
+          const selectedOption = langSelect.options[langSelect.selectedIndex];
+          return selectedOption ? selectedOption.textContent.toLowerCase() : '';
+        });
+
+        // Update the display text to also use the new placeholder when filtering
+        const displayedText = labelDiv.querySelector('.label-identifier-display').textContent.toLowerCase();
+
+        if (id.includes(searchTerm) || locales.some(l => l.includes(searchTerm)) || displayedText.includes(searchTerm) || category.includes(searchTerm)) {
+          labelDiv.style.display = '';
+        } else {
+          labelDiv.style.display = 'none';
+        }
+      });
+    }
+
+    // --- New Feature Functions ---
+
+    // Collapses all label blocks
+    function collapseAllLabels() {
+      document.querySelectorAll('.label-block').forEach(labelDiv => {
+        const labelContent = labelDiv.querySelector('.label-content');
+        const collapseBtn = labelDiv.querySelector('.collapse-btn');
+        if (labelContent.style.display !== 'none') {
+          labelContent.style.display = 'none';
+          collapseBtn.textContent = 'Expand';
+        }
+      });
+    }
+
+    // Expands all label blocks
+    function expandAllLabels() {
+      document.querySelectorAll('.label-block').forEach(labelDiv => {
+        const labelContent = labelDiv.querySelector('.label-content');
+        const collapseBtn = labelDiv.querySelector('.collapse-btn');
+        if (labelContent.style.display === 'none') {
+          labelContent.style.display = 'block';
+          collapseBtn.textContent = 'Collapse';
+        }
+      });
+    }
+
+    // Resets or clears all labels
+    function resetClearLabels() {
+      showCustomModal('Do you want to clear all labels and categories or reset to a default set?', 'confirm', (response) => {
+        if (response) {
+          document.getElementById('labels-container').innerHTML = '';
+          categories = []; // Clear categories
+          createLabelBlock(); // Reset to one default label
+          history = []; // Clear in-memory history
+          historyIndex = -1; // Reset history index
+          saveHistoryToLocalStorage(); // Clear history from local storage
+          loadState(JSON.stringify({ labels: [], categories: [] })); // Load empty state to clear everything
+          updateJSONOutput(); // This will also save current state to localStorage and add to new history
+          updateUndoRedoButtons(); // Update button states
+          renderCategoryMenu(); // Re-render category menu
+          updateLabelCategoryDropdowns(); // Update label dropdowns
+        }
+      });
+    }
+
+    // Function to move a label up
+    function moveLabelUp(labelDiv) {
+      const previousSibling = labelDiv.previousElementSibling;
+      if (previousSibling) {
+        labelDiv.parentNode.insertBefore(labelDiv, previousSibling);
+        saveFullSessionStateToLocalStorage(); // Save full session state
+        updateJSONOutput(); // Update JSON output display
+      }
+    }
+
+    // Function to move a label down
+    function moveLabelDown(labelDiv) {
+      const nextSibling = labelDiv.nextElementSibling;
+      if (nextSibling) {
+        labelDiv.parentNode.insertBefore(nextSibling, labelDiv);
+        saveFullSessionStateToLocalStorage(); // Save full session state
+        updateJSONOutput(); // Update JSON output display
+      }
+    }
+
+    // Function to update the disabled state of move buttons
+    function updateMoveButtons() {
+      const labelBlocks = document.querySelectorAll('.label-block');
+      labelBlocks.forEach((labelDiv, index) => {
+        const moveUpBtn = labelDiv.querySelector('.move-up-btn');
+        const moveDownBtn = labelDiv.querySelector('.move-down-btn');
+
+        if (moveUpBtn) {
+          moveUpBtn.disabled = index === 0; // Disable if first element
+        }
+        if (moveDownBtn) {
+          moveDownBtn.disabled = index === labelBlocks.length - 1; // Disable if last element
+        }
+      });
+    }
+
+    // Function to handle pasting JSON text
+    function pasteJson() {
+      const textarea = document.createElement('textarea');
+      textarea.placeholder = 'Paste your JSON here...';
+
+      const loadBtn = document.createElement('button');
+      loadBtn.textContent = 'OK';
+      loadBtn.className = 'confirm-btn';
+      loadBtn.style.marginRight = '0.5em';
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.className = 'cancel-btn';
+
+      const wrapper = document.createElement('div');
+      wrapper.appendChild(textarea);
+      wrapper.appendChild(loadBtn);
+      wrapper.appendChild(cancelBtn);
+
+      showCustomModal('Paste JSON Data', 'custom', null, wrapper); // Pass the wrapper as customContent, no onConfirm needed for 'custom'
+
+      loadBtn.onclick = () => {
+        try {
+          const data = JSON.parse(textarea.value);
+          // Support both old and new format for loading
+          const labelsToLoad = data.labelValueDefinitions || data.labels;
+
+          if (!labelsToLoad || !Array.isArray(labelsToLoad)) {
+            showCustomModal('Invalid JSON structure: Expected a "labelValueDefinitions" or "labels" array.', 'alert');
+            return;
+          }
+          suppressSave = true; // Temporarily suppress history saving during import
+          document.getElementById('labels-container').innerHTML = '';
+          labelsToLoad.forEach(label => {
+            // Use 'identifier' if present, otherwise fallback to 'id' for backward compatibility
+            const labelIdentifier = label.identifier !== undefined ? label.identifier : label.id;
+            createLabelBlock(
+              labelIdentifier || '',
+              label.severity || 'inform',
+              label.blurs || 'content',
+              label.defaultSetting || 'ignore',
+              label.adultOnly || false,
+              label.enabled !== undefined ? label.enabled : true,
+              label.locales || []
+            );
+          });
+          suppressSave = false;
+          saveFullSessionStateToLocalStorage(); // Save full session state
+          updateJSONOutput(); // Update JSON output display
+          // Close the modal
+          document.querySelector('.custom-modal-overlay').remove();
+        } catch (err) {
+          showCustomModal('Failed to parse JSON: ' + err.message, 'alert');
+        }
+      };
+
+      cancelBtn.onclick = () => {
+        document.querySelector('.custom-modal-overlay').remove();
+      };
+    }
+
+    // Function to handle copying JSON to clipboard
+    function copyJsonToClipboard() {
+      const outputText = document.getElementById('output').textContent;
+      if (!outputText) {
+        showCustomModal('Nothing to copy.', 'alert');
+        return;
+      }
+
+      try {
+        // Create a temporary textarea element
+        const tempTextArea = document.createElement('textarea');
+        tempTextArea.value = outputText;
+        document.body.appendChild(tempTextArea);
+        tempTextArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempTextArea);
+
+        // Show feedback
+        const feedbackSpan = document.getElementById('copyFeedback');
+        feedbackSpan.classList.add('show');
+        setTimeout(() => {
+          feedbackSpan.classList.remove('show');
+        }, 1500);
+
+      } catch (err) {
+        showCustomModal('Failed to copy JSON: ' + err.message, 'alert');
+      }
+    }
+
+    // Function to show the version history modal
+    async function showVersionHistory() {
+      showLoadingOverlay('Loading history...');
+      const historyList = document.createElement('ul');
+      historyList.style.listStyle = 'none';
+      historyList.style.padding = '0';
+      historyList.style.maxHeight = '300px';
+      historyList.style.overflowY = 'auto';
+      historyList.style.textAlign = 'left';
+      historyList.style.border = '1px solid var(--block-border)';
+      historyList.style.borderRadius = 'var(--border-radius)';
+      historyList.style.padding = '1em';
+      historyList.style.marginBottom = '1em';
+      historyList.style.background = 'var(--header-background)';
+
+      try {
+        // History is already in memory, sorted by addition order (which is chronological)
+        const fetchedHistory = history; // Use the in-memory history directly
+
+        if (fetchedHistory.length === 0) {
+          const listItem = document.createElement('li');
+          listItem.textContent = 'No history available. Click "Save Current Version" to add one.';
+          historyList.appendChild(listItem);
+        } else {
+          fetchedHistory.forEach((versionJson, index) => {
+            const version = JSON.parse(versionJson); // Parse each version
+            const listItem = document.createElement('li');
+            listItem.style.marginBottom = '0.5em';
+            listItem.style.padding = '0.5em';
+            listItem.style.border = '1px solid var(--input-border)';
+            listItem.style.borderRadius = 'var(--border-radius)';
+            listItem.style.display = 'flex';
+            listItem.style.alignItems = 'center';
+            listItem.style.justifyContent = 'space-between';
+            listItem.style.background = 'var(--block-background)';
+
+            const versionText = document.createElement('span');
+            const date = new Date(version.timestamp); // Parse ISO string back to Date
+            const dateStr = date.toLocaleString();
+            versionText.textContent = `Version ${index + 1} (${dateStr})`;
+            // Check if this version matches the current in-memory history state
+            if (historyIndex !== -1 && index === historyIndex) { // Compare by index for current state
+              versionText.textContent += ' (Current)';
+              versionText.style.fontWeight = 'bold';
+              versionText.style.color = 'var(--primary)';
+            }
+            listItem.appendChild(versionText);
+
+            const revertBtn = document.createElement('button');
+            revertBtn.textContent = 'Revert';
+            revertBtn.className = 'confirm-btn'; // Use existing button style
+            revertBtn.style.padding = '0.4em 0.8em';
+            revertBtn.style.fontSize = '0.9rem';
+            revertBtn.onclick = () => {
+              showCustomModal(`Are you sure you want to revert to Version ${index + 1} (${dateStr})? This will overwrite your current unsaved changes.`, 'confirm', (response) => {
+                if (response) {
+                  historyIndex = index; // Set history index to the reverted version
+                  loadState(history[historyIndex]);
+                  document.querySelector('.custom-modal-overlay').remove(); // Close history modal after revert
+                }
+              });
+            };
+            listItem.appendChild(revertBtn);
+            historyList.appendChild(listItem);
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching version history from Local Storage:", error);
+        showCustomModal("Failed to load version history. Please check console for details.", "alert");
+      } finally {
+        hideLoadingOverlay();
+      }
+
+      const wrapper = document.createElement('div');
+      wrapper.appendChild(historyList);
+
+      showCustomModal('Version History', 'custom', null, wrapper);
+    }
+
+    // --- Category Management Functions ---
+    function loadCategories() {
+        const savedCategories = localStorage.getItem('ozoneLabelMasterCategories');
+        if (savedCategories) {
+            categories = JSON.parse(savedCategories);
+        } else {
+            categories = [];
+        }
+        renderCategoryMenu();
+        updateLabelCategoryDropdowns();
+    }
+
+    function saveCategories() {
+        localStorage.setItem('ozoneLabelMasterCategories', JSON.stringify(categories));
+    }
+
+    function renderCategoryMenu() {
+        const categoryList = document.getElementById('category-list');
+        categoryList.innerHTML = '';
+        categories.forEach(cat => {
+            const listItem = document.createElement('li');
+            listItem.className = 'category-list-item';
+            listItem.innerHTML = `
+                <span>${cat}</span>
+                <button class="remove-category-btn" data-category="${cat}">X</button>
+            `;
+            categoryList.appendChild(listItem);
+        });
+
+        // Attach event listeners to new remove buttons
+        document.querySelectorAll('.remove-category-btn').forEach(button => {
+            button.onclick = (e) => {
+                const categoryToRemove = e.target.dataset.category;
+                removeCategory(categoryToRemove);
+            };
+        });
+    }
+
+    function addCategory() {
+        const newCategoryInput = document.getElementById('newCategoryInput');
+        const categoryName = newCategoryInput.value.trim();
+        if (categoryName && !categories.includes(categoryName)) {
+            categories.push(categoryName);
+            newCategoryInput.value = '';
+            saveCategories();
+            renderCategoryMenu();
+            updateLabelCategoryDropdowns(); // Update all label dropdowns
+            saveFullSessionStateToLocalStorage(); // Save full session state after category change
+            updateJSONOutput(); // Update JSON output display
+        } else if (categories.includes(categoryName)) {
+            showCustomModal('Category already exists!', 'alert');
+        }
+    }
+
+    function removeCategory(categoryName) {
+        showCustomModal(`Are you sure you want to remove the category "${categoryName}"? Labels assigned to this category will become "(No Category)".`, 'confirm', (response) => {
+            if (response) {
+                categories = categories.filter(cat => cat !== categoryName);
+                saveCategories();
+                renderCategoryMenu();
+                // Update all labels that were in this category
+                document.querySelectorAll('.label-block').forEach(labelDiv => {
+                    const categorySelect = labelDiv.querySelector('.label-category');
+                    if (categorySelect && categorySelect.value === categoryName) {
+                        categorySelect.value = ''; // Set to no category
+                    }
+                });
+                updateLabelCategoryDropdowns(); // Update all label dropdowns
+                saveFullSessionStateToLocalStorage(); // Save full session state after category change
+                updateJSONOutput(); // Update JSON output display
+            }
+        });
+    }
+
+    function updateLabelCategoryDropdowns() {
+        document.querySelectorAll('.label-category').forEach(selectElement => {
+            const currentSelectedCategory = selectElement.value;
+            selectElement.innerHTML = '<option value="">(No Category)</option>'; // Always add default option
+            categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                selectElement.appendChild(option);
+            });
+            // Restore the previously selected category if it still exists
+            if (categories.includes(currentSelectedCategory)) {
+                selectElement.value = currentSelectedCategory;
+            } else {
+                selectElement.value = ''; // Reset if the category was removed
+            }
+        });
+    }
+
+    // --- Session File Save/Load ---
+    function saveSessionFile() {
+        const currentLabels = getLabelsData();
+        const sessionData = {
+            labelValues: currentLabels.map(label => label.identifier),
+            labelValueDefinitions: currentLabels, // This includes category
+            categories: categories,
+            timestamp: new Date().toISOString(),
+            version: '0.73' // Version of the session file format
+        };
+        const sessionJson = JSON.stringify(sessionData, null, 2);
+        const blob = new Blob([sessionJson], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ozone_session_${new Date().toISOString().slice(0,10)}.ozm`; // .ozm extension
+        a.click();
+        URL.revokeObjectURL(url);
+        showCustomModal('Session file downloaded!', 'alert');
+    }
+
+    function loadSessionFile() {
+        document.getElementById('sessionFileInput').click();
+    }
+
+    document.getElementById('sessionFileInput').onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const sessionData = JSON.parse(event.target.result);
+                // Check for expected session structure
+                if (sessionData.labelValueDefinitions && Array.isArray(sessionData.labelValueDefinitions) &&
+                    sessionData.categories && Array.isArray(sessionData.categories)) {
+                    showCustomModal('Loading this session will overwrite your current work. Continue?', 'confirm', (response) => {
+                        if (response) {
+                            // Clear history before loading new session
+                            history = [];
+                            historyIndex = -1;
+                            saveHistoryToLocalStorage();
+
+                            loadState(event.target.result); // Load the full session data
+                            showCustomModal('Session loaded successfully!', 'alert');
+                        }
+                    });
+                } else {
+                    showCustomModal('Invalid session file format. Please select a valid Ozone session file (.ozm or .json).', 'alert');
+                }
+            } catch (err) {
+                showCustomModal('Failed to parse session file: ' + err.message, 'alert');
+                console.error("Error loading session file:", err);
+            }
+        };
+        reader.readAsText(file);
+        e.target.value = ''; // Clear file input
+    };
+
+
+    // --- Initialization on page load ---
+    function initializeApp() {
+      showLoadingOverlay('Loading your saved data...');
+      try {
+        const savedHistory = localStorage.getItem(HISTORY_LOCAL_STORAGE_KEY);
+        const savedSession = localStorage.getItem(LOCAL_STORAGE_KEY);
+
+        if (savedHistory) {
+          history = JSON.parse(savedHistory);
+          if (history.length > 0) {
+            historyIndex = history.length - 1;
+            loadState(history[historyIndex]); // Load the latest state from history
+            console.log("Data loaded from Local Storage history.");
+          } else if (savedSession) { // Fallback to last saved session if history is empty
+            loadState(savedSession);
+            console.log("Data loaded from last saved session.");
+          } else {
+            console.log("Local storage history and session are empty. Creating default label.");
+            createLabelBlock(); // Create one default label if nothing exists
+            saveFullSessionStateToLocalStorage(); // Save this initial state
+            addStateToHistoryForUndoAndRedo(); // Add to history
+          }
+        } else if (savedSession) { // If no history, but a session exists
+            loadState(savedSession);
+            console.log("No history found, loaded from last saved session.");
+            // Initialize history with current state if none was found
+            addStateToHistoryForUndoAndRedo();
+        } else {
+          console.log("No history or session found in local storage. Creating default label.");
+          createLabelBlock(); // Create one default label if no history exists
+          saveFullSessionStateToLocalStorage(); // Save this initial state
+          addStateToHistoryForUndoAndRedo(); // Add to history
+        }
+
+        loadCategories(); // Load categories on app start
+        updateUndoRedoButtons(); // Initialize button states
+      } catch (error) {
+        console.error("Error initializing app from Local Storage:", error);
+        showCustomModal("Error loading saved data. Starting with a fresh page.", "alert");
+        document.getElementById('labels-container').innerHTML = ''; // Clear any partial loads
+        categories = []; // Clear categories
+        createLabelBlock(); // Fallback to a fresh label block on error
+        saveFullSessionStateToLocalStorage(); // Save this initial state
+        addStateToHistoryForUndoAndRedo(); // Add to history
+        updateUndoRedoButtons();
+        renderCategoryMenu(); // Render empty categories
+        updateLabelCategoryDropdowns();
+      } finally {
+        hideLoadingOverlay();
+      }
+    }
+
+    // Call the initialization function when the DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', initializeApp);
+
+    // Get references for mobile menus and toggles
+    const mobileLeftMenuToggle = document.getElementById('mobileLeftMenuToggle');
+    const mobileRightMenuToggle = document.getElementById('mobileRightMenuToggle');
+    const leftFloatingMenu = document.getElementById('left-floating-menu');
+    const rightFloatingMenu = document.getElementById('floating-menu'); // Quick Access
+    const categoryMenu = document.getElementById('category-menu'); // Category Menu
+    const closeLeftMenuBtn = document.getElementById('closeLeftMenuBtn');
+    const closeRightMenuBtn = document.getElementById('closeRightMenuBtn'); // Quick Access
+    const closeCategoryMenuBtn = document.getElementById('closeCategoryMenuBtn'); // Category Menu
+    const body = document.body;
+
+    // Function to open a specific mobile menu
+    function openMobileMenu(menuElement) {
+      // Close other menus if they're open
+      [leftFloatingMenu, rightFloatingMenu, categoryMenu].forEach(menu => {
+        if (menu !== menuElement && menu.classList.contains('open')) {
+          closeMobileMenu(menu);
+        }
+      });
+
+      menuElement.classList.add('open');
+      menuElement.style.transform = 'translateY(0)'; // Slide in from bottom
+    }
+
+    // Function to close a specific mobile menu
+    function closeMobileMenu(menuElement) {
+      menuElement.classList.remove('open');
+      menuElement.style.transform = 'translateY(calc(100% + 50px))'; // Slide out to bottom, fully hidden
+    }
+
+    // Event listeners for mobile menu toggles
+    mobileLeftMenuToggle.addEventListener('click', () => openMobileMenu(leftFloatingMenu));
+    // The right toggle will now open the category menu first, then quick access
+    mobileRightMenuToggle.addEventListener('click', () => {
+        if (!categoryMenu.classList.contains('open') && !rightFloatingMenu.classList.contains('open')) {
+            openMobileMenu(categoryMenu); // Open category menu first
+        } else if (categoryMenu.classList.contains('open')) {
+            closeMobileMenu(categoryMenu);
+            openMobileMenu(rightFloatingMenu); // Then open quick access
+        } else {
+            closeMobileMenu(rightFloatingMenu);
+        }
+    });
+
+
+    // Event listeners for internal close buttons
+    closeLeftMenuBtn.addEventListener('click', () => closeMobileMenu(leftFloatingMenu));
+    closeRightMenuBtn.addEventListener('click', () => closeMobileMenu(rightFloatingMenu));
+    closeCategoryMenuBtn.addEventListener('click', () => closeMobileMenu(categoryMenu));
+
+
+    // Close menu if clicking outside (on the backdrop)
+    document.addEventListener('click', (event) => {
+      const isClickInsideLeftMenu = leftFloatingMenu.contains(event.target);
+      const isClickInsideRightMenu = rightFloatingMenu.contains(event.target);
+      const isClickInsideCategoryMenu = categoryMenu.contains(event.target);
+      const isClickOnLeftToggle = mobileLeftMenuToggle.contains(event.target);
+      const isClickOnRightToggle = mobileRightMenuToggle.contains(event.target);
+
+      // Only close if a menu is open and the click is outside all menus and their toggles
+      if (
+        (leftFloatingMenu.classList.contains('open') && !isClickInsideLeftMenu && !isClickOnLeftToggle) ||
+        (rightFloatingMenu.classList.contains('open') && !isClickInsideRightMenu && !isClickOnRightToggle) ||
+        (categoryMenu.classList.contains('open') && !isClickInsideCategoryMenu && !isClickOnRightToggle)
+      ) {
+        closeMobileMenu(leftFloatingMenu);
+        closeMobileMenu(rightFloatingMenu);
+        closeMobileMenu(categoryMenu);
+      }
+    });
+
+
+    // --- Event Listeners for Main Buttons ---
+    document.getElementById('addLabelBtn').onclick = () => {
+      createLabelBlock();
+      saveFullSessionStateToLocalStorage(); // Save full session state
+      updateJSONOutput(); // Update JSON output display
+    };
+
+    document.getElementById('pasteJsonBtn').onclick = pasteJson;
+    document.getElementById('copyJsonBtn').onclick = copyJsonToClipboard;
+
+    document.getElementById('exportJsonBtn').onclick = () => {
+      const text = document.getElementById('output').textContent;
+      if (!text || JSON.parse(text).labelValueDefinitions.length === 0) { // Check new structure
+        showCustomModal('Nothing to export.', 'alert');
+        return;
+      }
+      const blob = new Blob([text], {type: "application/json"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'labels.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    document.getElementById('importJsonBtn').onclick = () => {
+      document.getElementById('fileInput').click();
+    };
+
+    document.getElementById('fileInput').onchange = e => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const data = JSON.parse(e.target.result);
+          // Support both old and new format for loading
+          const labelsToLoad = data.labelValueDefinitions || data.labels;
+
+          if (!labelsToLoad || !Array.isArray(labelsToLoad)) {
+            showCustomModal('Invalid JSON structure.', 'alert');
+            return;
+          }
+          showCustomModal('Loading this JSON will overwrite your current labels. Categories will remain unchanged. Continue?', 'confirm', (response) => {
+              if (response) {
+                  suppressSave = true; // Temporarily suppress history saving during import
+                  document.getElementById('labels-container').innerHTML = '';
+                  labelsToLoad.forEach(label => {
+                    // Use 'identifier' if present, otherwise fallback to 'id' for backward compatibility
+                    const labelIdentifier = label.identifier !== undefined ? label.identifier : label.id;
+                    createLabelBlock(
+                      labelIdentifier || '',
+                      label.severity || 'inform',
+                      label.blurs || 'content',
+                      label.defaultSetting || 'ignore',
+                      label.adultOnly || false,
+                      label.enabled !== undefined ? label.enabled : true,
+                      label.locales || []
+                      // Category will default to empty for imported labels
+                    );
+                  });
+                  suppressSave = false;
+                  saveFullSessionStateToLocalStorage(); // Save full session state
+                  updateJSONOutput(); // Update JSON output display
+                  showCustomModal('Labels imported successfully!', 'alert');
+              }
+          });
+        } catch(err) {
+          showCustomModal('Failed to parse JSON: ' + err.message, 'alert');
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    };
+
+    // Attach button event listeners
+    document.getElementById('undoBtn').onclick = undo;
+    document.getElementById('redoBtn').onclick = redo;
+    document.getElementById('collapseAllBtn').onclick = collapseAllLabels;
+    document.getElementById('expandAllBtn').onclick = expandAllLabels;
+    document.getElementById('resetClearBtn').onclick = resetClearLabels;
+    document.getElementById('versionHistoryBtn').onclick = showVersionHistory;
+    document.getElementById('saveBtn').onclick = addVersionToHistory;
+
+    // New session save/load buttons
+    document.getElementById('saveSessionFileBtn').onclick = saveSessionFile;
+    document.getElementById('loadSessionFileBtn').onclick = loadSessionFile;
+
+    document.getElementById('searchInput').addEventListener('input', filterLabels);
+
+    // Theme toggle logic
+    const themeToggle = document.getElementById('checkbox');
+    const currentTheme = localStorage.getItem('theme');
+
+    // Apply saved theme on load
+    if (currentTheme) {
+      document.body.classList.add(currentTheme);
+      if (currentTheme === 'dark-mode') {
+        themeToggle.checked = true;
+      }
+    }
+
+    // Listen for theme toggle changes
+    themeToggle.addEventListener('change', () => {
+      if (themeToggle.checked) {
+        document.body.classList.add('dark-mode');
+        localStorage.setItem('theme', 'dark-mode');
+      } else {
+        document.body.classList.remove('dark-mode');
+        localStorage.setItem('theme', 'light-mode');
+      }
+    });
+
+    // Function to update the floating quick access menu
+    function updateFloatingMenu() {
+      const quickAccessList = document.getElementById('label-quick-access-list');
+      quickAccessList.innerHTML = ''; // Clear existing list items
+
+      // Define the user-friendly placeholder for the quick access menu
+      const identifierPlaceholder = '(Untitled Label)';
+
+      document.querySelectorAll('.label-block').forEach(labelDiv => {
+        const labelId = labelDiv.id; // Get the unique HTML ID of the label block
+        // Use the new placeholder for display in the quick access list
+        const labelIdentifier = labelDiv.querySelector('.identifier').value.trim() || identifierPlaceholder;
+
+        const listItem = document.createElement('li');
+        const anchor = document.createElement('a');
+        anchor.href = `#${labelId}`; // Link to the unique HTML ID
+        anchor.textContent = labelIdentifier;
+
+        // Smooth scroll on click
+        anchor.onclick = (e) => {
+          e.preventDefault();
+          document.getElementById(labelId).scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+
+        listItem.appendChild(anchor);
+        quickAccessList.appendChild(listItem);
+      });
+    }
+
+    // Add beforeunload event listener to warn about unsaved changes
+    window.addEventListener('beforeunload', function (e) {
+      const currentLabels = getLabelsData();
+      const currentSessionState = {
+        labelValueDefinitions: currentLabels,
+        categories: categories
+      };
+
+      const latestSavedState = history.length > 0 ? JSON.parse(history[history.length - 1]) : { labelValueDefinitions: [], categories: [] };
+
+      const currentSessionJson = JSON.stringify(currentSessionState);
+      const latestSavedSessionJson = JSON.stringify({
+          labelValueDefinitions: latestSavedState.labelValueDefinitions,
+          categories: latestSavedState.categories
+      });
+
+
+      if (currentSessionJson !== latestSavedSessionJson) {
+        // Cancel the event
+        e.preventDefault();
+        // Chrome requires returnValue to be set
+        e.returnValue = '';
+        // Older browsers might display the string
+        return 'You have unsaved changes. Are you sure you want to leave?';
+      }
+    });
+
+    // Category Menu Event Listeners
+    document.getElementById('addCategoryBtn').onclick = addCategory;
+    document.getElementById('newCategoryInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            addCategory();
+        }
+    });
+  </script>
+</body>
+</html>
