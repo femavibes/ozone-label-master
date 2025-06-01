@@ -875,6 +875,173 @@
     border-radius: var(--border-radius);
     color: var(--text-color);
   }
+
+  /* Bulk Actions Section Styling */
+  #bulk-actions-menu {
+    background: var(--background);
+    border: 1px solid var(--block-border);
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 1em;
+    margin-bottom: 1em; /* Space between bulk actions and categories */
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+  }
+
+  #bulk-actions-menu h3 {
+    margin-top: 0;
+    color: var(--primary);
+    font-size: 1.2rem;
+    margin-bottom: 0.8em;
+  }
+
+  #bulk-actions-menu .bulk-action-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    margin-bottom: 1em;
+    border-bottom: 1px solid var(--block-border);
+    padding-bottom: 1em;
+  }
+
+  #bulk-actions-menu .bulk-action-group:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+      margin-bottom: 0;
+  }
+
+  #bulk-actions-menu .bulk-action-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      flex-wrap: wrap; /* Allow wrapping on small screens */
+  }
+
+  #bulk-actions-menu .bulk-action-row label {
+      margin: 0; /* Override default label margin */
+      flex-shrink: 0;
+  }
+
+  #bulk-actions-menu .bulk-action-row select,
+  #bulk-actions-menu .bulk-action-row input[type="checkbox"] {
+      margin: 0; /* Override default input/select margin */
+  }
+
+  #bulk-actions-menu .bulk-action-row select {
+      flex-grow: 1; /* Allow select to take available space */
+      max-width: 120px; /* Limit width */
+      padding: 0.3em 0.5em;
+      font-size: 0.9rem;
+  }
+
+  #bulk-actions-menu .bulk-action-row button {
+      padding: 0.4em 0.8em;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+  }
+
+  #bulk-actions-menu .bulk-action-row .full-width-button {
+      width: 100%;
+      margin-top: 0.5em;
+  }
+
+  #bulk-actions-menu .bulk-action-row .danger-button {
+      background-color: var(--danger);
+  }
+
+  #bulk-actions-menu .bulk-action-row .danger-button:hover {
+      background-color: #dc2626;
+  }
+
+  /* Checkbox styling for bulk select */
+  .label-header .bulk-select-checkbox {
+    margin-left: 0.5em; /* Space from identifier */
+    margin-right: 0.5em;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  /* Mobile specific adjustments for bulk action menu */
+  @media (max-width: 992px) {
+    #bulk-actions-menu {
+      position: fixed;
+      bottom: 0;
+      width: 80%;
+      max-width: 300px;
+      height: auto;
+      max-height: 80vh;
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
+      border-bottom: none;
+      transform: translateY(calc(100% + 50px)); /* Start collapsed and fully hidden */
+      display: flex; /* Ensure it's a flex container when active */
+      margin-right: 0;
+      pointer-events: none;
+      z-index: 9999;
+      left: 50%; /* Center horizontally */
+      transform: translateX(-50%) translateY(calc(100% + 50px)); /* Center and hide */
+      transition: transform 0.3s ease-out;
+    }
+
+    #bulk-actions-menu.open {
+      transform: translateX(-50%) translateY(0); /* Center and show */
+      pointer-events: auto;
+    }
+
+    #bulk-actions-menu .mobile-menu-header {
+      display: flex; /* Show mobile header */
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1em;
+      padding: 0.5em 1em;
+      border-bottom: 1px solid var(--block-border);
+      box-sizing: border-box;
+      width: 100%;
+    }
+
+    /* Adjust right menu wrapper for mobile */
+    #right-menu-wrapper {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        width: 80%;
+        max-width: 300px;
+        flex-direction: column; /* Stack menus vertically */
+        gap: 0; /* Remove gap between them as they will be separate */
+        z-index: 9998; /* Ensure they are below bulk actions if both open */
+        pointer-events: none; /* Initially non-interactive */
+        transform: translateY(calc(100% + 50px)); /* Hide by default */
+        transition: transform 0.3s ease-out;
+    }
+
+    /* When right menu wrapper is open, stack its children */
+    #right-menu-wrapper.open {
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    #floating-menu, #category-menu {
+        position: static; /* Remove sticky positioning */
+        width: 100%; /* Take full width of wrapper */
+        max-height: none; /* Allow content to dictate height */
+        box-shadow: none; /* Remove individual shadows */
+        border: none; /* Remove individual borders */
+        border-radius: 0; /* Remove individual border radius */
+        padding: 1em;
+        margin-bottom: 0; /* No margin between them */
+    }
+
+    #category-menu {
+        border-bottom: 1px solid var(--block-border); /* Add separator between category and quick access */
+        border-radius: var(--border-radius) var(--border-radius) 0 0; /* Rounded top only */
+    }
+
+    #floating-menu {
+        border-radius: 0 0 var(--border-radius) var(--border-radius); /* Rounded bottom only */
+    }
+  }
+
 </style>
 
 </head>
@@ -915,11 +1082,11 @@
       </a>
       <div class="header-text-group">
         <h1>OZONE LABEL MASTER</h1>
-        <p>version 0.72</p>
+        <p>version 0.73</p>
       </div>
     </header>
 
-    <input type="text" id="searchInput" placeholder="Search labels..." title="Filter labels by identifier or locale name" />
+    <input type="text" id="searchInput" placeholder="Search labels and categories..." title="Filter labels by identifier, locale name, or category" />
     <div id="duplicateWarning">⚠ Duplicate identifiers found!</div>
 
     <div id="labels-container"></div>
@@ -935,6 +1102,68 @@
   </div>
 
   <div id="right-menu-wrapper" style="display: flex; flex-direction: column; gap: 1em;">
+    <div id="bulk-actions-menu">
+        <div class="mobile-menu-header">
+            <h3>Bulk Actions</h3>
+            <button id="closeBulkActionsMenuBtn" class="close-mobile-menu-btn">X</button>
+        </div>
+        <h3>Bulk Actions</h3>
+        <div class="bulk-action-group">
+            <div class="bulk-action-row">
+                <label for="bulkTargetSelect">Apply to:</label>
+                <select id="bulkTargetSelect">
+                    <option value="selected">Selected Labels</option>
+                    <option value="category">Labels in Category</option>
+                </select>
+                <select id="bulkCategoryFilterSelect" style="display:none;"></select>
+            </div>
+            <div class="bulk-action-row">
+                <input type="checkbox" id="bulkSelectAllCheckbox">
+                <label for="bulkSelectAllCheckbox">Select All Visible Labels</label>
+            </div>
+        </div>
+
+        <div class="bulk-action-group">
+            <div class="bulk-action-row">
+                <label for="bulkSeveritySelect">Severity:</label>
+                <select id="bulkSeveritySelect">
+                    <option value="">(No Change)</option>
+                    <option value="inform">inform</option>
+                    <option value="warn">warn</option>
+                    <option value="block">block</option>
+                </select>
+            </div>
+            <div class="bulk-action-row">
+                <label for="bulkBlursSelect">Blurs:</label>
+                <select id="bulkBlursSelect">
+                    <option value="">(No Change)</option>
+                    <option value="content">content</option>
+                    <option value="media">media</option>
+                    <option value="none">none</option>
+                </select>
+            </div>
+            <div class="bulk-action-row">
+                <label for="bulkDefaultSettingSelect">Default Setting:</label>
+                <select id="bulkDefaultSettingSelect">
+                    <option value="">(No Change)</option>
+                    <option value="ignore">ignore</option>
+                    <option value="warn">warn</option>
+                    <option value="block">block</option>
+                </select>
+            </div>
+            <button id="bulkApplyChangesBtn" class="full-width-button">Apply Property Changes</button>
+        </div>
+
+        <div class="bulk-action-group">
+            <button id="bulkEnableBtn" class="full-width-button">Enable Selected</button>
+            <button id="bulkDisableBtn" class="full-width-button">Disable Selected</button>
+        </div>
+
+        <div class="bulk-action-group">
+            <button id="bulkDeleteBtn" class="full-width-button danger-button">Delete Selected</button>
+        </div>
+    </div>
+
     <div id="category-menu">
         <div class="mobile-menu-header">
             <h3>Categories</h3>
@@ -963,6 +1192,8 @@
 
   <button id="mobileLeftMenuToggle" class="mobile-menu-toggle-button">☰</button>
   <button id="mobileRightMenuToggle" class="mobile-menu-toggle-button">⋮</button>
+  <button id="mobileBulkActionsToggle" class="mobile-menu-toggle-button" style="display:none;"></button>
+
 
   <div id="loadingOverlay" class="loading-overlay" style="display: none;">
     <div class="spinner"></div>
@@ -983,6 +1214,7 @@
     const MAX_HISTORY_SIZE = 50; // Limit in-memory history size
 
     let categories = []; // Global array for categories
+    let selectedLabelIds = new Set(); // Stores IDs of currently selected labels for bulk actions
 
     // Show/Hide loading overlay
     function showLoadingOverlay(message = 'Loading...') {
@@ -1127,6 +1359,7 @@
       updateFloatingMenu();
       suppressSave = false;
       updateUndoRedoButtons();
+      clearSelectedLabels(); // Clear selection after loading state
     }
 
     // Undo the last change
@@ -1564,6 +1797,7 @@ Original description:
 
       labelDiv.innerHTML = `
         <div class="label-header" title="Click to expand/collapse">
+          <input type="checkbox" class="bulk-select-checkbox" data-label-id="${uniqueHtmlId}">
           <button class="collapse-btn">Collapse</button>
           <span class="label-identifier-display" style="flex:1; user-select:text;">${id || identifierPlaceholder}</span>
           <div class="category-in-header">
@@ -1620,6 +1854,8 @@ Original description:
 
       labelDiv.querySelector('.remove-btn').onclick = () => {
         labelDiv.remove();
+        selectedLabelIds.delete(uniqueHtmlId); // Remove from selection set
+        updateBulkSelectAllCheckbox(); // Update "Select All" state
         saveFullSessionStateToLocalStorage(); // Save full session state
         updateJSONOutput(); // Update JSON output display
       };
@@ -1636,11 +1872,22 @@ Original description:
       const defaultSettingSelect = labelDiv.querySelector('.defaultSetting');
       const adultOnlyCheckbox = labelDiv.querySelector('.adultOnly');
       const enabledCheckbox = labelDiv.querySelector('.enabled');
+      const bulkSelectCheckbox = labelDiv.querySelector('.bulk-select-checkbox'); // New bulk select checkbox
 
       // Set initial category
       if (category) {
           categorySelect.value = category;
       }
+
+      // Event listener for bulk select checkbox
+      bulkSelectCheckbox.addEventListener('change', () => {
+          if (bulkSelectCheckbox.checked) {
+              selectedLabelIds.add(uniqueHtmlId);
+          } else {
+              selectedLabelIds.delete(uniqueHtmlId);
+          }
+          updateBulkSelectAllCheckbox(); // Update "Select All" state
+      });
 
       // Use 'change' for select and checkbox, 'input' for text inputs
       [severitySelect, blursSelect, defaultSettingSelect, categorySelect].forEach(elem => { // Added categorySelect
@@ -2000,26 +2247,30 @@ Original description:
             showCustomModal('Invalid JSON structure: Expected a "labelValueDefinitions" or "labels" array.', 'alert');
             return;
           }
-          suppressSave = true; // Temporarily suppress history saving during import
-          document.getElementById('labels-container').innerHTML = '';
-          labelsToLoad.forEach(label => {
-            // Use 'identifier' if present, otherwise fallback to 'id' for backward compatibility
-            const labelIdentifier = label.identifier !== undefined ? label.identifier : label.id;
-            createLabelBlock(
-              labelIdentifier || '',
-              label.severity || 'inform',
-              label.blurs || 'content',
-              label.defaultSetting || 'ignore',
-              label.adultOnly || false,
-              label.enabled !== undefined ? label.enabled : true,
-              label.locales || []
-            );
+          showCustomModal('Loading this JSON will overwrite your current labels. Categories will remain unchanged. Continue?', 'confirm', (response) => {
+              if (response) {
+                  suppressSave = true; // Temporarily suppress history saving during import
+                  document.getElementById('labels-container').innerHTML = '';
+                  labelsToLoad.forEach(label => {
+                    // Use 'identifier' if present, otherwise fallback to 'id' for backward compatibility
+                    const labelIdentifier = label.identifier !== undefined ? label.identifier : label.id;
+                    createLabelBlock(
+                      labelIdentifier || '',
+                      label.severity || 'inform',
+                      label.blurs || 'content',
+                      label.defaultSetting || 'ignore',
+                      label.adultOnly || false,
+                      label.enabled !== undefined ? label.enabled : true,
+                      label.locales || []
+                    );
+                  });
+                  suppressSave = false;
+                  saveFullSessionStateToLocalStorage(); // Save full session state
+                  updateJSONOutput(); // Update JSON output display
+                  // Close the modal
+                  document.querySelector('.custom-modal-overlay').remove();
+              }
           });
-          suppressSave = false;
-          saveFullSessionStateToLocalStorage(); // Save full session state
-          updateJSONOutput(); // Update JSON output display
-          // Close the modal
-          document.querySelector('.custom-modal-overlay').remove();
         } catch (err) {
           showCustomModal('Failed to parse JSON: ' + err.message, 'alert');
         }
@@ -2148,6 +2399,7 @@ Original description:
         }
         renderCategoryMenu();
         updateLabelCategoryDropdowns();
+        updateBulkCategoryFilterDropdown(); // Update bulk category filter
     }
 
     function saveCategories() {
@@ -2185,6 +2437,7 @@ Original description:
             saveCategories();
             renderCategoryMenu();
             updateLabelCategoryDropdowns(); // Update all label dropdowns
+            updateBulkCategoryFilterDropdown(); // Update bulk category filter
             saveFullSessionStateToLocalStorage(); // Save full session state after category change
             updateJSONOutput(); // Update JSON output display
         } else if (categories.includes(categoryName)) {
@@ -2206,6 +2459,7 @@ Original description:
                     }
                 });
                 updateLabelCategoryDropdowns(); // Update all label dropdowns
+                updateBulkCategoryFilterDropdown(); // Update bulk category filter
                 saveFullSessionStateToLocalStorage(); // Save full session state after category change
                 updateJSONOutput(); // Update JSON output display
             }
@@ -2230,6 +2484,133 @@ Original description:
             }
         });
     }
+
+    // --- Bulk Actions Logic ---
+    function clearSelectedLabels() {
+        selectedLabelIds.clear();
+        document.querySelectorAll('.bulk-select-checkbox').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        document.getElementById('bulkSelectAllCheckbox').checked = false;
+    }
+
+    function updateBulkSelectAllCheckbox() {
+        const allVisibleCheckboxes = Array.from(document.querySelectorAll('.label-block:not([style*="display: none"]) .bulk-select-checkbox'));
+        const allChecked = allVisibleCheckboxes.every(cb => cb.checked);
+        const someChecked = allVisibleCheckboxes.some(cb => cb.checked);
+
+        const bulkSelectAllCheckbox = document.getElementById('bulkSelectAllCheckbox');
+        bulkSelectAllCheckbox.checked = allChecked;
+        bulkSelectAllCheckbox.indeterminate = someChecked && !allChecked;
+    }
+
+    function getTargetLabelDivs() {
+        const targetType = document.getElementById('bulkTargetSelect').value;
+        let targetLabels = [];
+
+        if (targetType === 'selected') {
+            selectedLabelIds.forEach(id => {
+                const labelDiv = document.getElementById(id);
+                if (labelDiv) targetLabels.push(labelDiv);
+            });
+        } else if (targetType === 'category') {
+            const selectedCategory = document.getElementById('bulkCategoryFilterSelect').value;
+            if (selectedCategory) {
+                document.querySelectorAll('.label-block').forEach(labelDiv => {
+                    const categorySelect = labelDiv.querySelector('.label-category');
+                    if (categorySelect && categorySelect.value === selectedCategory) {
+                        targetLabels.push(labelDiv);
+                    }
+                });
+            }
+        }
+        return targetLabels;
+    }
+
+    function applyBulkPropertyChanges() {
+        const targetLabels = getTargetLabelDivs();
+        const newSeverity = document.getElementById('bulkSeveritySelect').value;
+        const newBlurs = document.getElementById('bulkBlursSelect').value;
+        const newDefaultSetting = document.getElementById('bulkDefaultSettingSelect').value;
+
+        if (targetLabels.length === 0) {
+            showCustomModal('No labels selected or found for the chosen target.', 'alert');
+            return;
+        }
+
+        showCustomModal(`Apply changes to ${targetLabels.length} labels?`, 'confirm', (response) => {
+            if (response) {
+                targetLabels.forEach(labelDiv => {
+                    if (newSeverity) labelDiv.querySelector('.severity').value = newSeverity;
+                    if (newBlurs) labelDiv.querySelector('.blurs').value = newBlurs;
+                    if (newDefaultSetting) labelDiv.querySelector('.defaultSetting').value = newDefaultSetting;
+                });
+                saveFullSessionStateToLocalStorage();
+                updateJSONOutput();
+                showCustomModal('Bulk changes applied.', 'alert');
+            }
+        });
+    }
+
+    function bulkEnableDisable(enable) {
+        const targetLabels = getTargetLabelDivs();
+        if (targetLabels.length === 0) {
+            showCustomModal('No labels selected or found for the chosen target.', 'alert');
+            return;
+        }
+
+        const action = enable ? 'Enable' : 'Disable';
+        showCustomModal(`${action} ${targetLabels.length} labels?`, 'confirm', (response) => {
+            if (response) {
+                targetLabels.forEach(labelDiv => {
+                    labelDiv.querySelector('.enabled').checked = enable;
+                    updateLabelBlockVisualState(labelDiv);
+                });
+                saveFullSessionStateToLocalStorage();
+                updateJSONOutput();
+                showCustomModal(`Labels ${action.toLowerCase()}d.`, 'alert');
+            }
+        });
+    }
+
+    function bulkDelete() {
+        const targetLabels = getTargetLabelDivs();
+        if (targetLabels.length === 0) {
+            showCustomModal('No labels selected or found for the chosen target.', 'alert');
+            return;
+        }
+
+        showCustomModal(`Are you sure you want to delete ${targetLabels.length} labels? This action cannot be undone.`, 'confirm', (response) => {
+            if (response) {
+                targetLabels.forEach(labelDiv => {
+                    labelDiv.remove();
+                    selectedLabelIds.delete(labelDiv.id); // Ensure removed from selection
+                });
+                updateBulkSelectAllCheckbox(); // Update "Select All" state
+                saveFullSessionStateToLocalStorage();
+                updateJSONOutput();
+                showCustomModal('Labels deleted.', 'alert');
+            }
+        });
+    }
+
+    function updateBulkCategoryFilterDropdown() {
+        const bulkCategoryFilterSelect = document.getElementById('bulkCategoryFilterSelect');
+        const currentSelectedCategory = bulkCategoryFilterSelect.value; // Preserve selection if possible
+        bulkCategoryFilterSelect.innerHTML = '<option value="">(Select Category)</option>';
+        categories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.textContent = cat;
+            bulkCategoryFilterSelect.appendChild(option);
+        });
+        if (categories.includes(currentSelectedCategory)) {
+            bulkCategoryFilterSelect.value = currentSelectedCategory;
+        } else {
+            bulkCategoryFilterSelect.value = '';
+        }
+    }
+
 
     // --- Session File Save/Load ---
     function saveSessionFile() {
@@ -2349,35 +2730,40 @@ Original description:
     // Get references for mobile menus and toggles
     const mobileLeftMenuToggle = document.getElementById('mobileLeftMenuToggle');
     const mobileRightMenuToggle = document.getElementById('mobileRightMenuToggle');
+    const mobileBulkActionsToggle = document.getElementById('mobileBulkActionsToggle'); // New bulk actions toggle
     const leftFloatingMenu = document.getElementById('left-floating-menu');
     const rightFloatingMenu = document.getElementById('floating-menu'); // Quick Access
     const categoryMenu = document.getElementById('category-menu'); // Category Menu
+    const bulkActionsMenu = document.getElementById('bulk-actions-menu'); // Bulk Actions Menu
     const closeLeftMenuBtn = document.getElementById('closeLeftMenuBtn');
     const closeRightMenuBtn = document.getElementById('closeRightMenuBtn'); // Quick Access
     const closeCategoryMenuBtn = document.getElementById('closeCategoryMenuBtn'); // Category Menu
+    const closeBulkActionsMenuBtn = document.getElementById('closeBulkActionsMenuBtn'); // New bulk actions close button
     const body = document.body;
 
     // Function to open a specific mobile menu
     function openMobileMenu(menuElement) {
       // Close other menus if they're open
-      [leftFloatingMenu, rightFloatingMenu, categoryMenu].forEach(menu => {
+      [leftFloatingMenu, rightFloatingMenu, categoryMenu, bulkActionsMenu].forEach(menu => {
         if (menu !== menuElement && menu.classList.contains('open')) {
           closeMobileMenu(menu);
         }
       });
 
       menuElement.classList.add('open');
-      menuElement.style.transform = 'translateY(0)'; // Slide in from bottom
+      menuElement.style.transform = menuElement.id === 'bulk-actions-menu' ? 'translateX(-50%) translateY(0)' : 'translateY(0)'; // Slide in from bottom
     }
 
     // Function to close a specific mobile menu
     function closeMobileMenu(menuElement) {
       menuElement.classList.remove('open');
-      menuElement.style.transform = 'translateY(calc(100% + 50px))'; // Slide out to bottom, fully hidden
+      menuElement.style.transform = menuElement.id === 'bulk-actions-menu' ? 'translateX(-50%) translateY(calc(100% + 50px))' : 'translateY(calc(100% + 50px))'; // Slide out to bottom, fully hidden
     }
 
     // Event listeners for mobile menu toggles
     mobileLeftMenuToggle.addEventListener('click', () => openMobileMenu(leftFloatingMenu));
+    mobileBulkActionsToggle.addEventListener('click', () => openMobileMenu(bulkActionsMenu)); // New toggle for bulk actions
+
     // The right toggle will now open the category menu first, then quick access
     mobileRightMenuToggle.addEventListener('click', () => {
         if (!categoryMenu.classList.contains('open') && !rightFloatingMenu.classList.contains('open')) {
@@ -2395,6 +2781,7 @@ Original description:
     closeLeftMenuBtn.addEventListener('click', () => closeMobileMenu(leftFloatingMenu));
     closeRightMenuBtn.addEventListener('click', () => closeMobileMenu(rightFloatingMenu));
     closeCategoryMenuBtn.addEventListener('click', () => closeMobileMenu(categoryMenu));
+    closeBulkActionsMenuBtn.addEventListener('click', () => closeMobileMenu(bulkActionsMenu)); // New close button for bulk actions
 
 
     // Close menu if clicking outside (on the backdrop)
@@ -2402,18 +2789,22 @@ Original description:
       const isClickInsideLeftMenu = leftFloatingMenu.contains(event.target);
       const isClickInsideRightMenu = rightFloatingMenu.contains(event.target);
       const isClickInsideCategoryMenu = categoryMenu.contains(event.target);
+      const isClickInsideBulkActionsMenu = bulkActionsMenu.contains(event.target); // New for bulk actions
       const isClickOnLeftToggle = mobileLeftMenuToggle.contains(event.target);
       const isClickOnRightToggle = mobileRightMenuToggle.contains(event.target);
+      const isClickOnBulkActionsToggle = mobileBulkActionsToggle.contains(event.target); // New for bulk actions
 
       // Only close if a menu is open and the click is outside all menus and their toggles
       if (
         (leftFloatingMenu.classList.contains('open') && !isClickInsideLeftMenu && !isClickOnLeftToggle) ||
         (rightFloatingMenu.classList.contains('open') && !isClickInsideRightMenu && !isClickOnRightToggle) ||
-        (categoryMenu.classList.contains('open') && !isClickInsideCategoryMenu && !isClickOnRightToggle)
+        (categoryMenu.classList.contains('open') && !isClickInsideCategoryMenu && !isClickOnRightToggle) ||
+        (bulkActionsMenu.classList.contains('open') && !isClickInsideBulkActionsMenu && !isClickOnBulkActionsToggle) // New condition
       ) {
         closeMobileMenu(leftFloatingMenu);
         closeMobileMenu(rightFloatingMenu);
         closeMobileMenu(categoryMenu);
+        closeMobileMenu(bulkActionsMenu); // Close bulk actions menu
       }
     });
 
@@ -2595,6 +2986,35 @@ Original description:
             addCategory();
         }
     });
+
+    // Bulk Actions Event Listeners
+    document.getElementById('bulkSelectAllCheckbox').addEventListener('change', (e) => {
+        const isChecked = e.target.checked;
+        document.querySelectorAll('.label-block:not([style*="display: none"]) .bulk-select-checkbox').forEach(checkbox => {
+            checkbox.checked = isChecked;
+            const labelId = checkbox.dataset.labelId;
+            if (isChecked) {
+                selectedLabelIds.add(labelId);
+            } else {
+                selectedLabelIds.delete(labelId);
+            }
+        });
+    });
+
+    document.getElementById('bulkTargetSelect').addEventListener('change', (e) => {
+        const bulkCategoryFilterSelect = document.getElementById('bulkCategoryFilterSelect');
+        if (e.target.value === 'category') {
+            bulkCategoryFilterSelect.style.display = '';
+            updateBulkCategoryFilterDropdown();
+        } else {
+            bulkCategoryFilterSelect.style.display = 'none';
+        }
+    });
+
+    document.getElementById('bulkApplyChangesBtn').onclick = applyBulkPropertyChanges;
+    document.getElementById('bulkEnableBtn').onclick = () => bulkEnableDisable(true);
+    document.getElementById('bulkDisableBtn').onclick = () => bulkEnableDisable(false);
+    document.getElementById('bulkDeleteBtn').onclick = bulkDelete;
   </script>
 </body>
 </html>
