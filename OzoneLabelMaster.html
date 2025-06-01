@@ -18,7 +18,9 @@
     --input-border: #d1d5db;
     --output-background: #f3f4f6;
     --output-border: #e5e7eb;
-    --border-radius: 8px;
+    --border-radius: 4px; /* Changed to 4px for a more squared look */
+    --label-box-background: hsl(180, 70%, 90%); /* Light teal for the identifier box */
+    --label-box-text: hsl(180, 100%, 20%); /* Darker teal for contrast */
   }
 
   /* Dark Mode Overrides */
@@ -35,6 +37,8 @@
     --input-border: #4b5563; /* Darker input border */
     --output-background: #374151; /* Darker output background */
     --output-border: #4b5563; /* Darker output border */
+    --label-box-background: hsl(180, 100%, 20%); /* Dark teal for dark mode */
+    --label-box-text: hsl(180, 70%, 90%); /* Lighter text for contrast */
   }
 
   body {
@@ -58,12 +62,11 @@
     width: 180px;
     background: var(--background);
     border: 1px solid var(--block-border);
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     padding: 1em;
     z-index: 9999; /* Increased z-index significantly */
-    max-height: calc(100vh - 4em);
-    overflow-y: auto;
+    /* Removed max-height and overflow-y to allow it to expand */
     transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease-out; /* Add transform transition */
     margin-right: 2em;
     display: flex;
@@ -93,7 +96,7 @@
     width: 100%;
     background: var(--background);
     padding: 2em;
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     transition: background 0.3s ease, box-shadow 0.3s ease;
     margin-right: 2em;
@@ -135,7 +138,7 @@
   header a img {
     height: 48px;
     width: auto;
-    border-radius: 8px;
+    border-radius: var(--border-radius); /* Uses variable */
     transition: transform 0.2s ease;
     /* Removed margin-bottom here as it's handled by gap in header */
   }
@@ -149,7 +152,7 @@
     padding: 10px 12px;
     font-size: 1rem;
     border: 1px solid var(--input-border);
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     margin-bottom: 1.5em;
     box-sizing: border-box;
     background: var(--block-background);
@@ -160,7 +163,7 @@
   .label-block {
     background: var(--block-background);
     border: 1px solid var(--block-border);
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     margin-bottom: 1.5em;
     overflow: hidden;
     transition: box-shadow 0.2s, background 0.3s ease, border-color 0.3s ease;
@@ -194,12 +197,26 @@
     transition: background 0.3s ease, border-color 0.3s ease;
   }
 
+  .label-identifier-box { /* New style for the yellow identifier box */
+    background-color: var(--label-box-background);
+    color: var(--label-box-text);
+    padding: 0.3em 0.6em;
+    border-radius: var(--border-radius); /* Uses variable */
+    font-size: 0.9em;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px; /* Limit width */
+    flex-shrink: 1; /* Allow it to shrink */
+  }
+
   .collapse-btn {
     background: var(--primary);
     color: white;
     border: none;
     padding: 6px 12px;
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     cursor: pointer;
     font-size: 0.875rem;
     transition: background 0.3s ease;
@@ -224,7 +241,7 @@
     height: 30px; /* Fixed height */
     padding: 0; /* Remove padding for consistent size */
     font-size: 1.2rem; /* Larger 'X' or arrow for small buttons */
-    border-radius: 4px; /* Square with 4px radius */
+    border-radius: var(--border-radius); /* Uses variable */
   }
 
   /* Specific colors for different button types */
@@ -266,7 +283,7 @@
     border: 1px solid var(--block-border);
     padding: 1em;
     margin-top: 1em;
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     background: var(--header-background);
     transition: background 0.3s ease, border-color 0.3s ease;
   }
@@ -283,7 +300,7 @@
     color: white;
     border: none;
     padding: 6px 12px; /* Match main collapse button padding */
-    border-radius: var(--border-radius); /* Match main collapse button border-radius */
+    border-radius: var(--border-radius); /* Uses variable */
     cursor: pointer;
     font-size: 0.875rem; /* Match main collapse button font-size */
     transition: background 0.3s ease;
@@ -315,7 +332,7 @@
   .locale-block .llm-buttons button {
     padding: 0.4em 0.8em;
     font-size: 0.85rem;
-    border-radius: 4px;
+    border-radius: var(--border-radius); /* Uses variable */
     background: #10b981;
   }
 
@@ -337,7 +354,7 @@
     margin-top: 0.25em;
     font-size: 1rem;
     border: 1px solid var(--input-border);
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     background: var(--block-background);
     color: var(--text-color);
     box-sizing: border-box;
@@ -354,7 +371,7 @@
     background: var(--primary);
     color: white;
     border: none;
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     cursor: pointer;
     transition: background 0.2s;
   }
@@ -375,6 +392,7 @@
     margin-top: 1em;
     margin-right: 0.5em;
     vertical-align: middle;
+    border-radius: var(--border-radius); /* Uses variable */
   }
 
   /* New class for left menu buttons to ensure consistent sizing */
@@ -384,6 +402,7 @@
     width: 100%;
     margin-top: 0;
     margin-right: 0;
+    border-radius: var(--border-radius); /* Uses variable */
   }
 
   /* Styling for Add Locale button */
@@ -391,7 +410,7 @@
     background: var(--primary); /* Keep blue */
     color: white;
     border: none;
-    border-radius: 4px; /* Match translate buttons */
+    border-radius: var(--border-radius); /* Uses variable */
     cursor: pointer;
     font-size: 0.85rem; /* Match translate buttons */
     padding: 0.4em 0.8em; /* Match translate buttons */
@@ -423,7 +442,7 @@
     border: 1px solid var(--output-border);
     font-family: 'Courier New', monospace;
     font-size: 0.95rem;
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     max-height: 300px;
     overflow-y: auto;
     color: var(--text-color);
@@ -442,7 +461,7 @@
     background: var(--primary);
     color: white;
     padding: 0.5em 0.8em; /* Adjusted vertical padding */
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     cursor: pointer;
     font-size: 1rem;
     transition: background 0.2s;
@@ -523,28 +542,34 @@
     position: sticky; /* Make the wrapper sticky */
     top: 2em; /* Stick it 2em from the top */
     width: 200px;
-    max-height: calc(100vh - 4em); /* Max height for the entire wrapper */
-    overflow-y: auto; /* Enable scrolling for the entire wrapper */
+    /* Removed max-height and overflow-y from here */
     display: flex;
     flex-direction: column;
     gap: 1em; /* Space between the child menus */
     z-index: 9999; /* Ensure it's above other content */
     transition: transform 0.3s ease-out; /* For mobile slide effect */
+    border-radius: var(--border-radius); /* Uses variable */
   }
 
   /* Individual Right Menu Styles (children of the wrapper) */
   #floating-menu, #category-menu, #bulk-actions-menu {
     background: var(--background);
     border: 1px solid var(--block-border);
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     padding: 1em;
-    /* Remove sticky positioning and max-height/overflow from children */
     position: static; /* No longer sticky individually */
     max-height: none; /* Allow content to dictate height */
     overflow-y: visible; /* Let parent handle overflow */
     margin-bottom: 0; /* Gap handled by parent wrapper */
   }
+
+  /* Specific for Labels Quick Access to have its own scrollbar */
+  #floating-menu {
+    max-height: 300px; /* Example max height for quick access list */
+    overflow-y: auto; /* Only this menu scrolls */
+  }
+
 
   #floating-menu .mobile-menu-header, #category-menu .mobile-menu-header, #bulk-actions-menu .mobile-menu-header {
     display: none; /* Hide mobile header on desktop */
@@ -572,7 +597,7 @@
     padding: 0.3em 0.5em;
     color: var(--text-color);
     text-decoration: none;
-    border-radius: 4px;
+    border-radius: var(--border-radius); /* Uses variable */
     transition: background 0.2s ease, color 0.2s ease;
     white-space: nowrap;
     overflow: hidden;
@@ -594,13 +619,13 @@
   #category-menu .category-input-group input {
     flex-grow: 1;
     padding: 0.5em;
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     border: 1px solid var(--input-border);
   }
 
   #category-menu .category-input-group button {
     padding: 0.5em 0.8em;
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     background: var(--primary);
     color: white;
     border: none;
@@ -613,7 +638,7 @@
     align-items: center;
     padding: 0.3em 0.5em;
     background: var(--light-gray);
-    border-radius: 4px;
+    border-radius: var(--border-radius); /* Uses variable */
   }
 
   #category-menu .category-list-item span {
@@ -676,7 +701,8 @@
       width: 80%;
       max-width: 300px;
       height: auto;
-      max-height: 80vh;
+      max-height: 80vh; /* Re-add max-height for mobile to prevent overflow off screen */
+      overflow-y: auto; /* Re-add overflow for mobile */
       border-radius: var(--border-radius) var(--border-radius) 0 0;
       border-bottom: none;
       transform: translateY(calc(100% + 50px)); /* Start collapsed and fully hidden */
@@ -786,7 +812,7 @@
   .custom-modal-content {
     background: var(--background);
     padding: 2em;
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
     text-align: center;
     max-width: 400px;
@@ -797,7 +823,7 @@
   .custom-modal-content button {
     margin: 0.5em;
     padding: 0.7em 1.5em;
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     cursor: pointer;
     font-size: 1rem;
     transition: background 0.2s;
@@ -819,7 +845,7 @@
     margin-bottom: 1em;
     padding: 10px;
     border: 1px solid var(--input-border);
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     background: var(--block-background);
     color: var(--text-color);
     box-sizing: border-box;
@@ -897,7 +923,7 @@
     margin: 0;
     background-color: var(--block-background); /* Match block background */
     border: 1px solid var(--input-border);
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     color: var(--text-color);
   }
 
@@ -905,7 +931,7 @@
   #bulk-actions-menu {
     background: var(--background);
     border: 1px solid var(--block-border);
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     padding: 1em;
     margin-bottom: 1em; /* Space between bulk actions and categories */
@@ -958,6 +984,7 @@
       max-width: 120px; /* Limit width */
       padding: 0.3em 0.5em;
       font-size: 0.9rem;
+      border-radius: var(--border-radius); /* Uses variable */
   }
 
   #bulk-actions-menu .bulk-action-row button {
@@ -997,649 +1024,8 @@
       width: 80%;
       max-width: 300px;
       height: auto;
-      max-height: 80vh;
-      border-radius: var(--border-radius) var(--border-radius) 0 0;
-      border-bottom: none;
-      transform: translateY(calc(100% + 50px)); /* Start collapsed and fully hidden */
-      display: flex; /* Ensure they are flex containers when active */
-      margin-right: 0; /* Remove desktop margin */
-      pointer-events: none; /* Make menu non-interactive when collapsed */
-      z-index: 9999; /* Ensure they are on top */
-    }
-
-    #left-floating-menu {
-      left: 0;
-    }
-
-    /* Right menu wrapper for mobile */
-    #right-menu-wrapper {
-        position: fixed; /* Fixed on mobile */
-        bottom: 0;
-        right: 0;
-        width: 80%;
-        max-width: 300px;
-        height: auto;
-        max-height: 80vh; /* Max height for the entire wrapper */
-        overflow-y: auto; /* Enable scrolling for the entire wrapper */
-        border-radius: var(--border-radius) var(--border-radius) 0 0;
-        border-bottom: none;
-        transform: translateY(calc(100% + 50px)); /* Hide by default */
-        pointer-events: none; /* Initially non-interactive */
-        z-index: 9998; /* Ensure it's below bulk actions if both open */
-    }
-
-    /* When right menu wrapper is open, stack its children */
-    #right-menu-wrapper.open {
-        transform: translateY(0);
-        pointer-events: auto;
-    }
-
-    /* Individual Right Menu Styles (children of the wrapper) on mobile */
-    #floating-menu, #category-menu, #bulk-actions-menu {
-        border-radius: 0; /* Remove individual border radius */
-        box-shadow: none; /* Remove individual shadows */
-        border: none; /* Remove individual borders */
-        border-bottom: 1px solid var(--block-border); /* Add separator between them */
-    }
-
-    #bulk-actions-menu {
-        border-radius: var(--border-radius) var(--border-radius) 0 0; /* Rounded top only */
-    }
-    #floating-menu {
-        border-bottom: none; /* No border at the very bottom of the last menu */
-        border-radius: 0 0 var(--border-radius) var(--border-radius); /* Rounded bottom only */
-    }
-
-
-    /* Show mobile menu header when menus are open on mobile */
-    #left-floating-menu.open .mobile-menu-header,
-    #right-menu-wrapper.open .mobile-menu-header { /* Only need to check wrapper open state */
-      display: flex; /* Show mobile header on mobile */
-    }
-
-    /* Show the mobile toggle buttons */
-    .mobile-menu-toggle-button {
-      display: flex; /* Show the buttons */
-    }
-
-    /* Adjust main container on mobile */
-    #container {
-      margin-left: auto; /* Center main content */
-      margin-right: auto;
-    }
-
-    /* Removed backdrop and blur styles */
-    body.menu-active::before,
-    body.menu-active #container {
-      /* No styles here, effectively removing the dimming/blurring */
-    }
-  }
-
-  /* Even smaller screens for overall padding adjustment */
-  @media (max-width: 768px) {
-    body {
-      padding: 1em;
-    }
-    #container {
-      padding: 1.5em;
-    }
-    .mobile-menu-toggle-button {
-      width: 45px;
-      height: 45px;
-      font-size: 1.5rem;
-    }
-  }
-
-  /* Custom Modal for alerts/confirms */
-  .custom-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10000;
-  }
-
-  .custom-modal-content {
-    background: var(--background);
-    padding: 2em;
-    border-radius: var(--border-radius);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    text-align: center;
-    max-width: 400px;
-    width: 90%;
-    color: var(--text-color);
-  }
-
-  .custom-modal-content button {
-    margin: 0.5em;
-    padding: 0.7em 1.5em;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background 0.2s;
-  }
-
-  .custom-modal-content button.confirm-btn {
-    background: var(--primary);
-    color: white;
-  }
-
-  .custom-modal-content button.cancel-btn {
-    background: var(--gray);
-    color: white;
-  }
-
-  .custom-modal-content textarea {
-    width: calc(100% - 20px); /* Adjust for padding */
-    min-height: 150px;
-    margin-bottom: 1em;
-    padding: 10px;
-    border: 1px solid var(--input-border);
-    border-radius: var(--border-radius);
-    background: var(--block-background);
-    color: var(--text-color);
-    box-sizing: border-box;
-    font-family: 'Courier New', monospace;
-    font-size: 0.9rem;
-  }
-
-  .copy-feedback {
-    display: inline-block;
-    margin-left: 0.5em;
-    color: var(--primary);
-    font-weight: bold;
-    opacity: 0;
-    transition: opacity 0.3s ease-out;
-  }
-
-  .copy-feedback.show {
-    opacity: 1;
-  }
-
-  /* Loading Spinner Styles */
-  .loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10001; /* Higher than modal overlay */
-    color: white;
-    font-size: 1.2rem;
-    flex-direction: column;
-    gap: 1em;
-  }
-
-  .spinner {
-    border: 4px solid rgba(255, 255, 255, 0.3);
-    border-top: 4px solid #fff;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-
-  /* Category dropdown in header */
-  .label-header .category-in-header {
-    margin-left: auto; /* Push to the right, before move buttons */
-    margin-right: 0.5em; /* Small space before move buttons */
-    display: flex;
-    align-items: center;
-    gap: 0.2em;
-    font-weight: normal; /* Override header's bold */
-    color: var(--text-color);
-  }
-
-  .label-header .category-in-header label {
-    margin: 0;
-    font-size: 0.85rem;
-    white-space: nowrap; /* Prevent text wrapping */
-  }
-
-  .label-header .category-in-header select {
-    width: auto; /* Allow select to size to content */
-    max-width: 100px; /* Limit width */
-    padding: 0.2em 0.4em;
-    font-size: 0.85rem;
-    margin: 0;
-    background-color: var(--block-background); /* Match block background */
-    border: 1px solid var(--input-border);
-    border-radius: var(--border-radius);
-    color: var(--text-color);
-  }
-
-  /* Bulk Actions Section Styling */
-  #bulk-actions-menu {
-    background: var(--background);
-    border: 1px solid var(--block-border);
-    border-radius: var(--border-radius);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    padding: 1em;
-    margin-bottom: 1em; /* Space between bulk actions and categories */
-    display: flex;
-    flex-direction: column;
-    gap: 0.5em;
-  }
-
-  #bulk-actions-menu h3 {
-    margin-top: 0;
-    color: var(--primary);
-    font-size: 1.2rem;
-    margin-bottom: 0.8em;
-  }
-
-  #bulk-actions-menu .bulk-action-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5em;
-    margin-bottom: 1em;
-    border-bottom: 1px solid var(--block-border);
-    padding-bottom: 1em;
-  }
-
-  #bulk-actions-menu .bulk-action-group:last-child {
-      border-bottom: none;
-      padding-bottom: 0;
-      margin-bottom: 0;
-  }
-
-  #bulk-actions-menu .bulk-action-row {
-      display: flex;
-      align-items: center;
-      gap: 0.5em;
-      flex-wrap: wrap; /* Allow wrapping on small screens */
-  }
-
-  #bulk-actions-menu .bulk-action-row label {
-      margin: 0; /* Override default label margin */
-      flex-shrink: 0;
-  }
-
-  #bulk-actions-menu .bulk-action-row select,
-  #bulk-actions-menu .bulk-action-row input[type="checkbox"] {
-      margin: 0; /* Override default input/select margin */
-  }
-
-  #bulk-actions-menu .bulk-action-row select {
-      flex-grow: 1; /* Allow select to take available space */
-      max-width: 120px; /* Limit width */
-      padding: 0.3em 0.5em;
-      font-size: 0.9rem;
-  }
-
-  #bulk-actions-menu .bulk-action-row button {
-      padding: 0.4em 0.8em;
-      font-size: 0.9rem;
-      flex-shrink: 0;
-  }
-
-  #bulk-actions-menu .bulk-action-row .full-width-button {
-      width: 100%;
-      margin-top: 0.5em;
-  }
-
-  #bulk-actions-menu .bulk-action-row .danger-button {
-      background-color: var(--danger);
-  }
-
-  #bulk-actions-menu .bulk-action-row .danger-button:hover {
-      background-color: #dc2626;
-  }
-
-  /* Checkbox styling for bulk select */
-  .label-header .bulk-select-checkbox {
-    margin-left: 0.5em; /* Space from identifier */
-    margin-right: 0.5em;
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-  }
-
-  /* Mobile specific adjustments for bulk action menu */
-  @media (max-width: 992px) {
-    /* Left menu on mobile */
-    #left-floating-menu {
-      position: fixed; /* Fixed on mobile */
-      bottom: 0;
-      width: 80%;
-      max-width: 300px;
-      height: auto;
-      max-height: 80vh;
-      border-radius: var(--border-radius) var(--border-radius) 0 0;
-      border-bottom: none;
-      transform: translateY(calc(100% + 50px)); /* Start collapsed and fully hidden */
-      display: flex; /* Ensure they are flex containers when active */
-      margin-right: 0; /* Remove desktop margin */
-      pointer-events: none; /* Make menu non-interactive when collapsed */
-      z-index: 9999; /* Ensure they are on top */
-    }
-
-    #left-floating-menu {
-      left: 0;
-    }
-
-    /* Right menu wrapper for mobile */
-    #right-menu-wrapper {
-        position: fixed; /* Fixed on mobile */
-        bottom: 0;
-        right: 0;
-        width: 80%;
-        max-width: 300px;
-        height: auto;
-        max-height: 80vh; /* Max height for the entire wrapper */
-        overflow-y: auto; /* Enable scrolling for the entire wrapper */
-        border-radius: var(--border-radius) var(--border-radius) 0 0;
-        border-bottom: none;
-        transform: translateY(calc(100% + 50px)); /* Hide by default */
-        pointer-events: none; /* Initially non-interactive */
-        z-index: 9998; /* Ensure it's below bulk actions if both open */
-    }
-
-    /* When right menu wrapper is open, stack its children */
-    #right-menu-wrapper.open {
-        transform: translateY(0);
-        pointer-events: auto;
-    }
-
-    /* Individual Right Menu Styles (children of the wrapper) on mobile */
-    #floating-menu, #category-menu, #bulk-actions-menu {
-        border-radius: 0; /* Remove individual border radius */
-        box-shadow: none; /* Remove individual shadows */
-        border: none; /* Remove individual borders */
-        border-bottom: 1px solid var(--block-border); /* Add separator between them */
-    }
-
-    #bulk-actions-menu {
-        border-radius: var(--border-radius) var(--border-radius) 0 0; /* Rounded top only */
-    }
-    #floating-menu {
-        border-bottom: none; /* No border at the very bottom of the last menu */
-        border-radius: 0 0 var(--border-radius) var(--border-radius); /* Rounded bottom only */
-    }
-
-
-    /* Show mobile menu header when menus are open on mobile */
-    #left-floating-menu.open .mobile-menu-header,
-    #right-menu-wrapper.open .mobile-menu-header { /* Only need to check wrapper open state */
-      display: flex; /* Show mobile header on mobile */
-    }
-
-    /* Show the mobile toggle buttons */
-    .mobile-menu-toggle-button {
-      display: flex; /* Show the buttons */
-    }
-
-    /* Adjust main container on mobile */
-    #container {
-      margin-left: auto; /* Center main content */
-      margin-right: auto;
-    }
-
-    /* Removed backdrop and blur styles */
-    body.menu-active::before,
-    body.menu-active #container {
-      /* No styles here, effectively removing the dimming/blurring */
-    }
-  }
-
-  /* Even smaller screens for overall padding adjustment */
-  @media (max-width: 768px) {
-    body {
-      padding: 1em;
-    }
-    #container {
-      padding: 1.5em;
-    }
-    .mobile-menu-toggle-button {
-      width: 45px;
-      height: 45px;
-      font-size: 1.5rem;
-    }
-  }
-
-  /* Custom Modal for alerts/confirms */
-  .custom-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10000;
-  }
-
-  .custom-modal-content {
-    background: var(--background);
-    padding: 2em;
-    border-radius: var(--border-radius);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    text-align: center;
-    max-width: 400px;
-    width: 90%;
-    color: var(--text-color);
-  }
-
-  .custom-modal-content button {
-    margin: 0.5em;
-    padding: 0.7em 1.5em;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background 0.2s;
-  }
-
-  .custom-modal-content button.confirm-btn {
-    background: var(--primary);
-    color: white;
-  }
-
-  .custom-modal-content button.cancel-btn {
-    background: var(--gray);
-    color: white;
-  }
-
-  .custom-modal-content textarea {
-    width: calc(100% - 20px); /* Adjust for padding */
-    min-height: 150px;
-    margin-bottom: 1em;
-    padding: 10px;
-    border: 1px solid var(--input-border);
-    border-radius: var(--border-radius);
-    background: var(--block-background);
-    color: var(--text-color);
-    box-sizing: border-box;
-    font-family: 'Courier New', monospace;
-    font-size: 0.9rem;
-  }
-
-  .copy-feedback {
-    display: inline-block;
-    margin-left: 0.5em;
-    color: var(--primary);
-    font-weight: bold;
-    opacity: 0;
-    transition: opacity 0.3s ease-out;
-  }
-
-  .copy-feedback.show {
-    opacity: 1;
-  }
-
-  /* Loading Spinner Styles */
-  .loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10001; /* Higher than modal overlay */
-    color: white;
-    font-size: 1.2rem;
-    flex-direction: column;
-    gap: 1em;
-  }
-
-  .spinner {
-    border: 4px solid rgba(255, 255, 255, 0.3);
-    border-top: 4px solid #fff;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-
-  /* Category dropdown in header */
-  .label-header .category-in-header {
-    margin-left: auto; /* Push to the right, before move buttons */
-    margin-right: 0.5em; /* Small space before move buttons */
-    display: flex;
-    align-items: center;
-    gap: 0.2em;
-    font-weight: normal; /* Override header's bold */
-    color: var(--text-color);
-  }
-
-  .label-header .category-in-header label {
-    margin: 0;
-    font-size: 0.85rem;
-    white-space: nowrap; /* Prevent text wrapping */
-  }
-
-  .label-header .category-in-header select {
-    width: auto; /* Allow select to size to content */
-    max-width: 100px; /* Limit width */
-    padding: 0.2em 0.4em;
-    font-size: 0.85rem;
-    margin: 0;
-    background-color: var(--block-background); /* Match block background */
-    border: 1px solid var(--input-border);
-    border-radius: var(--border-radius);
-    color: var(--text-color);
-  }
-
-  /* Bulk Actions Section Styling */
-  #bulk-actions-menu {
-    background: var(--background);
-    border: 1px solid var(--block-border);
-    border-radius: var(--border-radius);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    padding: 1em;
-    margin-bottom: 1em; /* Space between bulk actions and categories */
-    display: flex;
-    flex-direction: column;
-    gap: 0.5em;
-  }
-
-  #bulk-actions-menu h3 {
-    margin-top: 0;
-    color: var(--primary);
-    font-size: 1.2rem;
-    margin-bottom: 0.8em;
-  }
-
-  #bulk-actions-menu .bulk-action-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5em;
-    margin-bottom: 1em;
-    border-bottom: 1px solid var(--block-border);
-    padding-bottom: 1em;
-  }
-
-  #bulk-actions-menu .bulk-action-group:last-child {
-      border-bottom: none;
-      padding-bottom: 0;
-      margin-bottom: 0;
-  }
-
-  #bulk-actions-menu .bulk-action-row {
-      display: flex;
-      align-items: center;
-      gap: 0.5em;
-      flex-wrap: wrap; /* Allow wrapping on small screens */
-  }
-
-  #bulk-actions-menu .bulk-action-row label {
-      margin: 0; /* Override default label margin */
-      flex-shrink: 0;
-  }
-
-  #bulk-actions-menu .bulk-action-row select,
-  #bulk-actions-menu .bulk-action-row input[type="checkbox"] {
-      margin: 0; /* Override default input/select margin */
-  }
-
-  #bulk-actions-menu .bulk-action-row select {
-      flex-grow: 1; /* Allow select to take available space */
-      max-width: 120px; /* Limit width */
-      padding: 0.3em 0.5em;
-      font-size: 0.9rem;
-  }
-
-  #bulk-actions-menu .bulk-action-row button {
-      padding: 0.4em 0.8em;
-      font-size: 0.9rem;
-      flex-shrink: 0;
-  }
-
-  #bulk-actions-menu .bulk-action-row .full-width-button {
-      width: 100%;
-      margin-top: 0.5em;
-  }
-
-  #bulk-actions-menu .bulk-action-row .danger-button {
-      background-color: var(--danger);
-  }
-
-  #bulk-actions-menu .bulk-action-row .danger-button:hover {
-      background-color: #dc2626;
-  }
-
-  /* Checkbox styling for bulk select */
-  .label-header .bulk-select-checkbox {
-    margin-left: 0.5em; /* Space from identifier */
-    margin-right: 0.5em;
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-  }
-
-  /* Mobile specific adjustments for bulk action menu */
-  @media (max-width: 992px) {
-    /* Left menu on mobile */
-    #left-floating-menu {
-      position: fixed; /* Fixed on mobile */
-      bottom: 0;
-      width: 80%;
-      max-width: 300px;
-      height: auto;
-      max-height: 80vh;
+      max-height: 80vh; /* Re-add max-height for mobile to prevent overflow off screen */
+      overflow-y: auto; /* Re-add overflow for mobile */
       border-radius: var(--border-radius) var(--border-radius) 0 0;
       border-bottom: none;
       transform: translateY(calc(100% + 50px)); /* Start collapsed and fully hidden */
@@ -2210,7 +1596,7 @@
         selectTargetLang.style.marginBottom = '1em';
         selectTargetLang.style.padding = '0.5em';
         selectTargetLang.style.border = '1px solid var(--input-border)';
-        selectTargetLang.style.borderRadius = 'var(--border-radius)';
+        selectTargetLang.style.borderRadius = 'var(--border-radius)'; /* Uses variable */
         selectTargetLang.style.background = 'var(--block-background)';
         selectTargetLang.style.color = 'var(--text-color)';
 
@@ -2223,7 +1609,7 @@
         translatedTextarea.style.marginBottom = '1em';
         translatedTextarea.style.padding = '10px';
         translatedTextarea.style.border = '1px solid var(--input-border)';
-        translatedTextarea.style.borderRadius = 'var(--border-radius)';
+        translatedTextarea.style.borderRadius = 'var(--border-radius)'; /* Uses variable */
         translatedTextarea.style.background = 'var(--output-background)';
         translatedTextarea.style.color = 'var(--text-color)';
         translatedTextarea.style.fontFamily = 'monospace';
@@ -2340,7 +1726,7 @@ Original name:
         selectTargetLang.style.marginBottom = '1em';
         selectTargetLang.style.padding = '0.5em';
         selectTargetLang.style.border = '1px solid var(--input-border)';
-        selectTargetLang.style.borderRadius = 'var(--border-radius)';
+        selectTargetLang.style.borderRadius = 'var(--border-radius)'; /* Uses variable */
         selectTargetLang.style.background = 'var(--block-background)';
         selectTargetLang.style.color = 'var(--text-color)';
 
@@ -2353,7 +1739,7 @@ Original name:
         translatedTextarea.style.marginBottom = '1em';
         translatedTextarea.style.padding = '10px';
         translatedTextarea.style.border = '1px solid var(--input-border)';
-        translatedTextarea.style.borderRadius = 'var(--border-radius)';
+        translatedTextarea.style.borderRadius = 'var(--border-radius)'; /* Uses variable */
         translatedTextarea.style.background = 'var(--output-background)';
         translatedTextarea.style.color = 'var(--text-color)';
         translatedTextarea.style.fontFamily = 'monospace';
@@ -2491,7 +1877,9 @@ Original description:
         <div class="label-header" title="Click to expand/collapse">
           <input type="checkbox" class="bulk-select-checkbox" data-label-id="${uniqueHtmlId}">
           <button class="collapse-btn">Collapse</button>
-          <span class="label-identifier-display" style="flex:1; user-select:text;">${id || identifierPlaceholder}</span>
+          <div class="label-identifier-box">
+            <span class="label-identifier-display">${id || identifierPlaceholder}</span>
+          </div>
           <div class="category-in-header">
             <label for="${uniqueHtmlId}-category">Category:</label>
             <select id="${uniqueHtmlId}-category" class="label-category">
@@ -2558,6 +1946,7 @@ Original description:
 
 
       const identifierInput = labelDiv.querySelector('.identifier');
+      const labelIdentifierDisplay = labelDiv.querySelector('.label-identifier-display'); // Get the span inside the new box
       const categorySelect = labelDiv.querySelector('.label-category'); // New category select
       const severitySelect = labelDiv.querySelector('.severity');
       const blursSelect = labelDiv.querySelector('.blurs');
@@ -2600,7 +1989,7 @@ Original description:
       });
 
       identifierInput.addEventListener('input', () => {
-        labelDiv.querySelector('.label-identifier-display').textContent = identifierInput.value || identifierPlaceholder;
+        labelIdentifierDisplay.textContent = identifierInput.value || identifierPlaceholder; // Update the text in the yellow box
         checkDuplicates();
         saveFullSessionStateToLocalStorage(); // Save full session state
         updateJSONOutput(); // Update JSON output display
@@ -3012,7 +2401,7 @@ Original description:
       historyList.style.overflowY = 'auto';
       historyList.style.textAlign = 'left';
       historyList.style.border = '1px solid var(--block-border)';
-      historyList.style.borderRadius = 'var(--border-radius)';
+      historyList.style.borderRadius = 'var(--border-radius)'; /* Uses variable */
       historyList.style.padding = '1em';
       historyList.style.marginBottom = '1em';
       historyList.style.background = 'var(--header-background)';
@@ -3032,7 +2421,7 @@ Original description:
             listItem.style.marginBottom = '0.5em';
             listItem.style.padding = '0.5em';
             listItem.style.border = '1px solid var(--input-border)';
-            listItem.style.borderRadius = 'var(--border-radius)';
+            listItem.style.borderRadius = 'var(--border-radius)'; /* Uses variable */
             listItem.style.display = 'flex';
             listItem.style.alignItems = 'center';
             listItem.style.justifyContent = 'space-between';
@@ -3059,7 +2448,7 @@ Original description:
               showCustomModal(`Are you sure you want to revert to Version ${index + 1} (${dateStr})? This will overwrite your current unsaved changes.`, 'confirm', (response) => {
                 if (response) {
                   historyIndex = index; // Set history index to the reverted version
-                  loadState(history[historyIndex]);
+                  loadState(history[history[index]]);
                   document.querySelector('.custom-modal-overlay').remove(); // Close history modal after revert
                 }
               });
