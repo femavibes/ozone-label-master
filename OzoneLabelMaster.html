@@ -101,13 +101,20 @@
   }
 
   header {
-    display: flex;
-    flex-direction: column; /* Changed to column to stack heading and version */
+    display: flex; /* Changed to flex for horizontal alignment */
+    flex-direction: row; /* Ensure horizontal layout */
     align-items: center;
     justify-content: center;
-    gap: 8px; /* Reduced gap for stacked elements */
+    gap: 16px; /* Space between image and text */
     margin-bottom: 1.5em;
     position: relative;
+  }
+
+  header .header-text-group { /* New container for title and version */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0; /* No gap between h1 and p */
   }
 
   header h1 {
@@ -118,7 +125,7 @@
     text-transform: uppercase;
   }
 
-  header p { /* Added style for the new version paragraph */
+  header p { /* Style for the new version paragraph */
     margin: 0;
     font-size: 0.9rem;
     color: var(--gray);
@@ -130,7 +137,7 @@
     width: auto;
     border-radius: 8px;
     transition: transform 0.2s ease;
-    margin-bottom: 8px; /* Add margin below the image to separate it from text */
+    /* Removed margin-bottom here as it's handled by gap in header */
   }
 
   header a img:hover {
@@ -198,22 +205,40 @@
     transition: background 0.3s ease;
   }
 
-  .remove-btn {
-    background: var(--danger);
+  /* Unified style for all 'X' buttons */
+  .remove-btn,
+  .locale-remove-btn,
+  .close-mobile-menu-btn {
+    background: var(--danger); /* Red color */
     color: white;
     border: none;
-    padding: 4px 10px;
-    border-radius: var(--border-radius);
+    border-radius: 4px; /* Slightly rounded corners */
     cursor: pointer;
-    font-size: 0.875rem;
+    font-size: 0.85rem; /* Match translate buttons font size */
+    padding: 0.4em 0.8em; /* Match translate buttons padding */
     transition: background 0.3s ease;
-    margin-left: 0.8em;
-    flex-shrink: 0;
+    display: flex; /* Use flexbox for centering 'X' */
+    justify-content: center;
+    align-items: center;
+    line-height: 1; /* Ensure 'X' is vertically centered */
+    flex-shrink: 0; /* Prevent shrinking in flex containers */
   }
 
-  .remove-btn:hover {
-    background: #dc2626;
-    transform: none;
+  .remove-btn:hover,
+  .locale-remove-btn:hover,
+  .close-mobile-menu-btn:hover {
+    background: #dc2626; /* Darker red on hover */
+    transform: none; /* Ensure no unwanted transform from previous styles */
+  }
+
+  /* Specific size override for the small 'X' buttons */
+  .locale-remove-btn,
+  .close-mobile-menu-btn {
+    width: 30px;
+    height: 30px;
+    padding: 0; /* Remove padding to make it truly small and square */
+    font-size: 1.2rem; /* Larger 'X' for smaller buttons */
+    border-radius: 4px; /* Ensure it's square with 4px radius */
   }
 
   .move-up-btn,
@@ -336,6 +361,28 @@
     margin-right: 0;
   }
 
+  /* Styling for Add Locale button */
+  .add-locale-btn {
+    background: var(--primary); /* Keep blue */
+    color: white;
+    border: none;
+    border-radius: 4px; /* Match translate buttons */
+    cursor: pointer;
+    font-size: 0.85rem; /* Match translate buttons */
+    padding: 0.4em 0.8em; /* Match translate buttons */
+    transition: background 0.2s;
+    margin-top: 1em; /* Add more spacing from above */
+  }
+
+  .add-locale-btn:hover {
+    background: #2563eb;
+  }
+
+  /* Spacing for Locales: text */
+  .locales-container strong {
+    display: block; /* Ensure it takes its own line for margin to apply correctly */
+    margin-top: 1.5em; /* Increased margin-top */
+  }
 
   #output {
     white-space: pre-wrap;
@@ -363,7 +410,7 @@
   .theme-switch-wrapper {
     background: var(--primary);
     color: white;
-    padding: 0.3em 0.8em;
+    padding: 0.5em 0.8em; /* Adjusted vertical padding */
     border-radius: var(--border-radius);
     cursor: pointer;
     font-size: 1rem;
@@ -384,7 +431,7 @@
   .theme-switch-label-text {
     font-weight: 500;
     color: white;
-    margin-bottom: 0.05em;
+    margin-bottom: 0.2em; /* Adjusted margin-bottom */
     text-align: center;
     font-size: 0.8rem;
   }
@@ -537,51 +584,12 @@
     box-sizing: border-box; /* Include padding in width */
   }
 
-  .close-mobile-menu-btn {
-    background: var(--danger);
-    color: white;
-    border: none;
-    border-radius: 50%; /* Make it a perfect circle */
-    width: 30px;
-    height: 30px;
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: background 0.2s;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: absolute; /* Position absolutely within the menu */
-    top: 10px; /* Distance from top */
-    right: 10px; /* Distance from right */
-    z-index: 1001; /* Ensure it's above other menu content */
-  }
-
-  .close-mobile-menu-btn:hover {
-    background: #dc2626;
-  }
-
-  /* Position for the locale remove button */
+  /* Position for the locale remove button (already defined, but ensuring it uses the new common style) */
   .locale-remove-btn {
     position: absolute;
     bottom: 10px; /* Distance from bottom */
     right: 10px; /* Distance from right */
-    background: var(--danger);
-    color: white;
-    border: none;
-    border-radius: 50%; /* Make it a perfect circle */
-    width: 30px; /* Consistent size with menu close button */
-    height: 30px; /* Consistent size with menu close button */
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: background 0.2s;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 100; /* Ensure it's above other locale content */
-  }
-
-  .locale-remove-btn:hover {
-    background: #dc2626;
+    /* All other styles are inherited from the common .remove-btn, .locale-remove-btn, .close-mobile-menu-btn */
   }
 
 
@@ -802,8 +810,10 @@
       <a href="https://fema.monster" target="_blank" rel="noopener noreferrer" title="Go to fema.monster">
         <img src="https://raw.githubusercontent.com/femavibes/ozone-label-master/refs/heads/main/femamonster.jpg" alt="Ozone Logo" onerror="this.onerror=null;this.src='https://placehold.co/48x48/6b7280/ffffff?text=LOGO';" />
       </a>
-      <h1>OZONE LABEL MASTER</h1>
-      <p>version 0.67</p>
+      <div class="header-text-group">
+        <h1>OZONE LABEL MASTER</h1>
+        <p>version 0.67</p>
+      </div>
     </header>
 
     <input type="text" id="searchInput" placeholder="Search labels..." title="Filter labels by identifier or locale name" />
