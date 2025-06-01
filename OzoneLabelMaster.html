@@ -205,25 +205,42 @@
     transition: background 0.3s ease;
   }
 
-  /* Unified style for all 'X' buttons */
+  /* Unified style for all 'X' buttons and small square buttons */
+  .remove-btn,
+  .locale-remove-btn,
+  .close-mobile-menu-btn,
+  .move-up-btn,
+  .move-down-btn {
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    display: flex; /* Use flexbox for centering 'X' or arrow */
+    justify-content: center;
+    align-items: center;
+    line-height: 1; /* Ensure content is vertically centered */
+    flex-shrink: 0; /* Prevent shrinking in flex containers */
+    width: 30px; /* Fixed width */
+    height: 30px; /* Fixed height */
+    padding: 0; /* Remove padding for consistent size */
+    font-size: 1.2rem; /* Larger 'X' or arrow for small buttons */
+    border-radius: 4px; /* Square with 4px radius */
+  }
+
+  /* Specific colors for different button types */
   .remove-btn,
   .locale-remove-btn,
   .close-mobile-menu-btn {
     background: var(--danger); /* Red color */
     color: white;
-    border: none;
-    border-radius: 4px; /* Slightly rounded corners */
-    cursor: pointer;
-    font-size: 0.85rem; /* Match translate buttons font size */
-    padding: 0.4em 0.8em; /* Match translate buttons padding */
-    transition: background 0.3s ease;
-    display: flex; /* Use flexbox for centering 'X' */
-    justify-content: center;
-    align-items: center;
-    line-height: 1; /* Ensure 'X' is vertically centered */
-    flex-shrink: 0; /* Prevent shrinking in flex containers */
   }
 
+  .move-up-btn,
+  .move-down-btn {
+    background: var(--gray); /* Grey color */
+    color: white;
+  }
+
+  /* Hover states */
   .remove-btn:hover,
   .locale-remove-btn:hover,
   .close-mobile-menu-btn:hover {
@@ -231,32 +248,9 @@
     transform: none; /* Ensure no unwanted transform from previous styles */
   }
 
-  /* Specific size override for the small 'X' buttons */
-  .locale-remove-btn,
-  .close-mobile-menu-btn {
-    width: 30px;
-    height: 30px;
-    padding: 0; /* Remove padding to make it truly small and square */
-    font-size: 1.2rem; /* Larger 'X' for smaller buttons */
-    border-radius: 4px; /* Ensure it's square with 4px radius */
-  }
-
-  .move-up-btn,
-  .move-down-btn {
-    background: #6b7280;
-    color: white;
-    border: none;
-    padding: 4px 6px;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    font-size: 0.75rem;
-    transition: background 0.3s ease;
-    flex-shrink: 0;
-  }
-
   .move-up-btn:hover,
   .move-down-btn:hover {
-    background: #4b5563;
+    background: #4b5563; /* Darker grey on hover */
   }
 
   .move-up-btn:disabled,
@@ -276,8 +270,41 @@
     margin-top: 1em;
     border-radius: var(--border-radius);
     background: var(--header-background);
-    position: relative; /* Needed for absolute positioning of locale-remove-btn */
     transition: background 0.3s ease, border-color 0.3s ease;
+  }
+
+  .locale-header-row { /* New flex container for locale header elements */
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    margin-bottom: 0.5em; /* Space between header row and content */
+  }
+
+  .locale-header-row .collapse-btn { /* Style for locale collapse button */
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 6px 12px; /* Match main collapse button padding */
+    border-radius: var(--border-radius); /* Match main collapse button border-radius */
+    cursor: pointer;
+    font-size: 0.875rem; /* Match main collapse button font-size */
+    transition: background 0.3s ease;
+    flex-shrink: 0;
+  }
+
+  .locale-header-row .collapse-btn:hover {
+    background: #2563eb;
+  }
+
+  .locale-header-row .locale-identifier-display {
+    flex: 1; /* Take remaining space */
+    user-select: text;
+    font-weight: 600; /* Make it stand out */
+    color: var(--text-color); /* Ensure text color is visible */
+  }
+
+  .locale-content-area { /* Collapsible content for locale */
+    /* No specific styles needed here, just acts as a container */
   }
 
   .locale-block .llm-buttons {
@@ -378,10 +405,16 @@
     background: #2563eb;
   }
 
-  /* Spacing for Locales: text */
+  /* Spacing for Locales: text and separator */
+  .locales-container {
+    border-top: 1px solid var(--block-border); /* Add a line separator */
+    padding-top: 1em; /* Space above the line */
+    margin-top: 1.5em; /* Space below the line and above this container */
+  }
+
   .locales-container strong {
     display: block; /* Ensure it takes its own line for margin to apply correctly */
-    margin-top: 1.5em; /* Increased margin-top */
+    margin-bottom: 0.5em; /* Space between "Locales:" and the first locale block */
   }
 
   #output {
@@ -441,6 +474,8 @@
     height: 16px;
     position: relative;
     width: 60px;
+    margin-top: 0.2em; /* Move toggle up slightly */
+    margin-bottom: 0.2em; /* Move toggle down slightly */
   }
 
   .theme-switch input {
@@ -582,14 +617,6 @@
     padding: 0.5em 1em; /* Adjusted padding to give space for absolute button */
     border-bottom: 1px solid var(--block-border);
     box-sizing: border-box; /* Include padding in width */
-  }
-
-  /* Position for the locale remove button (already defined, but ensuring it uses the new common style) */
-  .locale-remove-btn {
-    position: absolute;
-    bottom: 10px; /* Distance from bottom */
-    right: 10px; /* Distance from right */
-    /* All other styles are inherited from the common .remove-btn, .locale-remove-btn, .close-mobile-menu-btn */
   }
 
 
@@ -812,7 +839,7 @@
       </a>
       <div class="header-text-group">
         <h1>OZONE LABEL MASTER</h1>
-        <p>version 0.67</p>
+        <p>version 0.71</p>
       </div>
     </header>
 
@@ -1058,6 +1085,16 @@
       labelDiv.classList.toggle('disabled', !enabled);
     }
 
+    // Function to update the display text for a locale block header
+    function updateLocaleDisplayName(localeDiv) {
+      const langSelect = localeDiv.querySelector('.lang');
+      const localeDisplayNameSpan = localeDiv.querySelector('.locale-identifier-display');
+      if (langSelect && localeDisplayNameSpan) {
+        const selectedOption = langSelect.options[langSelect.selectedIndex];
+        localeDisplayNameSpan.textContent = selectedOption.textContent || 'Select Language';
+      }
+    }
+
     // Function to create a new locale block within a label
     function createLocaleBlock(localesContainer, lang = '', name = '', description = '') {
       const div = document.createElement('div');
@@ -1077,21 +1114,38 @@
         optionsHtml += `<option value="${lang}" selected>${lang}</option>`; // Display code if name not found
       }
 
+      let isCollapsed = false; // State for locale collapse
 
       div.innerHTML = `
-        <label>Language:
-          <select class="lang">
-            ${optionsHtml}
-          </select>
-        </label>
-        <label>Name: <input type="text" class="name" value="${name}"></label>
-        <label>Description: <textarea class="description">${description}</textarea></label>
-        <div class="llm-buttons">
-          <button class="translate-name-btn">Translate Name ✨</button>
-          <button class="translate-description-btn">Translate Description ✨</button>
+        <div class="locale-header-row">
+          <button class="collapse-btn">Collapse</button>
+          <span class="locale-identifier-display" style="flex:1; user-select:text;"></span>
+          <button class="locale-remove-btn" title="Remove locale">×</button>
         </div>
-        <button class="locale-remove-btn" title="Remove locale">×</button>
+        <div class="locale-content-area">
+          <label>Language:
+            <select class="lang">
+              ${optionsHtml}
+            </select>
+          </label>
+          <label>Name: <input type="text" class="name" value="${name}"></label>
+          <label>Description: <textarea class="description">${description}</textarea></label>
+          <div class="llm-buttons">
+            <button class="translate-name-btn">Translate Name ✨</button>
+            <button class="translate-description-btn">Translate Description ✨</button>
+          </div>
+        </div>
       `;
+
+      const collapseBtn = div.querySelector('.collapse-btn');
+      const localeContentArea = div.querySelector('.locale-content-area');
+
+      collapseBtn.onclick = () => {
+        isCollapsed = !isCollapsed;
+        localeContentArea.style.display = isCollapsed ? 'none' : 'block';
+        collapseBtn.textContent = isCollapsed ? 'Expand' : 'Collapse';
+      };
+
       div.querySelector('.locale-remove-btn').onclick = () => {
         div.remove();
         updateJSON();
@@ -1361,11 +1415,15 @@ Original description:
       };
 
       // Use 'change' event for select elements, 'input' for textareas/text inputs
-      langSelect.addEventListener('change', updateJSON);
+      langSelect.addEventListener('change', () => {
+        updateLocaleDisplayName(div); // Update display name on language change
+        updateJSON();
+      });
       nameInput.addEventListener('input', updateJSON); // Ensure name input also updates JSON
       descriptionTextarea.addEventListener('input', updateJSON);
 
       localesContainer.appendChild(div); // Append the new locale block to the container
+      updateLocaleDisplayName(div); // Set initial display name
     }
 
     // Function to create a new label block
@@ -1622,12 +1680,12 @@ Original description:
 
       // If not suppressing save (i.e., it's a user-initiated change), add to history
       if (!suppressSave) {
-          addStateToHistoryForUndoRedo();
+          addStateToHistoryForUndoAndRedo();
       }
     }
 
     // Adds the current state to the in-memory history for undo/redo
-    function addStateToHistoryForUndoRedo() {
+    function addStateToHistoryForUndoAndRedo() {
         const currentLabels = getLabelsData();
         const stateToSave = JSON.stringify({ labels: currentLabels, timestamp: new Date().toISOString() });
 
