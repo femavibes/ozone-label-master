@@ -792,7 +792,7 @@
     </div>
     <div class="separator"></div>
     <button id="versionHistoryBtn" class="left-menu-button">Version History</button>
-    <button id="saveBtn" class="left-menu-button" disabled>Save Current Version</button>
+    <button id="saveBtn" class="left-menu-button">Save Current Version</button>
     <button id="undoBtn" class="left-menu-button" disabled>Undo</button>
     <button id="redoBtn" class="left-menu-button" disabled>Redo</button>
   </div>
@@ -839,83 +839,17 @@
   </div>
 
   <script type="module">
-    // Firebase SDK imports
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, query, getDocs, doc, getDoc, Timestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    let app;
-    let db;
-    let auth;
-    let userId = null; // Will store the authenticated user ID
-    let isAuthReady = false; // Flag to track authentication readiness
+    // No Firebase SDK imports needed as we are using Local Storage only.
 
     let dragSrcEl = null;
 
     // --- State Management for Undo/Redo and Local Storage ---
     const LOCAL_STORAGE_KEY = 'ozoneLabelMasterData';
+    const HISTORY_LOCAL_STORAGE_KEY = 'ozoneLabelMasterHistory'; // New key for history
     let history = []; // In-memory history for undo/redo
     let historyIndex = -1;
     let suppressSave = false; // Flag to prevent saving state during undo/redo operations
-
-    // Initialize Firebase
-    function initializeFirebase() {
-      try {
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-
-        if (Object.keys(firebaseConfig).length === 0) {
-          console.error("Firebase config is empty. Cannot initialize Firebase.");
-          loadInitialDataFromLocalStorage(); // Fallback immediately if config is missing
-          isAuthReady = true; // Consider auth ready for local storage only mode
-          document.getElementById('saveBtn').disabled = true; // Keep save disabled if no Firebase
-          hideLoadingOverlay();
-          return;
-        }
-
-        app = initializeApp(firebaseConfig);
-        db = getFirestore(app);
-        auth = getAuth(app);
-
-        // Disable save button until auth is ready
-        document.getElementById('saveBtn').disabled = true;
-
-        onAuthStateChanged(auth, async (user) => {
-          if (user) {
-            userId = user.uid;
-            console.log("Firebase authenticated. User ID:", userId);
-            await loadInitialDataFromFirestore(); // This handles loading and setting up history
-          } else {
-            console.log("Firebase not authenticated. Attempting anonymous sign-in...");
-            try {
-              if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-              } else {
-                await signInAnonymously(auth);
-              }
-              // onAuthStateChanged will fire again after successful sign-in,
-              // so the 'if (user)' block above will then handle loading.
-            } catch (error) {
-              console.error("Firebase sign-in failed:", error);
-              showCustomModal("Failed to sign in to Firebase. Some features may not work.", "alert");
-              loadInitialDataFromLocalStorage(); // If Firebase auth fails, load from local storage
-            }
-          }
-          isAuthReady = true; // Auth process has completed its initial check
-          document.getElementById('saveBtn').disabled = false; // Enable save button
-          updateUndoRedoButtons(); // Update button states after auth and data load
-          hideLoadingOverlay(); // Hide overlay once everything is loaded
-        });
-
-      } catch (error) {
-        console.error("Error initializing Firebase:", error);
-        showCustomModal("Error initializing Firebase. Some features may not work.", "alert");
-        loadInitialDataFromLocalStorage(); // Fallback to local storage on error
-        isAuthReady = true; // Consider auth ready for local storage only mode
-        document.getElementById('saveBtn').disabled = true; // Keep save disabled if Firebase init fails
-        hideLoadingOverlay();
-      }
-    }
+    const MAX_HISTORY_SIZE = 50; // Limit in-memory history size
 
     // Show/Hide loading overlay
     function showLoadingOverlay(message = 'Loading...') {
@@ -980,44 +914,43 @@
       const currentLabels = getLabelsData();
       const dataToSave = JSON.stringify({ labels: currentLabels });
       localStorage.setItem(LOCAL_STORAGE_KEY, dataToSave);
-      console.log("Saved to local storage:", dataToSave); // Add this log for debugging
+      // console.log("Saved current state to local storage:", dataToSave); // Commented for less console noise
     }
 
-    // This function adds the current state as a new version to the history array and Firestore.
-    async function addVersionToHistory() {
-      if (!userId) {
-        showCustomModal("Please wait for user authentication to complete before saving versions.", "alert");
-        return;
-      }
+    // This function saves the entire history array to local storage
+    function saveHistoryToLocalStorage() {
+        localStorage.setItem(HISTORY_LOCAL_STORAGE_KEY, JSON.stringify(history));
+        // console.log("Saved history to local storage:", history); // Commented for less console noise
+    }
+
+    // This function adds the current state as a new version to the history array.
+    function addVersionToHistory() {
       showLoadingOverlay('Saving version...');
       try {
         const currentLabels = getLabelsData();
         const versionData = {
           labels: currentLabels,
-          timestamp: Timestamp.now() // Use Firestore Timestamp
+          timestamp: new Date().toISOString() // Use ISO string for date
         };
-
-        const versionsCollectionRef = collection(db, `artifacts/${__app_id}/users/${userId}/versionHistory`);
-        await addDoc(versionsCollectionRef, versionData);
 
         // Update in-memory history for undo/redo
         if (historyIndex < history.length - 1) {
           history = history.slice(0, historyIndex + 1);
         }
-        history.push(JSON.stringify(versionData.labels)); // Store just the labels for undo/redo
+        history.push(JSON.stringify(versionData)); // Store the entire versionData object
         historyIndex = history.length - 1;
 
         // Limit in-memory history size
-        const MAX_HISTORY_SIZE = 50;
         if (history.length > MAX_HISTORY_SIZE) {
           history.shift();
           historyIndex--;
         }
 
+        saveHistoryToLocalStorage(); // Persist updated history to local storage
         updateUndoRedoButtons();
         showCustomModal('Current version saved to history!', 'alert');
       } catch (error) {
-        console.error("Error saving version to Firestore:", error);
+        console.error("Error saving version to history:", error);
         showCustomModal("Failed to save version. Please check console for details.", "alert");
       } finally {
         hideLoadingOverlay();
@@ -1028,9 +961,11 @@
     // Loads a specific state from history (for undo/redo and version history revert)
     function loadState(stateJson) {
       suppressSave = true; // Prevent saving this load operation to history
-      const data = JSON.parse(stateJson);
+      const versionData = JSON.parse(stateJson); // Parse the entire versionData object
+      const dataLabels = versionData.labels; // Get the labels array from it
+
       document.getElementById('labels-container').innerHTML = '';
-      data.forEach(label => { // Data here is just the labels array, not {labels: []}
+      dataLabels.forEach(label => {
         createLabelBlock(
           label.id || '',
           label.severity || 'inform',
@@ -1241,7 +1176,7 @@ Original name:
             let chatHistory = [];
             chatHistory.push({ role: "user", parts: [{ text: prompt }] });
             const payload = { contents: chatHistory };
-            const apiKey = "AIzaSyD0t6_sYJy5Q9hQDzsvC90uGziGSZWePi0"; // Canvas will provide this at runtime
+            const apiKey = "AIzaSyD0t6_sYJy5Q9hQDzsvC90uGziGSZWePi0";
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             const response = await fetch(apiUrl, {
@@ -1370,7 +1305,7 @@ Original description:
             let chatHistory = [];
             chatHistory.push({ role: "user", parts: [{ text: prompt }] });
             const payload = { contents: chatHistory };
-            const apiKey = "AIzaSyD0t6_sYJy5Q9hQDzsvC90uGziGSZWePi0"; // Canvas will provide this at runtime
+            const apiKey = "AIzaSyD0t6_sYJy5Q9hQDzsvC90uGziGSZWePi0";
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             const response = await fetch(apiUrl, {
@@ -1674,7 +1609,32 @@ Original description:
       saveCurrentWorkingStateToLocalStorage(); // Save current state to local storage for persistence
       updateFloatingMenu(); // Always update floating menu when JSON changes
       updateMoveButtons(); // Update state of move buttons after JSON changes
+
+      // If not suppressing save (i.e., it's a user-initiated change), add to history
+      if (!suppressSave) {
+          addStateToHistoryForUndoRedo();
+      }
     }
+
+    // Adds the current state to the in-memory history for undo/redo
+    function addStateToHistoryForUndoRedo() {
+        const currentLabels = getLabelsData();
+        const stateToSave = JSON.stringify({ labels: currentLabels, timestamp: new Date().toISOString() });
+
+        if (historyIndex < history.length - 1) {
+            history = history.slice(0, historyIndex + 1);
+        }
+        history.push(stateToSave);
+        historyIndex = history.length - 1;
+
+        if (history.length > MAX_HISTORY_SIZE) {
+            history.shift();
+            historyIndex--;
+        }
+        saveHistoryToLocalStorage(); // Persist the updated history array
+        updateUndoRedoButtons();
+    }
+
 
     function checkDuplicates() {
       const identifiers = Array.from(document.querySelectorAll('.label-block .identifier'))
@@ -1736,11 +1696,11 @@ Original description:
         if (response) {
           document.getElementById('labels-container').innerHTML = '';
           createLabelBlock(); // Reset to one default label
-          updateJSON(); // This will also save to localStorage
           history = []; // Clear in-memory history
           historyIndex = -1; // Reset history index
+          saveHistoryToLocalStorage(); // Clear history from local storage
+          updateJSON(); // This will also save current state to localStorage and add to new history
           updateUndoRedoButtons(); // Update button states
-          // Optionally, clear Firestore history here if desired, but user might want to keep it.
         }
       });
     }
@@ -1821,7 +1781,7 @@ Original description:
             );
           });
           suppressSave = false;
-          updateJSON(); // This will save to local storage
+          updateJSON(); // This will save to local storage and add to history
           // Close the modal
           document.querySelector('.custom-modal-overlay').remove();
         } catch (err) {
@@ -1865,10 +1825,6 @@ Original description:
 
     // Function to show the version history modal
     async function showVersionHistory() {
-      if (!userId) {
-        showCustomModal("Please wait for user authentication to complete before viewing history.", "alert");
-        return;
-      }
       showLoadingOverlay('Loading history...');
       const historyList = document.createElement('ul');
       historyList.style.listStyle = 'none';
@@ -1883,29 +1839,16 @@ Original description:
       historyList.style.background = 'var(--header-background)';
 
       try {
-        const versionsCollectionRef = collection(db, `artifacts/${__app_id}/users/${userId}/versionHistory`);
-        const q = query(versionsCollectionRef); // No orderBy here due to instruction constraint
-        const querySnapshot = await getDocs(q);
-
-        let fetchedHistory = [];
-        querySnapshot.forEach(doc => {
-          const data = doc.data();
-          fetchedHistory.push({
-            id: doc.id,
-            labels: data.labels,
-            timestamp: data.timestamp ? data.timestamp.toDate() : new Date() // Convert Timestamp to Date
-          });
-        });
-
-        // Sort in memory as per instruction
-        fetchedHistory.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+        // History is already in memory, sorted by addition order (which is chronological)
+        const fetchedHistory = history; // Use the in-memory history directly
 
         if (fetchedHistory.length === 0) {
           const listItem = document.createElement('li');
           listItem.textContent = 'No history available. Click "Save Current Version" to add one.';
           historyList.appendChild(listItem);
         } else {
-          fetchedHistory.forEach((version, index) => {
+          fetchedHistory.forEach((versionJson, index) => {
+            const version = JSON.parse(versionJson); // Parse each version
             const listItem = document.createElement('li');
             listItem.style.marginBottom = '0.5em';
             listItem.style.padding = '0.5em';
@@ -1917,10 +1860,11 @@ Original description:
             listItem.style.background = 'var(--block-background)';
 
             const versionText = document.createElement('span');
-            const dateStr = version.timestamp.toLocaleString();
+            const date = new Date(version.timestamp); // Parse ISO string back to Date
+            const dateStr = date.toLocaleString();
             versionText.textContent = `Version ${index + 1} (${dateStr})`;
             // Check if this version matches the current in-memory history state
-            if (historyIndex !== -1 && JSON.stringify(version.labels) === history[historyIndex]) {
+            if (historyIndex !== -1 && index === historyIndex) { // Compare by index for current state
               versionText.textContent += ' (Current)';
               versionText.style.fontWeight = 'bold';
               versionText.style.color = 'var(--primary)';
@@ -1935,9 +1879,7 @@ Original description:
             revertBtn.onclick = () => {
               showCustomModal(`Are you sure you want to revert to Version ${index + 1} (${dateStr})? This will overwrite your current unsaved changes.`, 'confirm', (response) => {
                 if (response) {
-                  // When reverting from Firestore, we need to update the in-memory history as well
-                  history = fetchedHistory.map(v => JSON.stringify(v.labels));
-                  historyIndex = index;
+                  historyIndex = index; // Set history index to the reverted version
                   loadState(history[historyIndex]);
                   document.querySelector('.custom-modal-overlay').remove(); // Close history modal after revert
                 }
@@ -1948,7 +1890,7 @@ Original description:
           });
         }
       } catch (error) {
-        console.error("Error fetching version history from Firestore:", error);
+        console.error("Error fetching version history from Local Storage:", error);
         showCustomModal("Failed to load version history. Please check console for details.", "alert");
       } finally {
         hideLoadingOverlay();
@@ -1961,106 +1903,40 @@ Original description:
     }
 
     // --- Initialization on page load ---
-    async function loadInitialDataFromFirestore() {
+    function initializeApp() {
       showLoadingOverlay('Loading your saved data...');
       try {
-        if (!userId) {
-          console.warn("User ID not available for Firestore data load. Falling back to local storage.");
-          loadInitialDataFromLocalStorage(); // Fallback immediately if no userId
-          return;
-        }
-
-        const versionsCollectionRef = collection(db, `artifacts/${__app_id}/users/${userId}/versionHistory`);
-        const q = query(versionsCollectionRef);
-        const querySnapshot = await getDocs(q);
-
-        let fetchedHistory = [];
-        querySnapshot.forEach(doc => {
-          const data = doc.data();
-          fetchedHistory.push({
-            id: doc.id,
-            labels: data.labels,
-            timestamp: data.timestamp ? data.timestamp.toDate() : new Date()
-          });
-        });
-
-        fetchedHistory.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-
-        if (fetchedHistory.length > 0) {
-          const latestVersion = fetchedHistory[fetchedHistory.length - 1];
-          suppressSave = true;
-          document.getElementById('labels-container').innerHTML = '';
-          latestVersion.labels.forEach(label => {
-            createLabelBlock(
-              label.id || '',
-              label.severity || 'inform',
-              label.blurs || 'content',
-              label.defaultSetting || 'ignore',
-              label.adultOnly || false,
-              label.enabled !== undefined ? label.enabled : true,
-              label.locales || []
-            );
-          });
-          suppressSave = false;
-          updateJSON(); // Update output and save to local storage
-
-          history = fetchedHistory.map(v => JSON.stringify(v.labels));
-          historyIndex = history.length - 1;
-          console.log("Data loaded from Firestore.");
+        const savedHistory = localStorage.getItem(HISTORY_LOCAL_STORAGE_KEY);
+        if (savedHistory) {
+          history = JSON.parse(savedHistory);
+          if (history.length > 0) {
+            historyIndex = history.length - 1;
+            loadState(history[historyIndex]); // Load the latest state from history
+            console.log("Data loaded from Local Storage history.");
+          } else {
+            console.log("Local storage history is empty. Creating default label.");
+            createLabelBlock(); // Create one default label if history is empty
+            updateJSON(); // This will add the initial state to history
+          }
         } else {
-          console.log("No data found in Firestore. Checking local storage.");
-          loadInitialDataFromLocalStorage(); // Explicit fallback if Firestore is empty
+          console.log("No history found in local storage. Creating default label.");
+          createLabelBlock(); // Create one default label if no history exists
+          updateJSON(); // This will add the initial state to history
         }
+        updateUndoRedoButtons(); // Initialize button states
       } catch (error) {
-        console.error("Error loading initial data from Firestore:", error);
-        showCustomModal("Failed to load data from cloud. Attempting to load from local storage.", "alert");
-        loadInitialDataFromLocalStorage(); // Fallback to local storage on error
+        console.error("Error initializing app from Local Storage:", error);
+        showCustomModal("Error loading saved data. Starting with a fresh page.", "alert");
+        createLabelBlock(); // Fallback to a fresh label block on error
+        updateJSON(); // This will add the initial state to history
+        updateUndoRedoButtons();
       } finally {
-        // hideLoadingOverlay() and updateUndoRedoButtons() are now handled by onAuthStateChanged
+        hideLoadingOverlay();
       }
-    }
-
-    function loadInitialDataFromLocalStorage() {
-      const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (savedData) {
-        const data = JSON.parse(savedData);
-        if (data && data.labels && Array.isArray(data.labels) && data.labels.length > 0) {
-            suppressSave = true;
-            document.getElementById('labels-container').innerHTML = '';
-            data.labels.forEach(label => {
-              createLabelBlock(
-                label.id || '',
-                label.severity || 'inform',
-                label.blurs || 'content',
-                label.defaultSetting || 'ignore',
-                label.adultOnly || false,
-                label.enabled !== undefined ? label.enabled : true,
-                label.locales || []
-              );
-            });
-            suppressSave = false;
-            console.log("Data loaded from Local Storage.");
-        } else {
-            console.log("Local storage empty or malformed. Creating default label.");
-            createLabelBlock(); // Create one default label if local storage is empty/malformed
-        }
-      } else {
-        console.log("No data in local storage. Creating default label.");
-        createLabelBlock(); // Create one default label if nothing in local storage
-      }
-      updateJSON(); // Call updateJSON to populate output and save initial state to localStorage
-      history = []; // History starts empty for local storage fallback, only explicit saves add to it
-      historyIndex = -1;
-      // updateUndoRedoButtons() is now handled by onAuthStateChanged
     }
 
     // Call the initialization function when the DOM is fully loaded
-    document.addEventListener('DOMContentLoaded', initOzoneApp);
-
-    async function initOzoneApp() {
-      showLoadingOverlay('Initializing...'); // Show loading overlay early
-      initializeFirebase();
-    }
+    document.addEventListener('DOMContentLoaded', initializeApp);
 
     // Get references for mobile menus and toggles
     const mobileLeftMenuToggle = document.getElementById('mobileLeftMenuToggle');
@@ -2251,7 +2127,12 @@ Original description:
     window.addEventListener('beforeunload', function (e) {
       const currentLabels = getLabelsData();
       // Only warn if there's actual data that might be lost
-      if (currentLabels.length > 0) {
+      // Compare current state to the latest saved state in history
+      const latestSavedState = history.length > 0 ? JSON.parse(history[history.length - 1]).labels : [];
+      const currentLabelsJson = JSON.stringify(currentLabels);
+      const latestSavedLabelsJson = JSON.stringify(latestSavedState);
+
+      if (currentLabelsJson !== latestSavedLabelsJson) {
         // Cancel the event
         e.preventDefault();
         // Chrome requires returnValue to be set
