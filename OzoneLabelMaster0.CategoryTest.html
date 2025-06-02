@@ -59,15 +59,15 @@
   #left-floating-menu {
     position: sticky; /* Sticky on desktop */
     top: 2em;
-    width: 180px;
+    width: 60px; /* Reduced width for icon-only buttons */
     background: var(--background);
     border: 1px solid var(--block-border);
     border-radius: var(--border-radius); /* Uses variable */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    padding: 1em;
+    padding: 0.5em; /* Reduced padding */
     z-index: 9999; /* Increased z-index significantly */
     transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease-out; /* Add transform transition */
-    margin-right: 2em;
+    margin-right: 1em; /* Reduced margin to bring closer */
     display: flex;
     flex-direction: column;
     gap: 0.5em; /* Consistent gap for children */
@@ -86,7 +86,7 @@
   #left-floating-menu .separator {
     height: 1px;
     background-color: var(--block-border);
-    margin: 1em 0;
+    margin: 0.5em 0; /* Reduced margin */
     width: 100%;
   }
 
@@ -98,7 +98,7 @@
     border-radius: var(--border-radius); /* Uses variable */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     transition: background 0.3s ease, box-shadow 0.3s ease;
-    margin-right: 2em;
+    margin-right: 1em; /* Reduced margin to bring closer */
     z-index: 1; /* Ensure container is below menus if they are fixed/absolute */
   }
 
@@ -590,7 +590,7 @@
     flex-direction: row;
     gap: 1em; /* Space between columns */
     align-items: flex-start; /* Align columns to the top */
-    margin-left: 2em; /* Space from the main container */
+    margin-left: 1em; /* Reduced margin to bring closer */
     width: auto; /* Allow content to dictate width */
     flex-shrink: 0; /* Prevent shrinking */
   }
@@ -1065,10 +1065,11 @@
       <h3>Main Menu</h3>
       <button id="closeLeftMenuBtn" class="close-mobile-menu-btn" title="Close main menu">X</button>
     </div>
-    <button id="addLabelBtn" class="left-menu-button" title="Add a new blank label block">➕</button>
+    <button id="addLabelBtn" class="left-menu-button" title="Add a new blank label block">📄</button>
     <div class="separator"></div>
     <button id="collapseAllBtn" class="left-menu-button" title="Collapse all label content areas">➖</button>
     <button id="expandAllBtn" class="left-menu-button" title="Expand all label content areas">➕</button>
+    <button id="goToJsonBtn" class="left-menu-button" title="Scroll to JSON output section">⬇️</button>
     <button id="resetClearBtn" class="left-menu-button" title="Clear all labels or reset to default">🧹</button>
     <div class="separator"></div>
     <button id="versionHistoryBtn" class="left-menu-button" title="View and revert to previous saved versions">📜</button>
@@ -3898,6 +3899,14 @@ Original text:
         document.getElementById('bulkApplySnippetBtn').disabled = (e.target.value === '');
     });
     document.getElementById('bulkApplySnippetBtn').onclick = handleBulkApplySnippet;
+
+    // New "Go to JSON" button event listener
+    document.getElementById('goToJsonBtn').onclick = () => {
+        const outputElement = document.getElementById('output');
+        if (outputElement) {
+            outputElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
 
   </script>
 </body>
