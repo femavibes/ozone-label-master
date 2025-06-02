@@ -632,7 +632,7 @@
   }
 
   /* Individual Menu Styles within the stacked column */
-  #category-menu, #floating-menu {
+  #category-menu, #floating-menu, #bulk-actions-menu {
     background: var(--background);
     border: 1px solid var(--block-border);
     border-radius: var(--border-radius);
@@ -640,9 +640,9 @@
     padding: 1em;
     position: static;
     margin-bottom: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5em;
+    display: flex; /* Make them flex containers */
+    flex-direction: column; /* Stack children vertically */
+    gap: 0.5em; /* Default gap for children */
     flex-shrink: 0;
     min-height: 0; /* Crucial for flex items with overflow */
   }
@@ -650,12 +650,18 @@
   /* Labels Quick Access: dynamic height/scrollbar */
   #category-menu {
     flex: 3; /* 30% height */
-    overflow-y: auto;
   }
 
   #floating-menu {
     flex: 7; /* 70% height */
-    overflow-y: auto;
+  }
+
+  /* Scrollable content wrapper within menus */
+  .scrollable-content {
+    flex-grow: 1; /* Takes up remaining space */
+    overflow-y: auto; /* Enables scrolling */
+    min-height: 0; /* Important for flex items with overflow */
+    padding-right: 0.5em; /* Add some padding for scrollbar */
   }
 
   /* Adjust gap for specific elements within menus if needed */
@@ -682,6 +688,7 @@
     color: var(--primary);
     font-size: 1.2rem;
     margin-bottom: 0.8em;
+    flex-shrink: 0; /* Prevent title from shrinking */
   }
 
   #floating-menu ul, #category-menu ul {
@@ -760,6 +767,7 @@
     display: flex;
     gap: 0.5em;
     margin-bottom: 1em;
+    flex-shrink: 0; /* Prevent shrinking */
   }
 
   #category-menu .category-input-group input {
@@ -819,19 +827,12 @@
 
   /* Bulk Actions Menu Specifics */
   #bulk-actions-menu {
-    background: var(--background);
-    border: 1px solid var(--block-border);
-    border-radius: var(--border-radius);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    padding: 1em;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5em;
-    flex-shrink: 0;
     width: 350px; /* Fixed width for bulk actions menu */
     height: 100%; /* Take full height of its parent #right-side-menus-container */
-    overflow-y: auto; /* Add scroll if content exceeds height */
-    min-height: 0; /* Crucial for flex items with overflow */
+  }
+
+  #bulk-actions-menu .bulk-action-group {
+    flex-shrink: 0; /* Prevent shrinking of individual groups */
   }
 
 
@@ -1226,8 +1227,10 @@
                 <input type="text" id="newCategoryInput" placeholder="New category name" title="Enter a new category name" />
                 <button id="addCategoryBtn" title="Add the new category">Add</button>
             </div>
-            <ul id="category-list" style="list-style: none; padding: 0; margin-top: 1em;" title="List of existing categories">
-            </ul>
+            <div class="scrollable-content">
+                <ul id="category-list" style="list-style: none; padding: 0; margin-top: 1em;" title="List of existing categories">
+                </ul>
+            </div>
             <button id="deleteSelectedCategoriesBtn" class="action-button danger-button" title="Delete all selected categories" style="margin-top: 1em;">Delete Selected Categories</button>
         </div>
 
@@ -1237,8 +1240,11 @@
                 <button id="closeRightMenuBtnDesktop" class="close-mobile-menu-btn" title="Close quick access menu">X</button>
             </div>
             <h3>Labels Quick Access</h3>
-            <ul id="label-quick-access-list" title="Quick access links to label blocks">
-            </ul>
+            <div class="scrollable-content">
+                <ul id="label-quick-access-list" title="Quick access links to label blocks">
+                </ul>
+            </div>
+            <button id="deleteSelectedLabelsBtn" class="action-button danger-button" title="Delete all selected labels" style="margin-top: 1em;">Delete Selected Labels</button>
         </div>
     </div>
 
@@ -1248,99 +1254,101 @@
             <button id="closeBulkActionsMenuBtnDesktop" class="close-mobile-menu-btn" title="Close bulk actions menu">X</button>
         </div>
         <h3>Bulk Actions</h3>
-        <div class="bulk-action-group">
-            <div class="bulk-action-row">
-                <label for="bulkTargetSelect" title="Choose whether to apply actions to selected labels or labels in a specific category">Apply to:</label>
-                <select id="bulkTargetSelect" title="Select target for bulk actions">
-                    <option value="selected">Selected Labels (from editor or quick access)</option>
-                    <option value="category">Labels in Specific Category</option>
-                    <option value="selectedCategories">Labels in Selected Categories (from category menu)</option>
-                </select>
-                <select id="bulkCategoryFilterSelect" style="display:none;" title="Select category to filter labels"></select>
-            </div>
-            <div class="bulk-action-row">
-                <input type="checkbox" id="bulkSelectAllCheckbox" title="Select or deselect all visible labels">
-                <label for="bulkSelectAllCheckbox">Select All Visible Labels</label>
-            </div>
-        </div>
-
-        <div class="bulk-action-group">
-            <div class="bulk-action-row">
-                <label for="bulkSeveritySelect" title="Set severity for selected labels">Severity:</label>
-                <select id="bulkSeveritySelect" title="Bulk change severity">
-                    <option value="">(No Change)</option>
-                    <option value="inform">inform</option>
-                    <option value="alert">alert</option>
-                    <option value="none">none</option>
-                </select>
-            </div>
-            <div class="bulk-action-row">
-                <label for="bulkBlursSelect" title="Set blur setting for selected labels">Blurs:</label>
-                <select id="bulkBlursSelect" title="Bulk change blur setting">
-                    <option value="">(No Change)</option>
-                    <option value="content">content</option>
-                    <option value="media">media</option>
-                    <option value="none">none</option>
-                </select>
-            </div>
-            <div class="bulk-action-row">
-                <label for="bulkDefaultSettingSelect" title="Set default setting for selected labels">Default Setting:</label>
-                <select id="bulkDefaultSettingSelect" title="Bulk change default setting">
-                    <option value="">(No Change)</option>
-                    <option value="ignore">ignore</option>
-                    <option value="warn">warn</option>
-                    <option value="hide">hide</option>
-                </select>
-            </div>
-            <button id="bulkApplyChangesBtn" class="full-width-button" title="Apply selected property changes to target labels">Apply Property Changes</button>
-        </div>
-
-        <div class="bulk-action-group">
-            <button id="bulkEnableBtn" class="full-width-button" title="Enable all selected labels">Enable Selected</button>
-            <button id="bulkDisableBtn" class="full-width-button" title="Disable all selected labels">Disable Selected</button>
-        </div>
-
-        <div class="bulk-action-group">
-            <button id="bulkDeleteBtn" class="full-width-button danger-button" title="Permanently delete all selected labels">Delete Selected</button>
-        </div>
-
-        <div class="bulk-action-group">
-            <h4>Bulk Translate Locales</h4>
-            <div class="bulk-action-row">
-                <label for="bulkTargetSelectTranslate" title="Choose whether to apply actions to selected labels or labels in a specific category">Apply to:</label>
-                <select id="bulkTargetSelectTranslate" title="Select target for bulk translate actions">
-                    <option value="selected">Selected Labels (from editor or quick access)</option>
-                    <option value="category">Labels in Specific Category</option>
-                    <option value="selectedCategories">Labels in Selected Categories (from category menu)</option>
-                </select>
-                <select id="bulkCategoryFilterSelectTranslate" style="display:none;" title="Select category to filter labels for translation"></select>
-            </div>
-            <div class="bulk-action-row">
-                <input type="checkbox" id="bulkSelectAllTranslateCheckbox" title="Select or deselect all visible labels for translation">
-                <label for="bulkSelectAllTranslateCheckbox">Select All Visible Labels</label>
-            </div>
-            <label title="Select one or more languages to translate into">Translate To:</label>
-            <div id="bulkTranslateTargetLangs" title="Target languages for bulk translation">
+        <div class="scrollable-content">
+            <div class="bulk-action-group">
+                <div class="bulk-action-row">
+                    <label for="bulkTargetSelect" title="Choose whether to apply actions to selected labels or labels in a specific category">Apply to:</label>
+                    <select id="bulkTargetSelect" title="Select target for bulk actions">
+                        <option value="selected">Selected Labels (from editor or quick access)</option>
+                        <option value="category">Labels in Specific Category</option>
+                        <option value="selectedCategories">Labels in Selected Categories (from category menu)</option>
+                    </select>
+                    <select id="bulkCategoryFilterSelect" style="display:none;" title="Select category to filter labels"></select>
                 </div>
-            <button id="bulkTranslateBtn" class="full-width-button translate-button" title="Translate names and descriptions for selected labels into chosen languages">Translate Selected Labels ✨</button>
-        </div>
-
-        <div class="bulk-action-group">
-            <h4>Description Snippets</h4>
-            <label for="newSnippetName">Snippet Name:</label>
-            <input type="text" id="newSnippetName" placeholder="e.g., 'Common Disclaimer'" title="Enter a name for your snippet">
-            <label for="newSnippetContent">Snippet Content:</label>
-            <textarea id="newSnippetContent" placeholder="Enter the prewritten text here..." title="Enter the text content of your snippet"></textarea>
-            <button id="addSnippetBtn" class="full-width-button" title="Add this text as a reusable snippet">Add Snippet</button>
-            <ul id="snippet-list" style="list-style: none; padding: 0; margin-top: 1em;">
-                </ul>
-            <div class="bulk-action-row" style="margin-top: 1em;">
-                <label for="bulkApplySnippetSelect">Apply Snippet:</label>
-                <select id="bulkApplySnippetSelect" title="Select a snippet to apply to descriptions">
-                    <option value="">(Select Snippet)</option>
-                </select>
+                <div class="bulk-action-row">
+                    <input type="checkbox" id="bulkSelectAllCheckbox" title="Select or deselect all visible labels">
+                    <label for="bulkSelectAllCheckbox">Select All Visible Labels</label>
+                </div>
             </div>
-            <button id="bulkApplySnippetBtn" class="full-width-button" disabled title="Apply the selected snippet to descriptions of target labels">Bulk Apply Snippet</button>
+
+            <div class="bulk-action-group">
+                <div class="bulk-action-row">
+                    <label for="bulkSeveritySelect" title="Set severity for selected labels">Severity:</label>
+                    <select id="bulkSeveritySelect" title="Bulk change severity">
+                        <option value="">(No Change)</option>
+                        <option value="inform">inform</option>
+                        <option value="alert">alert</option>
+                        <option value="none">none</option>
+                    </select>
+                </div>
+                <div class="bulk-action-row">
+                    <label for="bulkBlursSelect" title="Set blur setting for selected labels">Blurs:</label>
+                    <select id="bulkBlursSelect" title="Bulk change blur setting">
+                        <option value="">(No Change)</option>
+                        <option value="content">content</option>
+                        <option value="media">media</option>
+                        <option value="none">none</option>
+                    </select>
+                </div>
+                <div class="bulk-action-row">
+                    <label for="bulkDefaultSettingSelect" title="Set default setting for selected labels">Default Setting:</label>
+                    <select id="bulkDefaultSettingSelect" title="Bulk change default setting">
+                        <option value="">(No Change)</option>
+                        <option value="ignore">ignore</option>
+                        <option value="warn">warn</option>
+                        <option value="hide">hide</option>
+                    </select>
+                </div>
+                <button id="bulkApplyChangesBtn" class="full-width-button" title="Apply selected property changes to target labels">Apply Property Changes</button>
+            </div>
+
+            <div class="bulk-action-group">
+                <button id="bulkEnableBtn" class="full-width-button" title="Enable all selected labels">Enable Selected</button>
+                <button id="bulkDisableBtn" class="full-width-button" title="Disable all selected labels">Disable Selected</button>
+            </div>
+
+            <div class="bulk-action-group">
+                <button id="bulkDeleteBtn" class="full-width-button danger-button" title="Permanently delete all selected labels">Delete Selected</button>
+            </div>
+
+            <div class="bulk-action-group">
+                <h4>Bulk Translate Locales</h4>
+                <div class="bulk-action-row">
+                    <label for="bulkTargetSelectTranslate" title="Choose whether to apply actions to selected labels or labels in a specific category">Apply to:</label>
+                    <select id="bulkTargetSelectTranslate" title="Select target for bulk translate actions">
+                        <option value="selected">Selected Labels (from editor or quick access)</option>
+                        <option value="category">Labels in Specific Category</option>
+                        <option value="selectedCategories">Labels in Selected Categories (from category menu)</option>
+                    </select>
+                    <select id="bulkCategoryFilterSelectTranslate" style="display:none;" title="Select category to filter labels for translation"></select>
+                </div>
+                <div class="bulk-action-row">
+                    <input type="checkbox" id="bulkSelectAllTranslateCheckbox" title="Select or deselect all visible labels for translation">
+                    <label for="bulkSelectAllTranslateCheckbox">Select All Visible Labels</label>
+                </div>
+                <label title="Select one or more languages to translate into">Translate To:</label>
+                <div id="bulkTranslateTargetLangs" title="Target languages for bulk translation">
+                    </div>
+                <button id="bulkTranslateBtn" class="full-width-button translate-button" title="Translate names and descriptions for selected labels into chosen languages">Translate Selected Labels ✨</button>
+            </div>
+
+            <div class="bulk-action-group">
+                <h4>Description Snippets</h4>
+                <label for="newSnippetName">Snippet Name:</label>
+                <input type="text" id="newSnippetName" placeholder="e.g., 'Common Disclaimer'" title="Enter a name for your snippet">
+                <label for="newSnippetContent">Snippet Content:</label>
+                <textarea id="newSnippetContent" placeholder="Enter the prewritten text here..." title="Enter the text content of your snippet"></textarea>
+                <button id="addSnippetBtn" class="full-width-button" title="Add this text as a reusable snippet">Add Snippet</button>
+                <ul id="snippet-list" style="list-style: none; padding: 0; margin-top: 1em;">
+                    </ul>
+                <div class="bulk-action-row" style="margin-top: 1em;">
+                    <label for="bulkApplySnippetSelect">Apply Snippet:</label>
+                    <select id="bulkApplySnippetSelect" title="Select a snippet to apply to descriptions">
+                        <option value="">(Select Snippet)</option>
+                    </select>
+                </div>
+                <button id="bulkApplySnippetBtn" class="full-width-button" disabled title="Apply the selected snippet to descriptions of target labels">Bulk Apply Snippet</button>
+            </div>
         </div>
     </div>
   </div>
@@ -1546,6 +1554,8 @@
     // Loads a specific state from history (for undo/redo and version history revert) or from session file
     function loadState(stateJson) {
       suppressSave = true; // Prevent saving this load operation to history
+      console.log('loadState called. suppressSave BEFORE:', suppressSave, 'historyIndex:', historyIndex);
+
       const sessionData = JSON.parse(stateJson);
 
       // Load Labels
@@ -1583,6 +1593,7 @@
       updateJSONOutput(); // Update JSON output display
       updateFloatingMenu();
       suppressSave = false;
+      console.log('loadState finished. suppressSave AFTER:', suppressSave);
       updateUndoRedoButtons();
       clearSelectedLabels(); // Clear selection after loading state
       updateLabelNumbers(); // Update numbers after loading state
@@ -1590,18 +1601,22 @@
 
     // Undo the last change
     function undo() {
+      console.log('Undo called. Before:', { history: history.length, index: historyIndex });
       if (historyIndex > 0) {
         historyIndex--;
         loadState(history[historyIndex]);
       }
+      console.log('Undo called. After:', { history: history.length, index: historyIndex });
     }
 
     // Redo the last undone change
     function redo() {
+      console.log('Redo called. Before:', { history: history.length, index: historyIndex });
       if (historyIndex < history.length - 1) {
         historyIndex++;
         loadState(history[historyIndex]);
       }
+      console.log('Redo called. After:', { history: history.length, index: historyIndex });
     }
 
     // Update the disabled state of undo/redo buttons
@@ -2153,7 +2168,6 @@ Original description:
                 saveFullSessionStateToLocalStorage(); // Save full session state
                 updateJSONOutput(); // Update JSON output display
                 updateLabelNumbers(); // Update numbers after removal
-                // No need to adjustQuickAccessHeight here, it's handled by CSS flex
             }
         });
       };
@@ -2311,7 +2325,6 @@ Original description:
       saveFullSessionStateToLocalStorage(); // Save full session state
       updateJSONOutput(); // Update JSON output display
       updateLabelNumbers(); // Update numbers after drag and drop
-      // No need to adjustQuickAccessHeight here, it's handled by CSS flex
       return false;
     }
 
@@ -2389,6 +2402,7 @@ Original description:
 
     // Adds the current state to the in-memory history for undo/redo
     function addStateToHistoryForUndoAndRedo() {
+        console.log('addStateToHistoryForUndoAndRedo called. suppressSave:', suppressSave);
         // Prevent adding to history if suppressSave is true (e.g., during loadState)
         if (suppressSave) return;
 
@@ -2415,6 +2429,7 @@ Original description:
         }
         saveHistoryToLocalStorage(); // Persist the updated history array
         updateUndoRedoButtons();
+        console.log('After adding to history:', { history: history.length, index: historyIndex });
     }
 
 
@@ -2449,7 +2464,6 @@ Original description:
       updateBulkSelectAllCheckbox();
       updateBulkSelectAllTranslateCheckbox();
       updateFloatingMenu(); // Update quick access checkboxes based on visibility
-      // No need to adjustQuickAccessHeight here, it's handled by CSS flex
     }
 
     // --- New Feature Functions ---
@@ -2503,7 +2517,6 @@ Original description:
           updateLabelNumbers(); // Update numbers after reset
           renderSnippetManagementUI(); // Re-render snippets
           populateBulkApplySnippetSelect(); // Update bulk apply snippet dropdown
-          // No need to adjustQuickAccessHeight here, it's handled by CSS flex
         }
       });
     }
@@ -2516,7 +2529,6 @@ Original description:
         saveFullSessionStateToLocalStorage(); // Save full session state
         updateJSONOutput(); // Update JSON output display
         updateLabelNumbers(); // Update numbers after move
-        // No need to adjustQuickAccessHeight here, it's handled by CSS flex
       }
     }
 
@@ -2528,7 +2540,6 @@ Original description:
         saveFullSessionStateToLocalStorage(); // Save full session state
         updateJSONOutput(); // Update JSON output display
         updateLabelNumbers(); // Update numbers after move
-        // No need to adjustQuickAccessHeight here, it's handled by CSS flex
       }
     }
 
@@ -2615,7 +2626,6 @@ Original description:
                   saveFullSessionStateToLocalStorage(); // Save full session state
                   updateJSONOutput(); // Update JSON output display
                   updateLabelNumbers(); // Update numbers after paste
-                  // No need to adjustQuickAccessHeight here, it's handled by CSS flex
                   // Close the modal
                   document.querySelector('.custom-modal-overlay').remove();
               }
@@ -3008,8 +3018,8 @@ Original description:
         });
     }
 
-    function bulkDelete() {
-        const targetLabels = getTargetLabelDivs('bulkTargetSelect');
+    function bulkDeleteLabels() { // New function for deleting selected labels
+        const targetLabels = getTargetLabelDivs('bulkTargetSelect'); // Re-use existing target label logic
         if (targetLabels.length === 0) {
             showCustomModal('No labels selected or found for the chosen target.', 'alert');
             return;
@@ -3026,7 +3036,6 @@ Original description:
                 saveFullSessionStateToLocalStorage();
                 updateJSONOutput();
                 updateLabelNumbers(); // Update numbers after bulk delete
-                // No need to adjustQuickAccessHeight here, it's handled by CSS flex
                 showCustomModal('Labels deleted.', 'alert');
             }
         });
@@ -3484,7 +3493,7 @@ Original text:
         categories: categories,
         timestamp: new Date().toISOString(),
         defaultLocaleLanguage: defaultLocaleLanguage, // Include default locale language
-        descriptionSnippets: descriptionSnippets // Include snippets
+        descriptionSnippets: descriptionSnippets
       };
       const dataStr = JSON.stringify(sessionData, null, 2);
       const blob = new Blob([dataStr], { type: "application/json" });
@@ -3545,15 +3554,6 @@ Original text:
         });
     }
 
-    // Function to adjust the max-height of the quick access menu dynamically
-    // This function is now mostly redundant due to flexbox, but kept for potential future use or debugging
-    function adjustQuickAccessHeight() {
-        // No longer needed for height calculation due to flexbox layout
-        // The overflow-y: auto on #category-menu and #floating-menu handles scrolling automatically
-        // within their flex-allocated heights.
-    }
-
-
     // --- Initialization on page load ---
     function initializeApp() {
       showLoadingOverlay('Loading your saved data...');
@@ -3594,7 +3594,6 @@ Original text:
         loadDescriptionSnippets(); // Load description snippets on app start
         updateUndoRedoButtons(); // Initialize button states
         updateLabelNumbers(); // Initial numbering on app start
-        // No need to call adjustQuickAccessHeight here, as flexbox handles it
 
         // Initialize theme toggle state in options modal
         const themeToggle = document.getElementById('checkbox');
@@ -3626,7 +3625,6 @@ Original text:
         renderSnippetManagementUI(); // Ensure snippets are rendered
         populateBulkApplySnippetSelect(); // Ensure bulk apply snippet dropdown is populated
         updateLabelNumbers(); // Ensure numbers are updated even on error
-        // No need to call adjustQuickAccessHeight here, as flexbox handles it
       } finally {
         hideLoadingOverlay();
       }
@@ -3639,8 +3637,6 @@ Original text:
 
     // Call the initialization function when the DOM is fully loaded
     document.addEventListener('DOMContentLoaded', initializeApp);
-    // No longer need to call adjustQuickAccessHeight on window resize, CSS handles it
-    // window.addEventListener('resize', adjustQuickAccessHeight);
 
 
     // Get references for mobile menus and toggles
@@ -3902,7 +3898,6 @@ Original text:
                   saveFullSessionStateToLocalStorage(); // Save full session state
                   updateJSONOutput(); // Update JSON output display
                   updateLabelNumbers(); // Update numbers after import
-                  // No need to adjustQuickAccessHeight here, it's handled by CSS flex
                   showCustomModal('Labels imported successfully!', 'alert');
               }
           });
@@ -4001,7 +3996,6 @@ Original text:
                 saveFullSessionStateToLocalStorage();
                 updateJSONOutput(); // This will re-render quick access
                 updateLabelNumbers(); // Update numbers after quick access drag and drop
-                // No need to adjustQuickAccessHeight here, it's handled by CSS flex
             }
         }
         return false;
@@ -4078,7 +4072,6 @@ Original text:
             }
         };
       });
-      // No need to adjustQuickAccessHeight here, as flexbox handles it
     }
 
     // Add beforeunload event listener to warn about unsaved changes
@@ -4147,7 +4140,7 @@ Original text:
     document.getElementById('bulkApplyChangesBtn').onclick = applyBulkPropertyChanges;
     document.getElementById('bulkEnableBtn').onclick = () => bulkEnableDisable(true);
     document.getElementById('bulkDisableBtn').onclick = () => bulkEnableDisable(false);
-    document.getElementById('bulkDeleteBtn').onclick = bulkDelete;
+    document.getElementById('bulkDeleteBtn').onclick = bulkDeleteLabels; // Use new function for deleting selected labels
 
     // Bulk Translate Event Listeners
     document.getElementById('bulkTranslateBtn').onclick = handleBulkTranslate;
@@ -4175,10 +4168,12 @@ Original text:
 
     // Options Modal Event Listeners
     document.getElementById('optionsBtn').onclick = () => {
+        console.log('Options button clicked. Showing options modal.');
         populateDefaultLocaleLanguageSelect(); // Ensure dropdown is up-to-date
         document.getElementById('optionsModal').style.display = 'flex'; // Directly show the modal
     };
     document.getElementById('closeOptionsModalBtn').onclick = () => {
+        console.log('Closing options modal.');
         document.getElementById('optionsModal').style.display = 'none';
     };
     document.getElementById('defaultLocaleLangSelect').addEventListener('change', (e) => {
@@ -4206,6 +4201,9 @@ Original text:
             outputElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     };
+
+    // New "Delete Selected Labels" button for Quick Access menu
+    document.getElementById('deleteSelectedLabelsBtn').onclick = bulkDeleteLabels; // Re-use existing bulk delete logic
 
   </script>
 </body>
