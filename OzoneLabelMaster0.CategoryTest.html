@@ -1277,7 +1277,7 @@
       </a>
       <div class="header-text-group">
         <h1>OZONE LABEL MASTER</h1>
-        <p>version 0.82</p>
+        <p>version 0.83</p>
       </div>
     </header>
 
@@ -1392,10 +1392,6 @@
             </div>
         </div>
 
-        <div class="bulk-action-group">
-            <button id="bulkTranslateLabelsBtn" class="action-button full-width-button translate-button" title="Translate names and descriptions for selected labels into chosen languages">Bulk Translate Labels ✨</button>
-        </div>
-
         <div class="bulk-action-group snippet-management-section">
             <h4>Description Snippets</h4>
             <div class="snippet-input-group">
@@ -1470,8 +1466,8 @@
 
   <div id="bulkTranslateModal" class="custom-modal-overlay" style="display: none;">
     <div class="custom-modal-content">
-        <h3>Bulk Translate Labels</h3>
-        <p>Select languages to translate currently selected labels into. Existing locales in target languages will be overwritten.</p>
+        <h3>Translate to Multiple Languages</h3>
+        <p>Select languages to translate the current locale's name and description into. Existing locales in target languages will be overwritten.</p>
         <div class="modal-lang-options" id="bulkTranslateTargetLangsModal">
             </div>
         <div class="modal-buttons">
@@ -1801,6 +1797,7 @@
           <div class="llm-buttons">
             <button class="translate-name-btn" title="Translate this locale's name using AI">Translate Name ✨</button>
             <button class="translate-description-btn" title="Translate this locale's description using AI">Translate Description ✨</button>
+            <button class="translate-multiple-btn translate-button" title="Translate name and description to multiple languages">Translate All ✨</button>
             <button class="apply-snippet-btn" title="Apply a prewritten description snippet">Apply Snippet</button>
           </div>
         </div>
@@ -1826,6 +1823,7 @@
       const langSelect = div.querySelector('.lang');
       const translateNameBtn = div.querySelector('.translate-name-btn');
       const translateDescriptionBtn = div.querySelector('.translate-description-btn');
+      const translateMultipleBtn = div.querySelector('.translate-multiple-btn'); // New button
       const applySnippetBtn = div.querySelector('.apply-snippet-btn'); // New snippet button
 
       // Event listener for Apply Snippet button
@@ -2128,6 +2126,33 @@ Original description:
           document.querySelector('.custom-modal-overlay').remove();
         };
       };
+
+      // New: Event listener for Translate Multiple button
+      translateMultipleBtn.onclick = () => {
+          const sourceLangCode = langSelect.value;
+          const sourceName = nameInput.value.trim();
+          const sourceDescription = descriptionTextarea.value.trim();
+
+          if (!sourceLangCode) {
+              showCustomModal('Please select a source language for this locale before translating to multiple languages.', 'alert');
+              return;
+          }
+          if (!sourceName && !sourceDescription) {
+              showCustomModal('Please enter a name or description in this locale to translate.', 'alert');
+              return;
+          }
+
+          // Populate modal checkboxes and show modal
+          populateBulkTranslateLanguageOptionsModal(sourceLangCode); // Pass source language to disable it
+          document.getElementById('bulkTranslateModal').style.display = 'flex';
+
+          // Store current locale data in modal for use by startBulkTranslateBtn
+          document.getElementById('startBulkTranslateBtn').dataset.sourceLangCode = sourceLangCode;
+          document.getElementById('startBulkTranslateBtn').dataset.sourceName = sourceName;
+          document.getElementById('startBulkTranslateBtn').dataset.sourceDescription = sourceDescription;
+          document.getElementById('startBulkTranslateBtn').dataset.labelId = div.closest('.label-block').id;
+      };
+
 
       // Use 'change' event for select elements, 'input' for textareas/text inputs
       langSelect.addEventListener('change', () => {
@@ -3065,7 +3090,7 @@ Original description:
         const newEnabled = document.getElementById('bulkEnabledControl').checked; // Get the state of the bulk enabled checkbox
 
         if (targetLabels.length === 0) {
-            showCustomModal('No labels selected for bulk property application.', 'alert');
+            showCustomModal('No labels selected for bulk property application. Please select labels using the checkboxes in the editor or quick access menu.', 'alert');
             return;
         }
 
@@ -3120,10 +3145,10 @@ Original description:
         });
     }
 
-    // --- Bulk Translate Locales Functions ---
+    // --- Per-Locale Multiple Translate Functions (repurposed from old bulk translate) ---
 
-    // Populates the target language checkboxes for bulk translation modal
-    function populateBulkTranslateLanguageOptionsModal() {
+    // Populates the target language checkboxes for the modal, disabling the source language
+    function populateBulkTranslateLanguageOptionsModal(sourceLangCode) {
         const targetLangsDiv = document.getElementById('bulkTranslateTargetLangsModal');
         if (!targetLangsDiv) return;
 
@@ -3136,6 +3161,7 @@ Original description:
             checkbox.className = 'target-lang-checkbox-modal';
             checkbox.value = langObj.code;
             checkbox.title = `Translate to ${langObj.name}`;
+            checkbox.disabled = (langObj.code === sourceLangCode); // Disable source language
             checkboxLabel.appendChild(checkbox);
             checkboxLabel.appendChild(document.createTextNode(langObj.name));
             targetLangsDiv.appendChild(checkboxLabel);
@@ -3175,102 +3201,81 @@ Original text:
         }
     }
 
-    async function handleBulkTranslateModal() {
-        const targetLabelDivs = getTargetLabelDivsForBulkActions(); // Get currently selected labels
+    async function handlePerLocaleMultipleTranslate() {
+        const sourceLangCode = document.getElementById('startBulkTranslateBtn').dataset.sourceLangCode;
+        const sourceName = document.getElementById('startBulkTranslateBtn').dataset.sourceName;
+        const sourceDescription = document.getElementById('startBulkTranslateBtn').dataset.sourceDescription;
+        const labelId = document.getElementById('startBulkTranslateBtn').dataset.labelId;
+
+        const labelDiv = document.getElementById(labelId);
+        if (!labelDiv) {
+            showCustomModal('Error: Could not find the target label for translation.', 'alert');
+            return;
+        }
+        const localesContainer = labelDiv.querySelector('.locales-container');
+
         const targetLangCheckboxes = Array.from(document.querySelectorAll('#bulkTranslateTargetLangsModal .target-lang-checkbox-modal:checked'));
         const targetLangCodes = targetLangCheckboxes.map(cb => cb.value);
 
-        if (targetLabelDivs.length === 0) {
-            showCustomModal('No labels selected for translation. Please select labels using the checkboxes in the editor or quick access menu.', 'alert');
-            return;
-        }
         if (targetLangCodes.length === 0) {
             showCustomModal('Please select at least one target language to translate into.', 'alert');
             return;
         }
 
-        showCustomModal(`Translate locales for ${targetLabelDivs.length} selected labels into ${targetLangCodes.length} target languages? Existing locales in target languages will be overwritten.`, 'confirm', async (response) => {
-            if (!response) return;
+        document.getElementById('bulkTranslateModal').style.display = 'none'; // Close the modal
+        showLoadingOverlay('Translating locale...');
+        let translationsPerformed = 0;
+        let errors = [];
 
-            document.getElementById('bulkTranslateModal').style.display = 'none'; // Close the modal
-            showLoadingOverlay('Translating labels...');
-            let translationsPerformed = 0;
-            let errors = [];
+        const sourceLangName = commonLanguages.find(l => l.code === sourceLangCode)?.name || sourceLangCode;
 
-            for (const labelDiv of targetLabelDivs) {
-                const localesContainer = labelDiv.querySelector('.locales-container');
-                const existingLocales = Array.from(localesContainer.querySelectorAll('.locale-block'));
+        for (const targetCode of targetLangCodes) {
+            if (targetCode === sourceLangCode) continue; // Should already be disabled, but double-check
 
-                // Determine source language from the first locale of the current label
-                const firstLocale = existingLocales[0];
-                if (!firstLocale) {
-                    errors.push(`Label "${labelDiv.querySelector('.identifier')?.value || '(Untitled)'}" has no locales to translate from.`);
-                    continue;
+            const targetLangName = commonLanguages.find(l => l.code === targetCode)?.name || targetCode;
+            let targetLocaleDiv = Array.from(localesContainer.querySelectorAll('.locale-block')).find(loc => loc.querySelector('.lang')?.value === targetCode);
+
+            let translatedName = sourceName;
+            let translatedDescription = sourceDescription;
+
+            try {
+                if (sourceName) {
+                    translatedName = await translateText(sourceName, sourceLangName, targetLangName);
                 }
-                const sourceLangSelect = firstLocale.querySelector('.lang');
-                const sourceNameInput = firstLocale.querySelector('.name');
-                const sourceDescriptionTextarea = firstLocale.querySelector('.description');
-
-                const sourceLangCode = sourceLangSelect ? sourceLangSelect.value : '';
-                const sourceName = sourceNameInput ? sourceNameInput.value.trim() : '';
-                const sourceDescription = sourceDescriptionTextarea ? sourceDescriptionTextarea.value.trim() : '';
-
-
-                if (!sourceLangCode) {
-                    errors.push(`Label "${labelDiv.querySelector('.identifier')?.value || '(Untitled)'}" has a first locale with no language specified. Skipping.`);
-                    continue;
+                if (sourceDescription) {
+                    translatedDescription = await translateText(sourceDescription, sourceLangName, targetLangName);
                 }
 
-                const sourceLangName = commonLanguages.find(l => l.code === sourceLangCode)?.name || sourceLangCode;
-
-                for (const targetCode of targetLangCodes) {
-                    if (targetCode === sourceLangCode) continue; // Skip translating to the same language
-
-                    const targetLangName = commonLanguages.find(l => l.code === targetCode)?.name || targetCode;
-                    let targetLocaleDiv = existingLocales.find(loc => loc.querySelector('.lang')?.value === targetCode);
-
-                    let translatedName = sourceName;
-                    let translatedDescription = sourceDescription;
-
-                    try {
-                        if (sourceName) {
-                            translatedName = await translateText(sourceName, sourceLangName, targetLangName);
-                        }
-                        if (sourceDescription) {
-                            translatedDescription = await translateText(sourceDescription, sourceLangName, targetLangName);
-                        }
-
-                        if (targetLocaleDiv) {
-                            // Update existing locale
-                            const targetNameInput = targetLocaleDiv.querySelector('.name');
-                            const targetDescriptionTextarea = targetLocaleDiv.querySelector('.description');
-                            if (targetNameInput) targetNameInput.value = translatedName;
-                            if (targetDescriptionTextarea) targetDescriptionTextarea.value = translatedDescription;
-                            updateLocaleDisplayName(targetLocaleDiv);
-                        } else {
-                            // Create new locale
-                            createLocaleBlock(localesContainer, targetCode, translatedName, translatedDescription);
-                        }
-                        translationsPerformed++;
-                    } catch (error) {
-                        errors.push(`Failed to translate for label "${labelDiv.querySelector('.identifier')?.value || '(Untitled)'}" to ${targetLangName}: ${error.message}`);
-                        console.error(`Error translating for label ${labelDiv.querySelector('.identifier')?.value} to ${targetLangName}:`, error);
-                    }
+                if (targetLocaleDiv) {
+                    // Update existing locale
+                    const targetNameInput = targetLocaleDiv.querySelector('.name');
+                    const targetDescriptionTextarea = targetLocaleDiv.querySelector('.description');
+                    if (targetNameInput) targetNameInput.value = translatedName;
+                    if (targetDescriptionTextarea) targetDescriptionTextarea.value = translatedDescription;
+                    updateLocaleDisplayName(targetLocaleDiv);
+                } else {
+                    // Create new locale
+                    createLocaleBlock(localesContainer, targetCode, translatedName, translatedDescription);
                 }
+                translationsPerformed++;
+            } catch (error) {
+                errors.push(`Failed to translate for locale ${sourceLangName} to ${targetLangName}: ${error.message}`);
+                console.error(`Error translating for locale ${sourceLangName} to ${targetLangName}:`, error);
             }
-            hideLoadingOverlay();
-            saveFullSessionStateToLocalStorage();
-            updateJSONOutput();
+        }
+        hideLoadingOverlay();
+        saveFullSessionStateToLocalStorage();
+        updateJSONOutput();
 
-            let resultMessage = `Bulk translation complete. ${translationsPerformed} translations performed.`;
-            if (errors.length > 0) {
-                resultMessage += ` Some labels encountered issues:\n\n${errors.join('\n')}`;
-                showCustomModal(resultMessage, 'alert');
-            } else {
-                showCustomModal(resultMessage, 'alert');
-            }
-        });
+        let resultMessage = `Translation complete. ${translationsPerformed} translations performed.`;
+        if (errors.length > 0) {
+            resultMessage += ` Some translations encountered issues:\n\n${errors.join('\n')}`;
+            showCustomModal(resultMessage, 'alert');
+        } else {
+            showCustomModal(resultMessage, 'alert');
+        }
     }
+
 
     // --- Description Snippets Functions ---
     function saveDescriptionSnippets() {
@@ -3739,11 +3744,7 @@ Original text:
             // Re-attach bulk actions buttons
             const mobileBulkApplyPropertiesBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkApplyPropertiesBtn');
             if (mobileBulkApplyPropertiesBtn) mobileBulkApplyPropertiesBtn.onclick = applyBulkProperties;
-            const mobileBulkTranslateLabelsBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkTranslateLabelsBtn');
-            if (mobileBulkTranslateLabelsBtn) mobileBulkTranslateLabelsBtn.onclick = () => {
-                populateBulkTranslateLanguageOptionsModal(); // Ensure options are populated each time
-                document.getElementById('bulkTranslateModal').style.display = 'flex';
-            };
+            // The bulk translate button is removed from bulk actions, so no need to re-attach here.
 
 
             // Re-attach snippet management buttons
@@ -3827,7 +3828,7 @@ Original text:
         (rightMenuWrapperMobile && rightMenuWrapperMobile.classList.contains('open') && !isClickInsideRightMenuMobile && !isClickOnRightToggle) ||
         (optionsModal && optionsModal.style.display === 'flex' && !isClickInsideOptionsModal && event.target.id !== 'optionsBtn') ||
         (applySnippetModal && applySnippetModal.style.display === 'flex' && !isClickInsideApplySnippetModal && !event.target.classList.contains('apply-snippet-btn')) ||
-        (bulkTranslateModal && bulkTranslateModal.style.display === 'flex' && !isClickInsideBulkTranslateModal && event.target.id !== 'bulkTranslateLabelsBtn')
+        (bulkTranslateModal && bulkTranslateModal.style.display === 'flex' && !isClickInsideBulkTranslateModal && !event.target.classList.contains('translate-multiple-btn')) // Updated for new button
       ) {
         closeMobileMenu(leftFloatingMenu);
         closeMobileMenu(rightMenuWrapperMobile);
@@ -4158,11 +4159,8 @@ Original text:
     document.getElementById('bulkApplyPropertiesBtn').onclick = applyBulkProperties;
 
     // Bulk Translate Modal Event Listeners
-    document.getElementById('bulkTranslateLabelsBtn').onclick = () => {
-        populateBulkTranslateLanguageOptionsModal(); // Ensure options are populated each time
-        document.getElementById('bulkTranslateModal').style.display = 'flex';
-    };
-    document.getElementById('startBulkTranslateBtn').onclick = handleBulkTranslateModal;
+    // The bulk translate button is now per-locale, so this global listener is removed.
+    document.getElementById('startBulkTranslateBtn').onclick = handlePerLocaleMultipleTranslate; // This button is in the modal
     document.getElementById('cancelBulkTranslateBtn').onclick = () => {
         document.getElementById('bulkTranslateModal').style.display = 'none';
     };
