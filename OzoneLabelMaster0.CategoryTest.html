@@ -1429,7 +1429,17 @@
             </div>
         </div>
 
+        <div class="bulk-action-group">
+            <h3>Post Preview</h3>
+            <textarea id="postPreviewContent" placeholder="Paste your post content here to preview moderation labels..." rows="8" title="Paste content to see how it might be moderated"></textarea>
+            <button id="analyzePostBtn" class="action-button blue-button" style="width: 100%; margin-top: 0.5em;" title="Analyze the pasted content for moderation labels">Analyze Post (Coming Soon)</button>
+            <div id="postPreviewResults" style="margin-top: 1em; padding: 0.8em; background: var(--output-background); border: 1px solid var(--output-border); border-radius: var(--border-radius); min-height: 50px; color: var(--text-color); font-size: 0.9em;">
+                Results will appear here.
+            </div>
+        </div>
+
         <div class="bulk-action-group snippet-management-section">
+            <h3>Description Snippets</h3>
             <div class="snippet-input-group">
                 <label for="newSnippetName">Snippet Name:</label>
                 <input type="text" id="newSnippetName" placeholder="e.g., 'Common Disclaimer'" title="Enter a name for your snippet">
@@ -1513,6 +1523,18 @@
     </div>
   </div>
 
+  <div id="pasteJsonModal" class="custom-modal-overlay" style="display: none;">
+    <div class="custom-modal-content">
+      <h3>Paste JSON Data</h3>
+      <p>Paste your JSON content below:</p>
+      <textarea id="pasteJsonTextarea" rows="10" placeholder="Paste JSON here..." style="width: 100%; padding: 0.75em; border: 1px solid var(--input-border); border-radius: var(--border-radius); background: var(--block-background); color: var(--text-color); resize: vertical;"></textarea>
+      <div style="display: flex; justify-content: center; gap: 0.5em;">
+        <button id="confirmPasteJsonBtn" class="confirm-btn">Paste</button>
+        <button id="cancelPasteJsonBtn" class="cancel-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     // No Firebase SDK imports needed as we are using Local Storage only.
 
@@ -1549,10 +1571,8 @@
     // Custom Modal for alerts/confirms
     function showCustomModal(message, type = 'alert', onConfirm = null, customContent = null) {
       // Remove any existing modal overlays to prevent multiple modals
-      const existingOverlay = document.querySelector('.custom-modal-overlay');
-      if (existingOverlay) {
-        existingOverlay.remove();
-      }
+      // IMPORTANT: Exclude the static optionsModal from this removal
+      document.querySelectorAll('.custom-modal-overlay:not(#optionsModal):not(#pasteJsonModal):not(#applySnippetModal):not(#bulkTranslateModal)').forEach(el => el.remove());
 
       const overlay = document.createElement('div');
       overlay.className = 'custom-modal-overlay';
@@ -1673,8 +1693,7 @@
 
       // Load Labels
       const dataLabels = sessionData.labelValueDefinitions || sessionData.labels; // Support old and new formats
-      // IMPORTANT: labels-container.innerHTML = ''; is already handled at the very top of DOMContentLoaded
-      document.getElementById('labels-container').innerHTML = ''; // Redundant but harmless, ensures clean slate
+      document.getElementById('labels-container').innerHTML = ''; // Ensure a clean slate
       dataLabels.forEach((label, index) => { // Pass index to createLabelBlock
         const labelIdentifier = label.identifier !== undefined ? label.identifier : label.id; // Backward compatibility
         createLabelBlock(
@@ -3380,65 +3399,82 @@ Original description:
         }
       };
 
-      document.getElementById('pasteJsonBtn').onclick = async () => {
-        showCustomModal('Pasting JSON will overwrite your current labels. Are you sure?', 'confirm', async (response) => {
-          if (response) {
-            try {
-              const text = await navigator.clipboard.readText();
-              const parsedData = JSON.parse(text);
+      document.getElementById('pasteJsonBtn').onclick = () => {
+        const pasteJsonModal = document.getElementById('pasteJsonModal');
+        const pasteJsonTextarea = document.getElementById('pasteJsonTextarea');
+        const confirmPasteJsonBtn = document.getElementById('confirmPasteJsonBtn');
+        const cancelPasteJsonBtn = document.getElementById('cancelPasteJsonBtn');
 
-              // Check if it's the old format (labels array) or new format (labelValueDefinitions)
-              const labelsToLoad = parsedData.labelValueDefinitions || parsedData.labels;
+        pasteJsonTextarea.value = ''; // Clear previous content
+        pasteJsonModal.style.display = 'flex';
 
-              if (!Array.isArray(labelsToLoad)) {
-                throw new Error('Invalid JSON format. Expected an array of labels.');
+        const handleConfirm = () => {
+          showCustomModal('Pasting JSON will overwrite your current labels. Are you sure?', 'confirm', (response) => {
+            if (response) {
+              try {
+                const text = pasteJsonTextarea.value;
+                const parsedData = JSON.parse(text);
+
+                // Check if it's the old format (labels array) or new format (labelValueDefinitions)
+                const labelsToLoad = parsedData.labelValueDefinitions || parsedData.labels;
+
+                if (!Array.isArray(labelsToLoad)) {
+                  throw new Error('Invalid JSON format. Expected an array of labels.');
+                }
+
+                document.getElementById('labels-container').innerHTML = ''; // Clear existing
+                labelsToLoad.forEach((label, index) => { // Pass index to createLabelBlock
+                  createLabelBlock(
+                    label.identifier || label.id || '', // Support old 'id' or new 'identifier'
+                    label.severity || 'inform',
+                    label.blurs || 'content',
+                    label.defaultSetting || 'ignore',
+                    label.adultOnly || false,
+                    label.enabled !== undefined ? label.enabled : true,
+                    label.locales || [],
+                    label.category || '',
+                    index === 0 // Pass true if it's the first label being loaded
+                  );
+                });
+
+                // If categories are present in the pasted JSON, update them
+                if (parsedData.categories && Array.isArray(parsedData.categories)) {
+                    categories = parsedData.categories;
+                    renderCategoryMenu();
+                    updateLabelCategoryDropdowns();
+                }
+
+                // If defaultLocaleLanguage is present, update it
+                if (parsedData.defaultLocaleLanguage) {
+                    defaultLocaleLanguage = parsedData.defaultLocaleLanguage;
+                    populateDefaultLocaleLanguageSelect();
+                }
+
+                // If descriptionSnippets are present, update them
+                if (parsedData.descriptionSnippets && Array.isArray(parsedData.descriptionSnippets)) {
+                    descriptionSnippets = parsedData.descriptionSnippets;
+                    renderSnippetManagementUI();
+                    populateBulkApplySnippetSelect();
+                }
+
+
+                saveFullSessionStateToLocalStorage(); // Save the new state
+                updateJSONOutput(); // Update output and history
+                showCustomModal('JSON pasted successfully!', 'alert');
+              } catch (error) {
+                console.error('Error pasting JSON:', error);
+                showCustomModal('Failed to paste JSON. Ensure it is valid JSON. Error: ' + error.message, 'alert');
+              } finally {
+                pasteJsonModal.style.display = 'none'; // Close the manual paste modal
               }
-
-              document.getElementById('labels-container').innerHTML = ''; // Clear existing
-              labelsToLoad.forEach((label, index) => { // Pass index to createLabelBlock
-                createLabelBlock(
-                  label.identifier || label.id || '', // Support old 'id' or new 'identifier'
-                  label.severity || 'inform',
-                  label.blurs || 'content',
-                  label.defaultSetting || 'ignore',
-                  label.adultOnly || false,
-                  label.enabled !== undefined ? label.enabled : true,
-                  label.locales || [],
-                  label.category || '',
-                  index === 0 // Pass true if it's the first label being loaded
-                );
-              });
-
-              // If categories are present in the pasted JSON, update them
-              if (parsedData.categories && Array.isArray(parsedData.categories)) {
-                  categories = parsedData.categories;
-                  renderCategoryMenu();
-                  updateLabelCategoryDropdowns();
-              }
-
-              // If defaultLocaleLanguage is present, update it
-              if (parsedData.defaultLocaleLanguage) {
-                  defaultLocaleLanguage = parsedData.defaultLocaleLanguage;
-                  populateDefaultLocaleLanguageSelect();
-              }
-
-              // If descriptionSnippets are present, update them
-              if (parsedData.descriptionSnippets && Array.isArray(parsedData.descriptionSnippets)) {
-                  descriptionSnippets = parsedData.descriptionSnippets;
-                  renderSnippetManagementUI();
-                  populateBulkApplySnippetSelect();
-              }
-
-
-              saveFullSessionStateToLocalStorage(); // Save the new state
-              updateJSONOutput(); // Update output and history
-              showCustomModal('JSON pasted successfully!', 'alert');
-            } catch (error) {
-              console.error('Error pasting JSON:', error);
-              showCustomModal('Failed to paste JSON. Ensure it is valid JSON. Error: ' + error.message, 'alert');
             }
-          }
-        });
+          });
+        };
+
+        confirmPasteJsonBtn.onclick = handleConfirm;
+        cancelPasteJsonBtn.onclick = () => {
+          pasteJsonModal.style.display = 'none';
+        };
       };
 
       document.getElementById('importJsonBtn').onclick = () => {
