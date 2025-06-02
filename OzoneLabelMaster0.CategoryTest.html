@@ -662,6 +662,18 @@
     overflow-y: auto; /* Enables scrolling */
     min-height: 0; /* Important for flex items with overflow */
     padding-right: 0.5em; /* Add some padding for scrollbar */
+    margin-bottom: 0.5em; /* Space before fixed footer buttons */
+  }
+
+  /* Fixed header/footer elements within menus */
+  #category-menu h3,
+  #category-menu .category-input-group,
+  #category-menu #deleteSelectedCategoriesBtn,
+  #floating-menu h3,
+  #floating-menu #deleteSelectedLabelsBtn,
+  #bulk-actions-menu h3,
+  #bulk-actions-menu .label-block { /* The new bulk control block */
+    flex-shrink: 0; /* Prevent these elements from shrinking */
   }
 
   /* Adjust gap for specific elements within menus if needed */
@@ -1196,7 +1208,7 @@
       </a>
       <div class="header-text-group">
         <h1>OZONE LABEL MASTER</h1>
-        <p>version 0.73</p>
+        <p>version 0.80</p>
       </div>
     </header>
 
@@ -1254,6 +1266,53 @@
             <button id="closeBulkActionsMenuBtnDesktop" class="close-mobile-menu-btn" title="Close bulk actions menu">X</button>
         </div>
         <h3>Bulk Actions</h3>
+
+        <div class="label-block" style="margin-bottom: 1em;"> <div class="label-header" style="cursor: default;">
+                <div class="label-identifier-box">
+                    <span class="label-identifier-display">Bulk Action Settings</span>
+                </div>
+            </div>
+            <div class="label-content">
+                <div class="input-group-row">
+                    <div>
+                        <label for="bulkPlaceholderIdentifier">Identifier:</label>
+                        <input type="text" id="bulkPlaceholderIdentifier" value="(Placeholder)" disabled title="This field is a placeholder for bulk actions">
+                    </div>
+                    <div>
+                        <label for="bulkBlursControl">Blurs:</label>
+                        <select id="bulkBlursControl" title="Set blur setting for selected labels">
+                            <option value="">(No Change)</option>
+                            <option value="content">content</option>
+                            <option value="media">media</option>
+                            <option value="none">none</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group-row">
+                    <div>
+                        <label for="bulkSeverityControl">Severity:</label>
+                        <select id="bulkSeverityControl" title="Set severity for selected labels">
+                            <option value="">(No Change)</option>
+                            <option value="inform">inform</option>
+                            <option value="alert">alert</option>
+                            <option value="none">none</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="bulkDefaultSettingControl">Default Setting:</label>
+                        <select id="bulkDefaultSettingControl" title="Set default setting for selected labels">
+                            <option value="">(No Change)</option>
+                            <option value="ignore">ignore</option>
+                            <option value="warn">warn</option>
+                            <option value="hide">hide</option>
+                        </select>
+                    </div>
+                </div>
+                <label style="margin-top: 1em;">Adult Only: <input type="checkbox" id="bulkAdultOnlyControl" title="Mark if this label is for adult content only"></label>
+                <label>Enabled: <input type="checkbox" id="bulkEnabledControl" title="Toggle label enabled/disabled state"></label>
+                <button id="bulkApplyPropertiesBtn" class="action-button full-width-button" style="margin-top: 1em;" title="Apply selected property changes to target labels">Apply Selected Properties</button>
+            </div>
+        </div>
         <div class="scrollable-content">
             <div class="bulk-action-group">
                 <div class="bulk-action-row">
@@ -1269,37 +1328,6 @@
                     <input type="checkbox" id="bulkSelectAllCheckbox" title="Select or deselect all visible labels">
                     <label for="bulkSelectAllCheckbox">Select All Visible Labels</label>
                 </div>
-            </div>
-
-            <div class="bulk-action-group">
-                <div class="bulk-action-row">
-                    <label for="bulkSeveritySelect" title="Set severity for selected labels">Severity:</label>
-                    <select id="bulkSeveritySelect" title="Bulk change severity">
-                        <option value="">(No Change)</option>
-                        <option value="inform">inform</option>
-                        <option value="alert">alert</option>
-                        <option value="none">none</option>
-                    </select>
-                </div>
-                <div class="bulk-action-row">
-                    <label for="bulkBlursSelect" title="Set blur setting for selected labels">Blurs:</label>
-                    <select id="bulkBlursSelect" title="Bulk change blur setting">
-                        <option value="">(No Change)</option>
-                        <option value="content">content</option>
-                        <option value="media">media</option>
-                        <option value="none">none</option>
-                    </select>
-                </div>
-                <div class="bulk-action-row">
-                    <label for="bulkDefaultSettingSelect" title="Set default setting for selected labels">Default Setting:</label>
-                    <select id="bulkDefaultSettingSelect" title="Bulk change default setting">
-                        <option value="">(No Change)</option>
-                        <option value="ignore">ignore</option>
-                        <option value="warn">warn</option>
-                        <option value="hide">hide</option>
-                    </select>
-                </div>
-                <button id="bulkApplyChangesBtn" class="full-width-button" title="Apply selected property changes to target labels">Apply Property Changes</button>
             </div>
 
             <div class="bulk-action-group">
@@ -1665,8 +1693,11 @@
 
     // Function to update the visual state (disabled/enabled) of a label block
     function updateLabelBlockVisualState(labelDiv) {
-      const enabled = labelDiv.querySelector('.enabled').checked;
-      labelDiv.classList.toggle('disabled', !enabled);
+      const enabledCheckbox = labelDiv.querySelector('.enabled');
+      if (enabledCheckbox) { // Check if the element exists
+        const enabled = enabledCheckbox.checked;
+        labelDiv.classList.toggle('disabled', !enabled);
+      }
     }
 
     // Function to update the display text for a locale block header
@@ -2340,20 +2371,40 @@ Original description:
     function getLabelsData() {
       const labels = [];
       document.querySelectorAll('.label-block').forEach(labelDiv => {
-        const identifier = labelDiv.querySelector('.identifier').value.trim(); // Renamed from 'id' to 'identifier'
-        const severity = labelDiv.querySelector('.severity').value;
-        const blurs = labelDiv.querySelector('.blurs').value;
-        const defaultSetting = labelDiv.querySelector('.defaultSetting').value;
-        const adultOnly = labelDiv.querySelector('.adultOnly').checked;
-        const enabled = labelDiv.querySelector('.enabled').checked;
-        const category = labelDiv.querySelector('.label-category').value; // Get category
+        // Add null checks for each querySelector result
+        const identifierInput = labelDiv.querySelector('.identifier');
+        const identifier = identifierInput ? identifierInput.value.trim() : ''; // Default to empty string
+
+        const severitySelect = labelDiv.querySelector('.severity');
+        const severity = severitySelect ? severitySelect.value : 'inform'; // Default to 'inform'
+
+        const blursSelect = labelDiv.querySelector('.blurs');
+        const blurs = blursSelect ? blursSelect.value : 'content'; // Default to 'content'
+
+        const defaultSettingSelect = labelDiv.querySelector('.defaultSetting');
+        const defaultSetting = defaultSettingSelect ? defaultSettingSelect.value : 'ignore'; // Default to 'ignore'
+
+        const adultOnlyCheckbox = labelDiv.querySelector('.adultOnly');
+        const adultOnly = adultOnlyCheckbox ? adultOnlyCheckbox.checked : false; // Default to false
+
+        const enabledCheckbox = labelDiv.querySelector('.enabled');
+        const enabled = enabledCheckbox ? enabledCheckbox.checked : true; // Default to true
+
+        const categorySelect = labelDiv.querySelector('.label-category');
+        const category = categorySelect ? categorySelect.value : ''; // Default to empty string
 
         const locales = [];
         labelDiv.querySelectorAll('.locale-block').forEach(localeDiv => {
-          const lang = localeDiv.querySelector('.lang').value; // Get value from select
-          const name = localeDiv.querySelector('.name').value.trim();
-          const description = localeDiv.querySelector('.description').value.trim();
-          if(lang || name || description) {
+          const langSelect = localeDiv.querySelector('.lang');
+          const lang = langSelect ? langSelect.value : '';
+
+          const nameInput = localeDiv.querySelector('.name');
+          const name = nameInput ? nameInput.value.trim() : '';
+
+          const descriptionTextarea = localeDiv.querySelector('.description');
+          const description = descriptionTextarea ? descriptionTextarea.value.trim() : '';
+
+          if(lang || name || description) { // Only push if at least one field has content
             locales.push({lang, name, description});
           }
         });
@@ -2442,17 +2493,17 @@ Original description:
     function filterLabels() {
       const searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
       document.querySelectorAll('.label-block').forEach(labelDiv => {
-        const id = labelDiv.querySelector('.identifier').value.toLowerCase();
-        const category = labelDiv.querySelector('.label-category').value.toLowerCase(); // Get category for filtering
+        const id = labelDiv.querySelector('.identifier')?.value.toLowerCase() || ''; // Added null check
+        const category = labelDiv.querySelector('.label-category')?.value.toLowerCase() || ''; // Added null check
         const locales = Array.from(labelDiv.querySelectorAll('.locale-block')).map(locDiv => {
           // Get the display name from the selected option, or fallback to value
           const langSelect = locDiv.querySelector('.lang');
-          const selectedOption = langSelect.options[langSelect.selectedIndex];
+          const selectedOption = langSelect ? langSelect.options[langSelect.selectedIndex] : null;
           return selectedOption ? selectedOption.textContent.toLowerCase() : '';
         });
 
         // Update the display text to also use the new placeholder when filtering
-        const displayedText = labelDiv.querySelector('.label-identifier-display').textContent.toLowerCase();
+        const displayedText = labelDiv.querySelector('.label-identifier-display')?.textContent.toLowerCase() || ''; // Added null check
 
         if (id.includes(searchTerm) || locales.some(l => l.includes(searchTerm)) || displayedText.includes(searchTerm) || category.includes(searchTerm)) {
           labelDiv.style.display = '';
@@ -2473,7 +2524,7 @@ Original description:
       document.querySelectorAll('.label-block').forEach(labelDiv => {
         const labelContent = labelDiv.querySelector('.label-content');
         const collapseBtn = labelDiv.querySelector('.collapse-btn');
-        if (labelContent.style.display !== 'none') {
+        if (labelContent && collapseBtn && labelContent.style.display !== 'none') { // Added null checks
           labelContent.style.display = 'none';
           collapseBtn.textContent = 'Expand';
         }
@@ -2485,7 +2536,7 @@ Original description:
       document.querySelectorAll('.label-block').forEach(labelDiv => {
         const labelContent = labelDiv.querySelector('.label-content');
         const collapseBtn = labelDiv.querySelector('.collapse-btn');
-        if (labelContent.style.display === 'none') {
+        if (labelContent && collapseBtn && labelContent.style.display === 'none') { // Added null checks
           labelContent.style.display = 'block';
           collapseBtn.textContent = 'Collapse';
         }
@@ -2906,21 +2957,21 @@ Original description:
         if (targetType === 'selected') {
             filteredLabelDivs = allVisibleLabelDivs.filter(labelDiv => selectedLabelIds.has(labelDiv.id));
         } else if (targetType === 'category') {
-            const selectedCategory = document.getElementById(targetSelectId.replace('Select', 'CategoryFilterSelect')).value;
+            const selectedCategory = document.getElementById(targetSelectId.replace('Select', 'CategoryFilterSelect'))?.value || ''; // Added null check
             if (selectedCategory) {
-                filteredLabelDivs = allVisibleLabelDivs.filter(labelDiv => labelDiv.querySelector('.label-category').value === selectedCategory);
+                filteredLabelDivs = allVisibleLabelDivs.filter(labelDiv => labelDiv.querySelector('.label-category')?.value === selectedCategory); // Added null check
             }
         } else if (targetType === 'selectedCategories') {
             if (selectedCategoryNames.size > 0) {
                 filteredLabelDivs = allVisibleLabelDivs.filter(labelDiv => {
-                    const labelCategory = labelDiv.querySelector('.label-category').value;
+                    const labelCategory = labelDiv.querySelector('.label-category')?.value || ''; // Added null check
                     return selectedCategoryNames.has(labelCategory);
                 });
             }
         } else { // Default or no specific target, consider all visible
             filteredLabelDivs = allVisibleLabelDivs;
         }
-        return filteredLabelDivs.map(labelDiv => labelDiv.querySelector('.bulk-select-checkbox'));
+        return filteredLabelDivs.map(labelDiv => labelDiv.querySelector('.bulk-select-checkbox')).filter(cb => cb); // Filter out any null checkboxes
     }
 
     function updateBulkSelectAllCheckbox() {
@@ -2950,7 +3001,7 @@ Original description:
                 if (labelDiv) targetLabels.push(labelDiv);
             });
         } else if (targetType === 'category') {
-            const selectedCategory = document.getElementById(targetSelectId.replace('Select', 'CategoryFilterSelect')).value;
+            const selectedCategory = document.getElementById(targetSelectId.replace('Select', 'CategoryFilterSelect'))?.value || ''; // Added null check
             if (selectedCategory) {
                 document.querySelectorAll('.label-block').forEach(labelDiv => {
                     const categorySelect = labelDiv.querySelector('.label-category');
@@ -2962,7 +3013,7 @@ Original description:
         } else if (targetType === 'selectedCategories') {
             if (selectedCategoryNames.size > 0) {
                 document.querySelectorAll('.label-block').forEach(labelDiv => {
-                    const labelCategory = labelDiv.querySelector('.label-category').value;
+                    const labelCategory = labelDiv.querySelector('.label-category')?.value || ''; // Added null check
                     if (selectedCategoryNames.has(labelCategory)) {
                         targetLabels.push(labelDiv);
                     }
@@ -2972,11 +3023,13 @@ Original description:
         return targetLabels;
     }
 
-    function applyBulkPropertyChanges() {
+    function applyBulkProperties() { // Renamed from applyBulkPropertyChanges
         const targetLabels = getTargetLabelDivs('bulkTargetSelect');
-        const newSeverity = document.getElementById('bulkSeveritySelect').value;
-        const newBlurs = document.getElementById('bulkBlursSelect').value;
-        const newDefaultSetting = document.getElementById('bulkDefaultSettingSelect').value;
+        const newSeverity = document.getElementById('bulkSeverityControl').value;
+        const newBlurs = document.getElementById('bulkBlursControl').value;
+        const newDefaultSetting = document.getElementById('bulkDefaultSettingControl').value;
+        const newAdultOnly = document.getElementById('bulkAdultOnlyControl').checked;
+        const newEnabled = document.getElementById('bulkEnabledControl').checked;
 
         if (targetLabels.length === 0) {
             showCustomModal('No labels selected or found for the chosen target.', 'alert');
@@ -2986,9 +3039,20 @@ Original description:
         showCustomModal(`Apply changes to ${targetLabels.length} labels?`, 'confirm', (response) => {
             if (response) {
                 targetLabels.forEach(labelDiv => {
-                    if (newSeverity) labelDiv.querySelector('.severity').value = newSeverity;
-                    if (newBlurs) labelDiv.querySelector('.blurs').value = newBlurs;
-                    if (newDefaultSetting) labelDiv.querySelector('.defaultSetting').value = newDefaultSetting;
+                    const severitySelect = labelDiv.querySelector('.severity');
+                    const blursSelect = labelDiv.querySelector('.blurs');
+                    const defaultSettingSelect = labelDiv.querySelector('.defaultSetting');
+                    const adultOnlyCheckbox = labelDiv.querySelector('.adultOnly');
+                    const enabledCheckbox = labelDiv.querySelector('.enabled');
+
+                    if (newSeverity && severitySelect) severitySelect.value = newSeverity;
+                    if (newBlurs && blursSelect) blursSelect.value = newBlurs;
+                    if (newDefaultSetting && defaultSettingSelect) defaultSettingSelect.value = newDefaultSetting;
+                    
+                    if (adultOnlyCheckbox) adultOnlyCheckbox.checked = newAdultOnly;
+                    if (enabledCheckbox) enabledCheckbox.checked = newEnabled;
+                    
+                    updateLabelBlockVisualState(labelDiv); // Update visual state for enabled/disabled
                 });
                 saveFullSessionStateToLocalStorage();
                 updateJSONOutput();
@@ -3008,8 +3072,11 @@ Original description:
         showCustomModal(`${action} ${targetLabels.length} labels?`, 'confirm', (response) => {
             if (response) {
                 targetLabels.forEach(labelDiv => {
-                    labelDiv.querySelector('.enabled').checked = enable;
-                    updateLabelBlockVisualState(labelDiv);
+                    const enabledCheckbox = labelDiv.querySelector('.enabled');
+                    if (enabledCheckbox) { // Added null check
+                        enabledCheckbox.checked = enable;
+                        updateLabelBlockVisualState(labelDiv);
+                    }
                 });
                 saveFullSessionStateToLocalStorage();
                 updateJSONOutput();
@@ -3043,6 +3110,8 @@ Original description:
 
     function updateBulkCategoryFilterDropdown() {
         const bulkCategoryFilterSelect = document.getElementById('bulkCategoryFilterSelect');
+        if (!bulkCategoryFilterSelect) return; // Added null check
+
         const currentSelectedCategory = bulkCategoryFilterSelect.value; // Preserve selection if possible
         bulkCategoryFilterSelect.innerHTML = '<option value="">(Select Category)</option>';
         categories.forEach(cat => {
@@ -3065,18 +3134,23 @@ Original description:
         const bulkTargetSelectTranslate = document.getElementById('bulkTargetSelectTranslate');
         const bulkCategoryFilterSelectTranslate = document.getElementById('bulkCategoryFilterSelectTranslate');
 
-        if (bulkTargetSelect.value === 'category') {
-            bulkCategoryFilterSelect.style.display = '';
-            updateBulkCategoryFilterDropdown(); // Ensure it's populated
-        } else {
-            bulkCategoryFilterSelect.style.display = 'none';
+        if (bulkTargetSelect && bulkCategoryFilterSelect) { // Added null checks
+            if (bulkTargetSelect.value === 'category') {
+                bulkCategoryFilterSelect.style.display = '';
+                updateBulkCategoryFilterDropdown(); // Ensure it's populated
+            } else {
+                bulkCategoryFilterSelect.style.display = 'none';
+            }
         }
 
-        if (bulkTargetSelectTranslate.value === 'category') {
-            bulkCategoryFilterSelectTranslate.style.display = '';
-            updateBulkCategoryFilterTranslateDropdown(); // Ensure it's populated
-        } else {
-            bulkCategoryFilterSelectTranslate.style.display = 'none';
+
+        if (bulkTargetSelectTranslate && bulkCategoryFilterSelectTranslate) { // Added null checks
+            if (bulkTargetSelectTranslate.value === 'category') {
+                bulkCategoryFilterSelectTranslate.style.display = '';
+                updateBulkCategoryFilterTranslateDropdown(); // Ensure it's populated
+            } else {
+                bulkCategoryFilterSelectTranslate.style.display = 'none';
+            }
         }
 
         // Re-evaluate bulk select all checkboxes when target visibility changes
@@ -3090,6 +3164,8 @@ Original description:
     // Populates the target language checkboxes for bulk translation
     function populateBulkTranslateLanguageOptions() {
         const targetLangsDiv = document.getElementById('bulkTranslateTargetLangs');
+        if (!targetLangsDiv) return; // Added null check
+
         targetLangsDiv.innerHTML = ''; // Clear existing options
 
         commonLanguages.forEach(langObj => {
@@ -3141,6 +3217,8 @@ Original text:
 
     function updateBulkSelectAllTranslateCheckbox() {
         const bulkSelectAllTranslateCheckbox = document.getElementById('bulkSelectAllTranslateCheckbox');
+        if (!bulkSelectAllTranslateCheckbox) return; // Added null check
+
         const relevantCheckboxes = getFilteredLabelCheckboxes('bulkTargetSelectTranslate');
 
         if (relevantCheckboxes.length === 0) {
@@ -3158,6 +3236,8 @@ Original text:
 
     function updateBulkCategoryFilterTranslateDropdown() {
         const bulkCategoryFilterSelect = document.getElementById('bulkCategoryFilterSelectTranslate');
+        if (!bulkCategoryFilterSelect) return; // Added null check
+
         const currentSelectedCategory = bulkCategoryFilterSelect.value; // Preserve selection if possible
         bulkCategoryFilterSelect.innerHTML = '<option value="">(Select Category)</option>';
         categories.forEach(cat => {
@@ -3202,15 +3282,20 @@ Original text:
                 // Determine source language from the first locale of the current label
                 const firstLocale = existingLocales[0];
                 if (!firstLocale) {
-                    errors.push(`Label "${labelDiv.querySelector('.identifier').value || '(Untitled)'}" has no locales to translate from.`);
+                    errors.push(`Label "${labelDiv.querySelector('.identifier')?.value || '(Untitled)'}" has no locales to translate from.`); // Added null check
                     continue;
                 }
-                const sourceLangCode = firstLocale.querySelector('.lang').value;
-                const sourceName = firstLocale.querySelector('.name').value.trim();
-                const sourceDescription = firstLocale.querySelector('.description').value.trim();
+                const sourceLangSelect = firstLocale.querySelector('.lang');
+                const sourceNameInput = firstLocale.querySelector('.name');
+                const sourceDescriptionTextarea = firstLocale.querySelector('.description');
+
+                const sourceLangCode = sourceLangSelect ? sourceLangSelect.value : '';
+                const sourceName = sourceNameInput ? sourceNameInput.value.trim() : '';
+                const sourceDescription = sourceDescriptionTextarea ? sourceDescriptionTextarea.value.trim() : '';
+
 
                 if (!sourceLangCode) {
-                    errors.push(`Label "${labelDiv.querySelector('.identifier').value || '(Untitled)'}" has a first locale with no language specified. Skipping.`);
+                    errors.push(`Label "${labelDiv.querySelector('.identifier')?.value || '(Untitled)'}" has a first locale with no language specified. Skipping.`); // Added null check
                     continue;
                 }
 
@@ -3220,7 +3305,7 @@ Original text:
                     if (targetCode === sourceLangCode) continue; // Skip translating to the same language
 
                     const targetLangName = commonLanguages.find(l => l.code === targetCode)?.name || targetCode;
-                    let targetLocaleDiv = existingLocales.find(loc => loc.querySelector('.lang').value === targetCode);
+                    let targetLocaleDiv = existingLocales.find(loc => loc.querySelector('.lang')?.value === targetCode); // Added null check
 
                     let translatedName = sourceName;
                     let translatedDescription = sourceDescription;
@@ -3235,8 +3320,10 @@ Original text:
 
                         if (targetLocaleDiv) {
                             // Update existing locale
-                            targetLocaleDiv.querySelector('.name').value = translatedName;
-                            targetLocaleDiv.querySelector('.description').value = translatedDescription;
+                            const targetNameInput = targetLocaleDiv.querySelector('.name');
+                            const targetDescriptionTextarea = targetLocaleDiv.querySelector('.description');
+                            if (targetNameInput) targetNameInput.value = translatedName;
+                            if (targetDescriptionTextarea) targetDescriptionTextarea.value = translatedDescription;
                             updateLocaleDisplayName(targetLocaleDiv);
                         } else {
                             // Create new locale
@@ -3244,8 +3331,8 @@ Original text:
                         }
                         translationsPerformed++;
                     } catch (error) {
-                        errors.push(`Failed to translate for label "${labelDiv.querySelector('.identifier').value || '(Untitled)'}" to ${targetLangName}: ${error.message}`);
-                        console.error(`Error translating for label ${labelDiv.querySelector('.identifier').value} to ${targetLangName}:`, error);
+                        errors.push(`Failed to translate for label "${labelDiv.querySelector('.identifier')?.value || '(Untitled)'}" to ${targetLangName}: ${error.message}`); // Added null check
+                        console.error(`Error translating for label ${labelDiv.querySelector('.identifier')?.value} to ${targetLangName}:`, error); // Added null check
                     }
                 }
             }
@@ -3282,6 +3369,8 @@ Original text:
 
     function renderSnippetManagementUI() {
         const snippetList = document.getElementById('snippet-list');
+        if (!snippetList) return; // Added null check
+
         snippetList.innerHTML = ''; // Clear existing list
 
         if (descriptionSnippets.length === 0) {
@@ -3290,9 +3379,13 @@ Original text:
             listItem.style.fontStyle = 'italic';
             listItem.style.color = 'var(--gray)';
             snippetList.appendChild(listItem);
-            document.getElementById('bulkApplySnippetBtn').disabled = true;
-            document.getElementById('bulkApplySnippetSelect').disabled = true;
-            document.getElementById('bulkApplySnippetSelect').innerHTML = '<option value="">(No Snippets)</option>';
+            const bulkApplySnippetBtn = document.getElementById('bulkApplySnippetBtn');
+            const bulkApplySnippetSelect = document.getElementById('bulkApplySnippetSelect');
+            if (bulkApplySnippetBtn) bulkApplySnippetBtn.disabled = true; // Added null check
+            if (bulkApplySnippetSelect) { // Added null check
+                bulkApplySnippetSelect.disabled = true;
+                bulkApplySnippetSelect.innerHTML = '<option value="">(No Snippets)</option>';
+            }
             return;
         }
 
@@ -3323,16 +3416,18 @@ Original text:
             button.onclick = (e) => deleteSnippet(parseInt(e.target.dataset.index));
         });
 
-        document.getElementById('bulkApplySnippetBtn').disabled = false;
-        document.getElementById('bulkApplySnippetSelect').disabled = false;
+        const bulkApplySnippetBtn = document.getElementById('bulkApplySnippetBtn');
+        const bulkApplySnippetSelect = document.getElementById('bulkApplySnippetSelect');
+        if (bulkApplySnippetBtn) bulkApplySnippetBtn.disabled = false; // Added null check
+        if (bulkApplySnippetSelect) bulkApplySnippetSelect.disabled = false; // Added null check
         populateBulkApplySnippetSelect();
     }
 
     function addSnippet() {
         const nameInput = document.getElementById('newSnippetName');
         const contentTextarea = document.getElementById('newSnippetContent');
-        const name = nameInput.value.trim();
-        const content = contentTextarea.value.trim();
+        const name = nameInput ? nameInput.value.trim() : ''; // Added null check
+        const content = contentTextarea ? contentTextarea.value.trim() : ''; // Added null check
 
         if (!name) {
             showCustomModal('Please enter a name for the snippet.', 'alert');
@@ -3344,8 +3439,8 @@ Original text:
         }
 
         descriptionSnippets.push({ name, content });
-        nameInput.value = '';
-        contentTextarea.value = '';
+        if (nameInput) nameInput.value = ''; // Added null check
+        if (contentTextarea) contentTextarea.value = ''; // Added null check
         saveDescriptionSnippets();
         renderSnippetManagementUI();
         populateBulkApplySnippetSelect();
@@ -3433,6 +3528,8 @@ Original text:
 
     function populateBulkApplySnippetSelect() {
         const select = document.getElementById('bulkApplySnippetSelect');
+        if (!select) return; // Added null check
+
         const currentSelectedValue = select.value; // Preserve selection
         select.innerHTML = '<option value="">(Select Snippet)</option>';
         descriptionSnippets.forEach((snippet, index) => {
@@ -3447,12 +3544,13 @@ Original text:
         } else {
             select.value = '';
         }
-        document.getElementById('bulkApplySnippetBtn').disabled = (descriptionSnippets.length === 0 || select.value === '');
+        const bulkApplySnippetBtn = document.getElementById('bulkApplySnippetBtn');
+        if (bulkApplySnippetBtn) bulkApplySnippetBtn.disabled = (descriptionSnippets.length === 0 || select.value === ''); // Added null check
     }
 
     function handleBulkApplySnippet() {
-        const selectedSnippetIndex = document.getElementById('bulkApplySnippetSelect').value;
-        if (selectedSnippetIndex === '') {
+        const selectedSnippetIndex = document.getElementById('bulkApplySnippetSelect')?.value; // Added null check
+        if (selectedSnippetIndex === '' || selectedSnippetIndex === undefined) { // Check for undefined too
             showCustomModal('Please select a snippet to apply.', 'alert');
             return;
         }
@@ -3469,10 +3567,12 @@ Original text:
             if (response) {
                 targetLabels.forEach(labelDiv => {
                     labelDiv.querySelectorAll('.locale-block .description').forEach(descTextarea => {
-                        if (descTextarea.value.trim() !== '') {
-                            descTextarea.value += '\n' + snippetContent;
-                        } else {
-                            descTextarea.value = snippetContent;
+                        if (descTextarea) { // Added null check
+                            if (descTextarea.value.trim() !== '') {
+                                descTextarea.value += '\n' + snippetContent;
+                            } else {
+                                descTextarea.value = snippetContent;
+                            }
                         }
                     });
                 });
@@ -3511,7 +3611,7 @@ Original text:
     // Function to load a session from a .ozm or .json file
     function loadSessionFile() {
       const fileInput = document.getElementById('sessionFileInput');
-      fileInput.click(); // Trigger the hidden file input
+      if (fileInput) fileInput.click(); // Added null check
     }
 
     // Event listener for the hidden session file input
@@ -3542,6 +3642,8 @@ Original text:
     // Function to populate the default locale language select dropdown
     function populateDefaultLocaleLanguageSelect() {
         const select = document.getElementById('defaultLocaleLangSelect');
+        if (!select) return; // Added null check
+
         select.innerHTML = '<option value="">(None)</option>'; // Option to not set a default
         commonLanguages.forEach(langObj => {
             const option = document.createElement('option');
@@ -3598,13 +3700,16 @@ Original text:
         // Initialize theme toggle state in options modal
         const themeToggle = document.getElementById('checkbox');
         const currentTheme = localStorage.getItem('theme');
-        if (currentTheme === 'dark-mode') {
-          document.body.classList.add('dark-mode');
-          themeToggle.checked = true;
-        } else {
-          document.body.classList.remove('dark-mode');
-          themeToggle.checked = false;
+        if (themeToggle) { // Added null check
+            if (currentTheme === 'dark-mode') {
+              document.body.classList.add('dark-mode');
+              themeToggle.checked = true;
+            } else {
+              document.body.classList.remove('dark-mode');
+              themeToggle.checked = false;
+            }
         }
+
 
       } catch (error) {
         console.error("Error initializing app from Local Storage:", error);
@@ -3658,118 +3763,122 @@ Original text:
     function openMobileMenu(menuElement) {
       // Close other menus if they're open
       [leftFloatingMenu, rightMenuWrapperMobile].forEach(menu => {
-        if (menu.classList.contains('open')) { // Check if 'open' class exists
+        if (menu && menu.classList.contains('open')) { // Added null check
           closeMobileMenu(menu);
         }
       });
 
-      menuElement.classList.add('open');
-      menuElement.style.transform = 'translateY(0)'; // Slide in from bottom
+      if (menuElement) { // Added null check
+        menuElement.classList.add('open');
+        menuElement.style.transform = 'translateY(0)'; // Slide in from bottom
+      }
     }
 
     // Function to close a specific mobile menu
     function closeMobileMenu(menuElement) {
-      menuElement.classList.remove('open');
-      menuElement.style.transform = 'translateY(calc(100% + 50px))'; // Slide out to bottom, fully hidden
+      if (menuElement) { // Added null check
+        menuElement.classList.remove('open');
+        menuElement.style.transform = 'translateY(calc(100% + 50px))'; // Slide out to bottom, fully hidden
+      }
     }
 
     // Event listeners for mobile menu toggles
-    mobileLeftMenuToggle.addEventListener('click', () => openMobileMenu(leftFloatingMenu));
-    mobileRightMenuToggle.addEventListener('click', () => {
+    if (mobileLeftMenuToggle) mobileLeftMenuToggle.addEventListener('click', () => openMobileMenu(leftFloatingMenu)); // Added null check
+    if (mobileRightMenuToggle) mobileRightMenuToggle.addEventListener('click', () => { // Added null check
         // When opening the mobile right menu, populate it with current content
-        const categoryMenuContent = document.getElementById('category-menu').innerHTML;
-        const floatingMenuContent = document.getElementById('floating-menu').innerHTML;
-        const bulkActionsMenuContent = document.getElementById('bulk-actions-menu').innerHTML;
+        const categoryMenuContent = document.getElementById('category-menu')?.innerHTML || ''; // Added null check
+        const floatingMenuContent = document.getElementById('floating-menu')?.innerHTML || ''; // Added null check
+        const bulkActionsMenuContent = document.getElementById('bulk-actions-menu')?.innerHTML || ''; // Added null check
 
         // Clear and append content to the mobile wrapper in the desired order
-        rightMenuWrapperMobile.innerHTML = `
-            <div class="mobile-menu-header">
-                <h3>Right Menu</h3>
-                <button id="closeRightMenuBtnMobile" class="close-mobile-menu-btn" title="Close right menu">X</button>
-            </div>
-            <div id="category-menu-mobile">${categoryMenuContent}</div> <div id="floating-menu-mobile">${floatingMenuContent}</div> <div id="bulk-actions-menu-mobile">${bulkActionsMenuContent}</div>
-        `;
+        if (rightMenuWrapperMobile) { // Added null check
+            rightMenuWrapperMobile.innerHTML = `
+                <div class="mobile-menu-header">
+                    <h3>Right Menu</h3>
+                    <button id="closeRightMenuBtnMobile" class="close-mobile-menu-btn" title="Close right menu">X</button>
+                </div>
+                <div id="category-menu-mobile">${categoryMenuContent}</div> <div id="floating-menu-mobile">${floatingMenuContent}</div> <div id="bulk-actions-menu-mobile">${bulkActionsMenuContent}</div>
+            `;
 
-        // Re-attach event listeners for buttons inside the dynamically added content
-        rightMenuWrapperMobile.querySelector('#closeRightMenuBtnMobile').onclick = () => closeMobileMenu(rightMenuWrapperMobile);
-        // Re-attach category and bulk action specific listeners if needed (e.g., addCategoryBtn, bulkApplyChangesBtn)
-        // This can be complex if many interactive elements are duplicated.
-        // A simpler approach for mobile is to just show/hide the desktop elements, but that creates layout challenges.
-        // For now, I'll just re-attach the close button. Other interactions should ideally be handled by delegation or re-initialization.
+            // Re-attach event listeners for buttons inside the dynamically added content
+            const closeBtnMobile = rightMenuWrapperMobile.querySelector('#closeRightMenuBtnMobile');
+            if (closeBtnMobile) closeBtnMobile.onclick = () => closeMobileMenu(rightMenuWrapperMobile); // Added null check
 
-        // Re-attach category menu add button if it's part of the mobile menu
-        const mobileAddCategoryBtn = rightMenuWrapperMobile.querySelector('#category-menu-mobile #addCategoryBtn');
-        if (mobileAddCategoryBtn) {
-            mobileAddCategoryBtn.onclick = addCategory;
-            rightMenuWrapperMobile.querySelector('#category-menu-mobile #newCategoryInput').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') { addCategory(); }
+            // Re-attach category menu add button if it's part of the mobile menu
+            const mobileAddCategoryBtn = rightMenuWrapperMobile.querySelector('#category-menu-mobile #addCategoryBtn');
+            if (mobileAddCategoryBtn) {
+                mobileAddCategoryBtn.onclick = addCategory;
+                const newCategoryInput = rightMenuWrapperMobile.querySelector('#category-menu-mobile #newCategoryInput');
+                if (newCategoryInput) newCategoryInput.addEventListener('keypress', (e) => { // Added null check
+                    if (e.key === 'Enter') { addCategory(); }
+                });
+            }
+            // Re-attach delete selected categories button
+            const mobileDeleteSelectedCategoriesBtn = rightMenuWrapperMobile.querySelector('#category-menu-mobile #deleteSelectedCategoriesBtn');
+            if (mobileDeleteSelectedCategoriesBtn) mobileDeleteSelectedCategoriesBtn.onclick = deleteSelectedCategories;
+
+            // Re-attach bulk actions buttons
+            const mobileBulkApplyPropertiesBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkApplyPropertiesBtn');
+            if (mobileBulkApplyPropertiesBtn) mobileBulkApplyPropertiesBtn.onclick = applyBulkProperties; // Updated to new function
+            const mobileBulkEnableBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkEnableBtn');
+            if (mobileBulkEnableBtn) mobileBulkEnableBtn.onclick = () => bulkEnableDisable(true);
+            const mobileBulkDisableBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkDisableBtn');
+            if (mobileBulkDisableBtn) mobileBulkDisableBtn.onclick = () => bulkEnableDisable(false);
+            const mobileBulkDeleteBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkDeleteBtn');
+            if (mobileBulkDeleteBtn) mobileBulkDeleteBtn.onclick = bulkDeleteLabels; // Updated to new function
+            const mobileBulkTranslateBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkTranslateBtn');
+            if (mobileBulkTranslateBtn) mobileBulkTranslateBtn.onclick = handleBulkTranslate;
+
+            // Re-attach snippet management buttons
+            const mobileAddSnippetBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #addSnippetBtn');
+            if (mobileAddSnippetBtn) mobileAddSnippetBtn.onclick = addSnippet;
+            const mobileBulkApplySnippetBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkApplySnippetBtn');
+            if (mobileBulkApplySnippetBtn) mobileBulkApplySnippetBtn.onclick = handleBulkApplySnippet;
+
+            // Re-attach drag handlers for quick access list items in the mobile menu
+            rightMenuWrapperMobile.querySelectorAll('#floating-menu-mobile #label-quick-access-list li').forEach(listItem => {
+                addQuickAccessDragHandlers(listItem);
             });
+
+            // Re-attach event listeners for quick access checkboxes in the mobile menu
+            rightMenuWrapperMobile.querySelectorAll('#floating-menu-mobile .label-number-box input[type="checkbox"]').forEach(checkbox => {
+                checkbox.onchange = (e) => {
+                    const labelId = e.target.dataset.labelId;
+                    const mainLabelCheckbox = document.getElementById(labelId)?.querySelector('.bulk-select-checkbox');
+                    if (mainLabelCheckbox) {
+                        mainLabelCheckbox.checked = e.target.checked;
+                        // Trigger change event on the main checkbox to ensure full sync
+                        const event = new Event('change');
+                        mainLabelCheckbox.dispatchEvent(event);
+                    }
+                };
+            });
+
+            // Re-attach event listeners for category checkboxes in the mobile menu
+            rightMenuWrapperMobile.querySelectorAll('#category-menu-mobile .category-select-checkbox').forEach(checkbox => {
+                checkbox.onchange = (e) => {
+                    const categoryName = e.target.dataset.categoryName;
+                    if (e.target.checked) {
+                        selectedCategoryNames.add(categoryName);
+                    } else {
+                        selectedCategoryNames.delete(categoryName);
+                    }
+                    updateBulkActionsCategoryTargetVisibility(); // Update visibility of category filters
+                    updateBulkSelectAllCheckbox(); // Re-evaluate bulk select all
+                    updateBulkSelectAllTranslateCheckbox(); // Re-evaluate bulk translate select all
+                };
+            });
+
+
+            // Ensure mobile menu is displayed before opening
+            rightMenuWrapperMobile.style.display = 'flex'; // Ensure it's visible as a flex container
+            openMobileMenu(rightMenuWrapperMobile);
         }
-        // Re-attach delete selected categories button
-        const mobileDeleteSelectedCategoriesBtn = rightMenuWrapperMobile.querySelector('#category-menu-mobile #deleteSelectedCategoriesBtn');
-        if (mobileDeleteSelectedCategoriesBtn) mobileDeleteSelectedCategoriesBtn.onclick = deleteSelectedCategories;
-
-        // Re-attach bulk actions buttons
-        const mobileBulkApplyBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkApplyChangesBtn');
-        if (mobileBulkApplyBtn) mobileBulkApplyBtn.onclick = applyBulkPropertyChanges;
-        const mobileBulkEnableBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkEnableBtn');
-        if (mobileBulkEnableBtn) mobileBulkEnableBtn.onclick = () => bulkEnableDisable(true);
-        const mobileBulkDisableBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkDisableBtn');
-        if (mobileBulkDisableBtn) mobileBulkDisableBtn.onclick = () => bulkEnableDisable(false);
-        const mobileBulkDeleteBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkDeleteBtn');
-        if (mobileBulkDeleteBtn) mobileBulkDeleteBtn.onclick = bulkDelete;
-        const mobileBulkTranslateBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkTranslateBtn');
-        if (mobileBulkTranslateBtn) mobileBulkTranslateBtn.onclick = handleBulkTranslate;
-
-        // Re-attach snippet management buttons
-        const mobileAddSnippetBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #addSnippetBtn');
-        if (mobileAddSnippetBtn) mobileAddSnippetBtn.onclick = addSnippet;
-        const mobileBulkApplySnippetBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkApplySnippetBtn');
-        if (mobileBulkApplySnippetBtn) mobileBulkApplySnippetBtn.onclick = handleBulkApplySnippet;
-
-        // Re-attach drag handlers for quick access list items in the mobile menu
-        rightMenuWrapperMobile.querySelectorAll('#floating-menu-mobile #label-quick-access-list li').forEach(listItem => {
-            addQuickAccessDragHandlers(listItem);
-        });
-
-        // Re-attach event listeners for quick access checkboxes in the mobile menu
-        rightMenuWrapperMobile.querySelectorAll('#floating-menu-mobile .label-number-box input[type="checkbox"]').forEach(checkbox => {
-            checkbox.onchange = (e) => {
-                const labelId = e.target.dataset.labelId;
-                const mainLabelCheckbox = document.getElementById(labelId)?.querySelector('.bulk-select-checkbox');
-                if (mainLabelCheckbox) {
-                    mainLabelCheckbox.checked = e.target.checked;
-                    // Trigger change event on the main checkbox to ensure full sync
-                    const event = new Event('change');
-                    mainLabelCheckbox.dispatchEvent(event);
-                }
-            };
-        });
-
-        // Re-attach event listeners for category checkboxes in the mobile menu
-        rightMenuWrapperMobile.querySelectorAll('#category-menu-mobile .category-select-checkbox').forEach(checkbox => {
-            checkbox.onchange = (e) => {
-                const categoryName = e.target.dataset.categoryName;
-                if (e.target.checked) {
-                    selectedCategoryNames.add(categoryName);
-                } else {
-                    selectedCategoryNames.delete(categoryName);
-                }
-                updateBulkActionsCategoryTargetVisibility(); // Update visibility of category filters
-                updateBulkSelectAllCheckbox(); // Re-evaluate bulk select all
-                updateBulkSelectAllTranslateCheckbox(); // Re-evaluate bulk translate select all
-            };
-        });
-
-
-        // Ensure mobile menu is displayed before opening
-        rightMenuWrapperMobile.style.display = 'flex'; // Ensure it's visible as a flex container
-        openMobileMenu(rightMenuWrapperMobile);
     });
 
 
     // Event listeners for internal close buttons
-    closeLeftMenuBtn.addEventListener('click', () => closeMobileMenu(leftFloatingMenu));
+    if (closeLeftMenuBtn) closeLeftMenuBtn.addEventListener('click', () => closeMobileMenu(leftFloatingMenu)); // Added null check
     // Desktop close buttons for right menus (they don't close the entire wrapper, just their own header on desktop)
     // On mobile, these are hidden, and the single mobile close button handles it.
     if (closeRightMenuBtnDesktop) closeRightMenuBtnDesktop.addEventListener('click', () => {}); // No action needed, just prevents error
@@ -3783,10 +3892,10 @@ Original text:
 
     // Close menu if clicking outside (on the backdrop)
     document.addEventListener('click', (event) => {
-      const isClickInsideLeftMenu = leftFloatingMenu.contains(event.target);
-      const isClickInsideRightMenuMobile = rightMenuWrapperMobile.contains(event.target); // Check mobile wrapper
-      const isClickOnLeftToggle = mobileLeftMenuToggle.contains(event.target);
-      const isClickOnRightToggle = mobileRightMenuToggle.contains(event.target);
+      const isClickInsideLeftMenu = leftFloatingMenu && leftFloatingMenu.contains(event.target); // Added null check
+      const isClickInsideRightMenuMobile = rightMenuWrapperMobile && rightMenuWrapperMobile.contains(event.target); // Check mobile wrapper, added null check
+      const isClickOnLeftToggle = mobileLeftMenuToggle && mobileLeftMenuToggle.contains(event.target); // Added null check
+      const isClickOnRightToggle = mobileRightMenuToggle && mobileRightMenuToggle.contains(event.target); // Added null check
 
       // Get modal elements, check if they exist before calling .contains()
       // Retrieve them here to ensure they are available in the DOM
@@ -3799,8 +3908,8 @@ Original text:
 
       // Only close if a menu is open and the click is outside all menus and their toggles
       if (
-        (leftFloatingMenu.classList.contains('open') && !isClickInsideLeftMenu && !isClickOnLeftToggle) ||
-        (rightMenuWrapperMobile.classList.contains('open') && !isClickInsideRightMenuMobile && !isClickOnRightToggle) ||
+        (leftFloatingMenu && leftFloatingMenu.classList.contains('open') && !isClickInsideLeftMenu && !isClickOnLeftToggle) ||
+        (rightMenuWrapperMobile && rightMenuWrapperMobile.classList.contains('open') && !isClickInsideRightMenuMobile && !isClickOnRightToggle) ||
         (optionsModal && optionsModal.style.display === 'flex' && !isClickInsideOptionsModal && event.target.id !== 'optionsBtn') ||
         (applySnippetModal && applySnippetModal.style.display === 'flex' && !isClickInsideApplySnippetModal && !event.target.classList.contains('apply-snippet-btn'))
       ) {
@@ -3814,16 +3923,15 @@ Original text:
     // Handle initial display of mobile menu wrapper based on screen size
     function handleMobileMenuDisplay() {
       const isMobile = window.matchMedia("(max-width: 992px)").matches;
+      const rightSideMenusContainer = document.getElementById('right-side-menus-container');
+      const rMWM = document.getElementById('right-menu-wrapper-mobile');
+
       if (isMobile) {
-        document.getElementById('right-side-menus-container').style.display = 'none';
-        // Ensure rightMenuWrapperMobile exists before trying to set its display
-        const rMWM = document.getElementById('right-menu-wrapper-mobile');
-        if (rMWM) rMWM.style.display = 'flex';
+        if (rightSideMenusContainer) rightSideMenusContainer.style.display = 'none'; // Added null check
+        if (rMWM) rMWM.style.display = 'flex'; // Added null check
       } else {
-        document.getElementById('right-side-menus-container').style.display = 'flex';
-        // Ensure rightMenuWrapperMobile exists before trying to set its display
-        const rMWM = document.getElementById('right-menu-wrapper-mobile');
-        if (rMWM) rMWM.style.display = 'none';
+        if (rightSideMenusContainer) rightSideMenusContainer.style.display = 'flex'; // Added null check
+        if (rMWM) rMWM.style.display = 'none'; // Added null check
       }
     }
 
@@ -3843,7 +3951,8 @@ Original text:
     document.getElementById('copyJsonBtn').onclick = copyJsonToClipboard;
 
     document.getElementById('exportJsonBtn').onclick = () => {
-      const text = document.getElementById('output').textContent;
+      const outputElement = document.getElementById('output');
+      const text = outputElement ? outputElement.textContent : ''; // Added null check
       if (!text || JSON.parse(text).labelValueDefinitions.length === 0) { // Check new structure
         showCustomModal('Nothing to export.', 'alert');
         return;
@@ -3858,7 +3967,8 @@ Original text:
     };
 
     document.getElementById('importJsonBtn').onclick = () => {
-      document.getElementById('fileInput').click();
+      const fileInput = document.getElementById('fileInput');
+      if (fileInput) fileInput.click(); // Added null check
     };
 
     document.getElementById('fileInput').onchange = e => {
@@ -3927,15 +4037,18 @@ Original text:
 
     // Theme toggle logic (now inside options modal)
     const themeToggle = document.getElementById('checkbox');
-    themeToggle.addEventListener('change', () => {
-      if (themeToggle.checked) {
-        document.body.classList.add('dark-mode');
-        localStorage.setItem('theme', 'dark-mode');
-      } else {
-        document.body.classList.remove('dark-mode');
-        localStorage.setItem('theme', 'light-mode');
-      }
-    });
+    if (themeToggle) { // Added null check
+        themeToggle.addEventListener('change', () => {
+          if (themeToggle.checked) {
+            document.body.classList.add('dark-mode');
+            localStorage.setItem('theme', 'dark-mode');
+          } else {
+            document.body.classList.remove('dark-mode');
+            localStorage.setItem('theme', 'light-mode');
+          }
+        });
+    }
+
 
     // --- Quick Access Drag-and-Drop Functions ---
     function addQuickAccessDragHandlers(anchorElement) {
@@ -3951,7 +4064,8 @@ Original text:
     function dragStartQuickAccess(e) {
         dragSrcQuickAccessEl = this;
         e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', this.querySelector('a').href); // Store the ID of the main label block
+        const anchor = this.querySelector('a');
+        if (anchor) e.dataTransfer.setData('text/plain', anchor.href); // Store the ID of the main label block
         this.classList.add('is-dragging');
     }
 
@@ -3976,8 +4090,12 @@ Original text:
         this.classList.remove('over');
 
         if (dragSrcQuickAccessEl !== this) {
-            const draggedLabelId = dragSrcQuickAccessEl.querySelector('a').getAttribute('href').substring(1); // Get main label ID
-            const targetLabelId = this.querySelector('a').getAttribute('href').substring(1); // Get main label ID
+            const draggedAnchor = dragSrcQuickAccessEl.querySelector('a');
+            const targetAnchor = this.querySelector('a');
+            if (!draggedAnchor || !targetAnchor) return false; // Added null check
+
+            const draggedLabelId = draggedAnchor.getAttribute('href').substring(1); // Get main label ID
+            const targetLabelId = targetAnchor.getAttribute('href').substring(1); // Get main label ID
 
             const draggedLabelDiv = document.getElementById(draggedLabelId);
             const targetLabelDiv = document.getElementById(targetLabelId);
@@ -4011,6 +4129,7 @@ Original text:
     // Function to update the floating quick access menu
     function updateFloatingMenu() {
       const quickAccessList = document.getElementById('label-quick-access-list');
+      if (!quickAccessList) return; // Added null check
       quickAccessList.innerHTML = ''; // Clear existing list items
 
       // Define the user-friendly placeholder for the quick access menu
@@ -4024,7 +4143,8 @@ Original text:
 
         const labelId = labelDiv.id; // Get the unique HTML ID of the label block
         // Use the new placeholder for display in the quick access list
-        const labelIdentifier = labelDiv.querySelector('.identifier').value.trim() || identifierPlaceholder;
+        const identifierInput = labelDiv.querySelector('.identifier');
+        const labelIdentifier = identifierInput ? identifierInput.value.trim() : identifierPlaceholder; // Added null check
         const mainCheckbox = labelDiv.querySelector('.bulk-select-checkbox');
         const isChecked = mainCheckbox ? mainCheckbox.checked : false;
 
@@ -4061,16 +4181,18 @@ Original text:
 
         // Add event listener for the quick access checkbox
         const quickAccessCheckbox = numberBox.querySelector('.quick-access-bulk-select-checkbox');
-        quickAccessCheckbox.onchange = (e) => {
-            const currentLabelId = e.target.dataset.labelId;
-            const mainLabelCheckbox = document.getElementById(currentLabelId)?.querySelector('.bulk-select-checkbox');
-            if (mainLabelCheckbox) {
-                mainLabelCheckbox.checked = e.target.checked;
-                // Trigger change event on the main checkbox to ensure full sync
-                const event = new Event('change');
-                mainLabelCheckbox.dispatchEvent(event);
-            }
-        };
+        if (quickAccessCheckbox) { // Added null check
+            quickAccessCheckbox.onchange = (e) => {
+                const currentLabelId = e.target.dataset.labelId;
+                const mainLabelCheckbox = document.getElementById(currentLabelId)?.querySelector('.bulk-select-checkbox');
+                if (mainLabelCheckbox) {
+                    mainLabelCheckbox.checked = e.target.checked;
+                    // Trigger change event on the main checkbox to ensure full sync
+                    const event = new Event('change');
+                    mainLabelCheckbox.dispatchEvent(event);
+                }
+            };
+        }
       });
     }
 
@@ -4120,12 +4242,14 @@ Original text:
         const isChecked = e.target.checked;
         const relevantCheckboxes = getFilteredLabelCheckboxes('bulkTargetSelect');
         relevantCheckboxes.forEach(checkbox => {
-            checkbox.checked = isChecked;
-            const labelId = checkbox.dataset.labelId;
-            if (isChecked) {
-                selectedLabelIds.add(labelId);
-            } else {
-                selectedLabelIds.delete(labelId);
+            if (checkbox) { // Added null check
+                checkbox.checked = isChecked;
+                const labelId = checkbox.dataset.labelId;
+                if (isChecked) {
+                    selectedLabelIds.add(labelId);
+                } else {
+                    selectedLabelIds.delete(labelId);
+                }
             }
         });
         updateBulkSelectAllTranslateCheckbox(); // Keep translate checkbox in sync
@@ -4137,7 +4261,7 @@ Original text:
         updateBulkSelectAllCheckbox(); // Re-evaluate "Select All" state
     });
 
-    document.getElementById('bulkApplyChangesBtn').onclick = applyBulkPropertyChanges;
+    document.getElementById('bulkApplyPropertiesBtn').onclick = applyBulkProperties; // Updated to new function
     document.getElementById('bulkEnableBtn').onclick = () => bulkEnableDisable(true);
     document.getElementById('bulkDisableBtn').onclick = () => bulkEnableDisable(false);
     document.getElementById('bulkDeleteBtn').onclick = bulkDeleteLabels; // Use new function for deleting selected labels
@@ -4154,12 +4278,14 @@ Original text:
         const isChecked = e.target.checked;
         const relevantCheckboxes = getFilteredLabelCheckboxes('bulkTargetSelectTranslate');
         relevantCheckboxes.forEach(checkbox => {
-            checkbox.checked = isChecked;
-            const labelId = checkbox.dataset.labelId;
-            if (isChecked) {
-                selectedLabelIds.add(labelId);
-            } else {
-                selectedLabelIds.delete(labelId);
+            if (checkbox) { // Added null check
+                checkbox.checked = isChecked;
+                const labelId = checkbox.dataset.labelId;
+                if (isChecked) {
+                    selectedLabelIds.add(labelId);
+                } else {
+                    selectedLabelIds.delete(labelId);
+                }
             }
         });
         updateBulkSelectAllCheckbox(); // Keep general checkbox in sync
@@ -4170,11 +4296,13 @@ Original text:
     document.getElementById('optionsBtn').onclick = () => {
         console.log('Options button clicked. Showing options modal.');
         populateDefaultLocaleLanguageSelect(); // Ensure dropdown is up-to-date
-        document.getElementById('optionsModal').style.display = 'flex'; // Directly show the modal
+        const optionsModal = document.getElementById('optionsModal');
+        if (optionsModal) optionsModal.style.display = 'flex'; // Directly show the modal, added null check
     };
     document.getElementById('closeOptionsModalBtn').onclick = () => {
         console.log('Closing options modal.');
-        document.getElementById('optionsModal').style.display = 'none';
+        const optionsModal = document.getElementById('optionsModal');
+        if (optionsModal) optionsModal.style.display = 'none'; // Added null check
     };
     document.getElementById('defaultLocaleLangSelect').addEventListener('change', (e) => {
         defaultLocaleLanguage = e.target.value;
@@ -4190,7 +4318,8 @@ Original text:
         }
     });
     document.getElementById('bulkApplySnippetSelect').addEventListener('change', (e) => {
-        document.getElementById('bulkApplySnippetBtn').disabled = (e.target.value === '');
+        const bulkApplySnippetBtn = document.getElementById('bulkApplySnippetBtn');
+        if (bulkApplySnippetBtn) bulkApplySnippetBtn.disabled = (e.target.value === ''); // Added null check
     });
     document.getElementById('bulkApplySnippetBtn').onclick = handleBulkApplySnippet;
 
