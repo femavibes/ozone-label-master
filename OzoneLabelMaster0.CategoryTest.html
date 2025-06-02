@@ -86,7 +86,7 @@
   #left-floating-menu .separator {
     height: 1px;
     background-color: var(--block-border);
-    margin: 0.5em 0; /* Reduced margin */
+    margin: 0.4em 0; /* Reduced margin */
     width: 100%;
   }
 
@@ -227,7 +227,6 @@
   .close-mobile-menu-btn,
   .move-up-btn,
   .move-down-btn,
-  .remove-category-btn,
   .snippet-action-btn { /* Added snippet-action-btn */
     border: none;
     cursor: pointer;
@@ -247,8 +246,7 @@
   /* Specific colors for different button types */
   .remove-btn,
   .locale-remove-btn,
-  .close-mobile-menu-btn,
-  .remove-category-btn { /* Added remove-category-btn */
+  .close-mobile-menu-btn {
     background: var(--danger); /* Red color */
     color: white;
   }
@@ -268,8 +266,7 @@
   /* Hover states */
   .remove-btn:hover,
   .locale-remove-btn:hover,
-  .close-mobile-menu-btn:hover,
-  .remove-category-btn:hover { /* Added remove-category-btn */
+  .close-mobile-menu-btn:hover {
     background: #dc2626; /* Darker red on hover */
     transform: none; /* Ensure no unwanted transform from previous styles */
   }
@@ -753,12 +750,37 @@
     padding: 0.3em 0.5em;
     background: var(--light-gray);
     border-radius: var(--border-radius); /* Uses variable */
+    gap: 0.5em; /* Space between checkbox and text */
   }
 
   #category-menu .category-list-item span {
     flex-grow: 1;
     color: var(--text-color);
   }
+
+  /* New style for the category select box (similar to label number box, but no number) */
+  .label-category-select-box {
+    background: var(--gray); /* Grey background */
+    color: white; /* White text */
+    padding: 0.3em 0.6em; /* Match label number box padding */
+    border-radius: var(--border-radius); /* Uses variable */
+    font-size: 0.9em;
+    font-weight: 600;
+    flex-shrink: 0; /* Prevent shrinking */
+    width: 30px; /* Fixed width for the box */
+    height: 30px; /* Fixed height for the box */
+    text-align: center;
+    box-sizing: border-box; /* Include padding in width */
+    display: flex; /* Added flex to align checkbox */
+    align-items: center; /* Vertically center items */
+    justify-content: center; /* Horizontally center items */
+  }
+
+  .label-category-select-box input[type="checkbox"] {
+    margin: 0; /* Remove default checkbox margin */
+    transform: scale(1.1); /* Slightly larger checkbox */
+  }
+
 
   /* Bulk Actions Menu Specifics */
   #bulk-actions-menu {
@@ -1151,6 +1173,7 @@
             </div>
             <ul id="category-list" style="list-style: none; padding: 0; margin-top: 1em;" title="List of existing categories">
             </ul>
+            <button id="deleteSelectedCategoriesBtn" class="action-button danger-button" title="Delete all selected categories" style="margin-top: 1em;">Delete Selected Categories</button>
         </div>
 
         <div id="floating-menu">
@@ -1174,8 +1197,9 @@
             <div class="bulk-action-row">
                 <label for="bulkTargetSelect" title="Choose whether to apply actions to selected labels or labels in a specific category">Apply to:</label>
                 <select id="bulkTargetSelect" title="Select target for bulk actions">
-                    <option value="selected">Selected Labels</option>
-                    <option value="category">Labels in Category</option>
+                    <option value="selected">Selected Labels (from editor or quick access)</option>
+                    <option value="category">Labels in Specific Category</option>
+                    <option value="selectedCategories">Labels in Selected Categories (from category menu)</option>
                 </select>
                 <select id="bulkCategoryFilterSelect" style="display:none;" title="Select category to filter labels"></select>
             </div>
@@ -1230,8 +1254,9 @@
             <div class="bulk-action-row">
                 <label for="bulkTargetSelectTranslate" title="Choose whether to apply actions to selected labels or labels in a specific category">Apply to:</label>
                 <select id="bulkTargetSelectTranslate" title="Select target for bulk translate actions">
-                    <option value="selected">Selected Labels</option>
-                    <option value="category">Labels in Category</option>
+                    <option value="selected">Selected Labels (from editor or quick access)</option>
+                    <option value="category">Labels in Specific Category</option>
+                    <option value="selectedCategories">Labels in Selected Categories (from category menu)</option>
                 </select>
                 <select id="bulkCategoryFilterSelectTranslate" style="display:none;" title="Select category to filter labels for translation"></select>
             </div>
@@ -1329,6 +1354,7 @@
 
     let categories = []; // Global array for categories
     let selectedLabelIds = new Set(); // Stores IDs of currently selected labels for bulk actions
+    let selectedCategoryNames = new Set(); // Stores names of currently selected categories for bulk actions
     let defaultLocaleLanguage = ''; // New global variable for default locale language
     let descriptionSnippets = []; // New global variable for description snippets
 
@@ -1486,6 +1512,7 @@
 
       // Load Categories
       categories = sessionData.categories || [];
+      selectedCategoryNames.clear(); // Clear selection on load
       renderCategoryMenu(); // Re-render category menu
       updateLabelCategoryDropdowns(); // Update dropdowns in existing labels
 
@@ -2392,6 +2419,7 @@ Original description:
         if (response) {
           document.getElementById('labels-container').innerHTML = '';
           categories = []; // Clear categories
+          selectedCategoryNames.clear(); // Clear selected categories
           defaultLocaleLanguage = ''; // Clear default locale language
           descriptionSnippets = []; // Clear snippets
           createLabelBlock(); // Reset to one default label
@@ -2404,6 +2432,7 @@ Original description:
           updateUndoRedoButtons(); // Update button states
           renderCategoryMenu(); // Re-render category menu
           updateLabelCategoryDropdowns(); // Update label dropdowns
+          updateBulkActionsCategoryTargetVisibility(); // Update bulk target visibility
           updateBulkSelectAllCheckbox(); // Update "Select All" state
           updateBulkSelectAllTranslateCheckbox(); // Update "Select All" for translate
           updateLabelNumbers(); // Update numbers after reset
@@ -2655,6 +2684,7 @@ Original description:
         updateLabelCategoryDropdowns();
         updateBulkCategoryFilterDropdown(); // Update bulk category filter for general bulk actions
         updateBulkCategoryFilterTranslateDropdown(); // Update bulk category filter for translate
+        updateBulkActionsCategoryTargetVisibility(); // Initial visibility check
     }
 
     function saveCategories() {
@@ -2667,18 +2697,36 @@ Original description:
         categories.forEach(cat => {
             const listItem = document.createElement('li');
             listItem.className = 'category-list-item';
-            listItem.innerHTML = `
-                <span title="${cat}">${cat}</span>
-                <button class="remove-category-btn" data-category="${cat}" title="Remove this category">X</button>
-            `;
-            categoryList.appendChild(listItem);
-        });
 
-        // Attach event listeners to new remove buttons
-        document.querySelectorAll('.remove-category-btn').forEach(button => {
-            button.onclick = (e) => {
-                const categoryToRemove = e.target.dataset.category;
-                removeCategory(categoryToRemove);
+            const checkboxContainer = document.createElement('div');
+            checkboxContainer.className = 'label-category-select-box';
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'category-select-checkbox';
+            checkbox.dataset.categoryName = cat;
+            checkbox.title = `Select category: ${cat}`;
+            checkbox.checked = selectedCategoryNames.has(cat); // Set checked state based on selection
+            checkboxContainer.appendChild(checkbox);
+
+            const categoryNameSpan = document.createElement('span');
+            categoryNameSpan.textContent = cat;
+            categoryNameSpan.title = cat;
+
+            listItem.appendChild(checkboxContainer);
+            listItem.appendChild(categoryNameSpan);
+            categoryList.appendChild(listItem);
+
+            // Attach event listener to the new checkbox
+            checkbox.onchange = (e) => {
+                const categoryName = e.target.dataset.categoryName;
+                if (e.target.checked) {
+                    selectedCategoryNames.add(categoryName);
+                } else {
+                    selectedCategoryNames.delete(categoryName);
+                }
+                updateBulkActionsCategoryTargetVisibility(); // Update visibility of category filters
+                updateBulkSelectAllCheckbox(); // Re-evaluate bulk select all
+                updateBulkSelectAllTranslateCheckbox(); // Re-evaluate bulk translate select all
             };
         });
     }
@@ -2702,26 +2750,43 @@ Original description:
     }
 
     function removeCategory(categoryName) {
-        showCustomModal(`Are you sure you want to remove the category "${categoryName}"? Labels assigned to this category will become "(No Category)".`, 'confirm', (response) => {
+        categories = categories.filter(cat => cat !== categoryName);
+        selectedCategoryNames.delete(categoryName); // Ensure it's removed from selection too
+        saveCategories();
+        renderCategoryMenu();
+        // Update all labels that were in this category
+        document.querySelectorAll('.label-block').forEach(labelDiv => {
+            const categorySelect = labelDiv.querySelector('.label-category');
+            if (categorySelect && categorySelect.value === categoryName) {
+                categorySelect.value = ''; // Set to no category
+            }
+        });
+        updateLabelCategoryDropdowns(); // Update all label dropdowns
+        updateBulkCategoryFilterDropdown(); // Update bulk category filter
+        updateBulkCategoryFilterTranslateDropdown(); // Update bulk category filter for translate
+        saveFullSessionStateToLocalStorage(); // Save full session state after category change
+        updateJSONOutput(); // Update JSON output display
+        updateBulkActionsCategoryTargetVisibility(); // Update visibility of category filters
+        updateBulkSelectAllCheckbox(); // Re-evaluate bulk select all
+        updateBulkSelectAllTranslateCheckbox(); // Re-evaluate bulk translate select all
+    }
+
+    function deleteSelectedCategories() {
+        if (selectedCategoryNames.size === 0) {
+            showCustomModal('No categories selected for deletion.', 'alert');
+            return;
+        }
+
+        const categoriesToDelete = Array.from(selectedCategoryNames);
+        showCustomModal(`Are you sure you want to delete ${categoriesToDelete.length} selected categories? Labels assigned to these categories will become "(No Category)". This action cannot be undone.`, 'confirm', (response) => {
             if (response) {
-                categories = categories.filter(cat => cat !== categoryName);
-                saveCategories();
-                renderCategoryMenu();
-                // Update all labels that were in this category
-                document.querySelectorAll('.label-block').forEach(labelDiv => {
-                    const categorySelect = labelDiv.querySelector('.label-category');
-                    if (categorySelect && categorySelect.value === categoryName) {
-                        categorySelect.value = ''; // Set to no category
-                    }
-                });
-                updateLabelCategoryDropdowns(); // Update all label dropdowns
-                updateBulkCategoryFilterDropdown(); // Update bulk category filter
-                updateBulkCategoryFilterTranslateDropdown(); // Update bulk category filter for translate
-                saveFullSessionStateToLocalStorage(); // Save full session state after category change
-                updateJSONOutput(); // Update JSON output display
+                categoriesToDelete.forEach(cat => removeCategory(cat)); // Use existing removeCategory logic
+                selectedCategoryNames.clear(); // Clear selection after deletion
+                showCustomModal('Selected categories deleted.', 'alert');
             }
         });
     }
+
 
     function updateLabelCategoryDropdowns() {
         document.querySelectorAll('.label-category').forEach(selectElement => {
@@ -2753,18 +2818,51 @@ Original description:
         updateFloatingMenu(); // Update quick access checkboxes
     }
 
-    function updateBulkSelectAllCheckbox() {
-        const allVisibleCheckboxes = Array.from(document.querySelectorAll('.label-block:not([style*="display: none"]) .bulk-select-checkbox'));
-        const allChecked = allVisibleCheckboxes.every(cb => cb.checked);
-        const someChecked = allVisibleCheckboxes.some(cb => cb.checked);
+    // Helper to get filtered checkboxes based on current bulk target
+    function getFilteredLabelCheckboxes(targetSelectId) {
+        const targetType = document.getElementById(targetSelectId).value;
+        const allVisibleLabelDivs = Array.from(document.querySelectorAll('.label-block:not([style*="display: none"])'));
+        let filteredLabelDivs = [];
 
+        if (targetType === 'selected') {
+            filteredLabelDivs = allVisibleLabelDivs.filter(labelDiv => selectedLabelIds.has(labelDiv.id));
+        } else if (targetType === 'category') {
+            const selectedCategory = document.getElementById(targetSelectId.replace('Select', 'CategoryFilterSelect')).value;
+            if (selectedCategory) {
+                filteredLabelDivs = allVisibleLabelDivs.filter(labelDiv => labelDiv.querySelector('.label-category').value === selectedCategory);
+            }
+        } else if (targetType === 'selectedCategories') {
+            if (selectedCategoryNames.size > 0) {
+                filteredLabelDivs = allVisibleLabelDivs.filter(labelDiv => {
+                    const labelCategory = labelDiv.querySelector('.label-category').value;
+                    return selectedCategoryNames.has(labelCategory);
+                });
+            }
+        } else { // Default or no specific target, consider all visible
+            filteredLabelDivs = allVisibleLabelDivs;
+        }
+        return filteredLabelDivs.map(labelDiv => labelDiv.querySelector('.bulk-select-checkbox'));
+    }
+
+    function updateBulkSelectAllCheckbox() {
         const bulkSelectAllCheckbox = document.getElementById('bulkSelectAllCheckbox');
+        const relevantCheckboxes = getFilteredLabelCheckboxes('bulkTargetSelect');
+
+        if (relevantCheckboxes.length === 0) {
+            bulkSelectAllCheckbox.checked = false;
+            bulkSelectAllCheckbox.indeterminate = false;
+            return;
+        }
+
+        const allChecked = relevantCheckboxes.every(cb => cb.checked);
+        const someChecked = relevantCheckboxes.some(cb => cb.checked);
+
         bulkSelectAllCheckbox.checked = allChecked;
         bulkSelectAllCheckbox.indeterminate = someChecked && !allChecked;
     }
 
-    function getTargetLabelDivs() {
-        const targetType = document.getElementById('bulkTargetSelect').value;
+    function getTargetLabelDivs(targetSelectId) {
+        const targetType = document.getElementById(targetSelectId).value;
         let targetLabels = [];
 
         if (targetType === 'selected') {
@@ -2773,11 +2871,20 @@ Original description:
                 if (labelDiv) targetLabels.push(labelDiv);
             });
         } else if (targetType === 'category') {
-            const selectedCategory = document.getElementById('bulkCategoryFilterSelect').value;
+            const selectedCategory = document.getElementById(targetSelectId.replace('Select', 'CategoryFilterSelect')).value;
             if (selectedCategory) {
                 document.querySelectorAll('.label-block').forEach(labelDiv => {
                     const categorySelect = labelDiv.querySelector('.label-category');
                     if (categorySelect && categorySelect.value === selectedCategory) {
+                        targetLabels.push(labelDiv);
+                    }
+                });
+            }
+        } else if (targetType === 'selectedCategories') {
+            if (selectedCategoryNames.size > 0) {
+                document.querySelectorAll('.label-block').forEach(labelDiv => {
+                    const labelCategory = labelDiv.querySelector('.label-category').value;
+                    if (selectedCategoryNames.has(labelCategory)) {
                         targetLabels.push(labelDiv);
                     }
                 });
@@ -2787,7 +2894,7 @@ Original description:
     }
 
     function applyBulkPropertyChanges() {
-        const targetLabels = getTargetLabelDivs();
+        const targetLabels = getTargetLabelDivs('bulkTargetSelect');
         const newSeverity = document.getElementById('bulkSeveritySelect').value;
         const newBlurs = document.getElementById('bulkBlursSelect').value;
         const newDefaultSetting = document.getElementById('bulkDefaultSettingSelect').value;
@@ -2812,7 +2919,7 @@ Original description:
     }
 
     function bulkEnableDisable(enable) {
-        const targetLabels = getTargetLabelDivs();
+        const targetLabels = getTargetLabelDivs('bulkTargetSelect');
         if (targetLabels.length === 0) {
             showCustomModal('No labels selected or found for the chosen target.', 'alert');
             return;
@@ -2833,7 +2940,7 @@ Original description:
     }
 
     function bulkDelete() {
-        const targetLabels = getTargetLabelDivs();
+        const targetLabels = getTargetLabelDivs('bulkTargetSelect');
         if (targetLabels.length === 0) {
             showCustomModal('No labels selected or found for the chosen target.', 'alert');
             return;
@@ -2871,6 +2978,33 @@ Original description:
             bulkCategoryFilterSelect.value = '';
         }
     }
+
+    // Function to control visibility of category filter dropdowns based on bulk target selection
+    function updateBulkActionsCategoryTargetVisibility() {
+        const bulkTargetSelect = document.getElementById('bulkTargetSelect');
+        const bulkCategoryFilterSelect = document.getElementById('bulkCategoryFilterSelect');
+        const bulkTargetSelectTranslate = document.getElementById('bulkTargetSelectTranslate');
+        const bulkCategoryFilterSelectTranslate = document.getElementById('bulkCategoryFilterSelectTranslate');
+
+        if (bulkTargetSelect.value === 'category') {
+            bulkCategoryFilterSelect.style.display = '';
+            updateBulkCategoryFilterDropdown(); // Ensure it's populated
+        } else {
+            bulkCategoryFilterSelect.style.display = 'none';
+        }
+
+        if (bulkTargetSelectTranslate.value === 'category') {
+            bulkCategoryFilterSelectTranslate.style.display = '';
+            updateBulkCategoryFilterTranslateDropdown(); // Ensure it's populated
+        } else {
+            bulkCategoryFilterSelectTranslate.style.display = 'none';
+        }
+
+        // Re-evaluate bulk select all checkboxes when target visibility changes
+        updateBulkSelectAllCheckbox();
+        updateBulkSelectAllTranslateCheckbox();
+    }
+
 
     // --- Bulk Translate Locales Functions ---
 
@@ -2926,35 +3060,19 @@ Original text:
         }
     }
 
-    function getTargetLabelDivsForTranslate() {
-        const targetType = document.getElementById('bulkTargetSelectTranslate').value;
-        let targetLabels = [];
-
-        if (targetType === 'selected') {
-            selectedLabelIds.forEach(id => {
-                const labelDiv = document.getElementById(id);
-                if (labelDiv) targetLabels.push(labelDiv);
-            });
-        } else if (targetType === 'category') {
-            const selectedCategory = document.getElementById('bulkCategoryFilterSelectTranslate').value;
-            if (selectedCategory) {
-                document.querySelectorAll('.label-block').forEach(labelDiv => {
-                    const categorySelect = labelDiv.querySelector('.label-category');
-                    if (categorySelect && categorySelect.value === selectedCategory) {
-                        targetLabels.push(labelDiv);
-                    }
-                });
-            }
-        }
-        return targetLabels;
-    }
-
     function updateBulkSelectAllTranslateCheckbox() {
-        const allVisibleCheckboxes = Array.from(document.querySelectorAll('.label-block:not([style*="display: none"]) .bulk-select-checkbox'));
-        const allChecked = allVisibleCheckboxes.every(cb => cb.checked);
-        const someChecked = allVisibleCheckboxes.some(cb => cb.checked);
-
         const bulkSelectAllTranslateCheckbox = document.getElementById('bulkSelectAllTranslateCheckbox');
+        const relevantCheckboxes = getFilteredLabelCheckboxes('bulkTargetSelectTranslate');
+
+        if (relevantCheckboxes.length === 0) {
+            bulkSelectAllTranslateCheckbox.checked = false;
+            bulkSelectAllTranslateCheckbox.indeterminate = false;
+            return;
+        }
+
+        const allChecked = relevantCheckboxes.every(cb => cb.checked);
+        const someChecked = relevantCheckboxes.some(cb => cb.checked);
+
         bulkSelectAllTranslateCheckbox.checked = allChecked;
         bulkSelectAllTranslateCheckbox.indeterminate = someChecked && !allChecked;
     }
@@ -2978,7 +3096,7 @@ Original text:
 
 
     async function handleBulkTranslate() {
-        const targetLabelDivs = getTargetLabelDivsForTranslate(); // Use the translate-specific target labels
+        const targetLabelDivs = getTargetLabelDivs('bulkTargetSelectTranslate'); // Use the translate-specific target labels
         const targetLangCheckboxes = Array.from(document.querySelectorAll('#bulkTranslateTargetLangs .target-lang-checkbox:checked'));
         const targetLangCodes = targetLangCheckboxes.map(cb => cb.value);
 
@@ -3261,7 +3379,7 @@ Original text:
         }
 
         const snippetContent = descriptionSnippets[parseInt(selectedSnippetIndex)].content;
-        const targetLabels = getTargetLabelDivs(); // Re-use existing target label logic
+        const targetLabels = getTargetLabelDivs('bulkTargetSelect'); // Re-use existing target label logic
 
         if (targetLabels.length === 0) {
             showCustomModal('No labels selected or found for the chosen target.', 'alert');
@@ -3415,6 +3533,7 @@ Original text:
         showCustomModal("Error loading saved data. Starting with a fresh page.", "alert");
         document.getElementById('labels-container').innerHTML = ''; // Clear any partial loads
         categories = []; // Clear categories
+        selectedCategoryNames.clear(); // Clear selected categories
         defaultLocaleLanguage = ''; // Clear default locale language
         descriptionSnippets = []; // Clear snippets
         createLabelBlock(); // Fallback to a fresh label block on error
@@ -3509,6 +3628,10 @@ Original text:
                 if (e.key === 'Enter') { addCategory(); }
             });
         }
+        // Re-attach delete selected categories button
+        const mobileDeleteSelectedCategoriesBtn = rightMenuWrapperMobile.querySelector('#category-menu-mobile #deleteSelectedCategoriesBtn');
+        if (mobileDeleteSelectedCategoriesBtn) mobileDeleteSelectedCategoriesBtn.onclick = deleteSelectedCategories;
+
         // Re-attach bulk actions buttons
         const mobileBulkApplyBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkApplyChangesBtn');
         if (mobileBulkApplyBtn) mobileBulkApplyBtn.onclick = applyBulkPropertyChanges;
@@ -3528,8 +3651,8 @@ Original text:
         if (mobileBulkApplySnippetBtn) mobileBulkApplySnippetBtn.onclick = handleBulkApplySnippet;
 
         // Re-attach drag handlers for quick access list items in the mobile menu
-        rightMenuWrapperMobile.querySelectorAll('#floating-menu-mobile #label-quick-access-list a').forEach(anchor => {
-            addQuickAccessDragHandlers(anchor);
+        rightMenuWrapperMobile.querySelectorAll('#floating-menu-mobile #label-quick-access-list li').forEach(listItem => {
+            addQuickAccessDragHandlers(listItem);
         });
 
         // Re-attach event listeners for quick access checkboxes in the mobile menu
@@ -3543,6 +3666,21 @@ Original text:
                     const event = new Event('change');
                     mainLabelCheckbox.dispatchEvent(event);
                 }
+            };
+        });
+
+        // Re-attach event listeners for category checkboxes in the mobile menu
+        rightMenuWrapperMobile.querySelectorAll('#category-menu-mobile .category-select-checkbox').forEach(checkbox => {
+            checkbox.onchange = (e) => {
+                const categoryName = e.target.dataset.categoryName;
+                if (e.target.checked) {
+                    selectedCategoryNames.add(categoryName);
+                } else {
+                    selectedCategoryNames.delete(categoryName);
+                }
+                updateBulkActionsCategoryTargetVisibility(); // Update visibility of category filters
+                updateBulkSelectAllCheckbox(); // Re-evaluate bulk select all
+                updateBulkSelectAllTranslateCheckbox(); // Re-evaluate bulk translate select all
             };
         });
 
@@ -3802,6 +3940,11 @@ Original text:
       const identifierPlaceholder = '(Untitled Label)';
 
       document.querySelectorAll('.label-block').forEach((labelDiv, index) => {
+        // Only add visible label blocks to the quick access menu
+        if (labelDiv.style.display === 'none') {
+            return;
+        }
+
         const labelId = labelDiv.id; // Get the unique HTML ID of the label block
         // Use the new placeholder for display in the quick access list
         const labelIdentifier = labelDiv.querySelector('.identifier').value.trim() || identifierPlaceholder;
@@ -3892,11 +4035,14 @@ Original text:
             addCategory();
         }
     });
+    document.getElementById('deleteSelectedCategoriesBtn').onclick = deleteSelectedCategories; // New delete button for categories
+
 
     // Bulk Actions Event Listeners
     document.getElementById('bulkSelectAllCheckbox').addEventListener('change', (e) => {
         const isChecked = e.target.checked;
-        document.querySelectorAll('.label-block:not([style*="display: none"]) .bulk-select-checkbox').forEach(checkbox => {
+        const relevantCheckboxes = getFilteredLabelCheckboxes('bulkTargetSelect');
+        relevantCheckboxes.forEach(checkbox => {
             checkbox.checked = isChecked;
             const labelId = checkbox.dataset.labelId;
             if (isChecked) {
@@ -3910,13 +4056,8 @@ Original text:
     });
 
     document.getElementById('bulkTargetSelect').addEventListener('change', (e) => {
-        const bulkCategoryFilterSelect = document.getElementById('bulkCategoryFilterSelect');
-        if (e.target.value === 'category') {
-            bulkCategoryFilterSelect.style.display = '';
-            updateBulkCategoryFilterDropdown();
-        } else {
-            bulkCategoryFilterSelect.style.display = 'none';
-        }
+        updateBulkActionsCategoryTargetVisibility(); // Update visibility based on target selection
+        updateBulkSelectAllCheckbox(); // Re-evaluate "Select All" state
     });
 
     document.getElementById('bulkApplyChangesBtn').onclick = applyBulkPropertyChanges;
@@ -3928,18 +4069,14 @@ Original text:
     document.getElementById('bulkTranslateBtn').onclick = handleBulkTranslate;
 
     document.getElementById('bulkTargetSelectTranslate').addEventListener('change', (e) => {
-        const bulkCategoryFilterSelectTranslate = document.getElementById('bulkCategoryFilterSelectTranslate');
-        if (e.target.value === 'category') {
-            bulkCategoryFilterSelectTranslate.style.display = '';
-            updateBulkCategoryFilterTranslateDropdown();
-        } else {
-            bulkCategoryFilterSelectTranslate.style.display = 'none';
-        }
+        updateBulkActionsCategoryTargetVisibility(); // Update visibility based on target selection
+        updateBulkSelectAllTranslateCheckbox(); // Re-evaluate "Select All" state
     });
 
     document.getElementById('bulkSelectAllTranslateCheckbox').addEventListener('change', (e) => {
         const isChecked = e.target.checked;
-        document.querySelectorAll('.label-block:not([style*="display: none"]) .bulk-select-checkbox').forEach(checkbox => {
+        const relevantCheckboxes = getFilteredLabelCheckboxes('bulkTargetSelectTranslate');
+        relevantCheckboxes.forEach(checkbox => {
             checkbox.checked = isChecked;
             const labelId = checkbox.dataset.labelId;
             if (isChecked) {
