@@ -436,12 +436,17 @@
 
   /* New class for left menu buttons to ensure consistent sizing */
   .left-menu-button {
-    padding: 0.6em 1.2em;
-    font-size: 1rem;
-    width: 100%;
+    padding: 0; /* Remove padding for icon buttons */
+    font-size: 1.2rem; /* Icon size */
+    width: 40px; /* Make it square */
+    height: 40px; /* Make it square */
+    display: flex; /* Center icon */
+    justify-content: center;
+    align-items: center;
     margin-top: 0;
     margin-right: 0;
     border-radius: var(--border-radius); /* Uses variable */
+    flex-shrink: 0; /* Prevent shrinking */
   }
 
   /* Styling for Add Locale button */
@@ -495,34 +500,35 @@
     display: none;
   }
 
-  /* Theme switch styles */
+  /* Theme switch styles (now inside options modal) */
   .theme-switch-wrapper {
-    background: var(--primary);
-    color: white;
-    padding: 0.5em 0.8em; /* Adjusted vertical padding */
-    border-radius: var(--border-radius); /* Uses variable */
-    cursor: pointer;
+    background: none; /* No background for this wrapper inside modal */
+    color: var(--text-color); /* Text color from modal */
+    padding: 0; /* No padding for this wrapper inside modal */
+    border-radius: 0;
+    cursor: default; /* Not a button anymore */
     font-size: 1rem;
-    transition: background 0.2s;
+    transition: none;
     display: flex;
-    flex-direction: column;
+    flex-direction: row; /* Horizontal layout for label and toggle */
     align-items: center;
+    justify-content: space-between; /* Space between label and toggle */
     width: 100%;
     box-sizing: border-box;
-    margin-top: 0;
+    margin-top: 1em; /* Space from previous modal content */
     margin-bottom: 0;
   }
 
   .theme-switch-wrapper:hover {
-    background: #2563eb;
+    background: none;
   }
 
   .theme-switch-label-text {
     font-weight: 500;
-    color: white;
-    margin-bottom: 0.2em; /* Adjusted margin-bottom */
-    text-align: center;
-    font-size: 0.8rem;
+    color: var(--text-color);
+    margin-bottom: 0; /* No margin-bottom */
+    text-align: left;
+    font-size: 1rem; /* Larger font size */
   }
 
   .theme-switch {
@@ -530,8 +536,8 @@
     height: 16px;
     position: relative;
     width: 60px;
-    margin-top: 0.2em; /* Move toggle up slightly */
-    margin-bottom: 0.2em; /* Move toggle down slightly */
+    margin-top: 0; /* No margin-top */
+    margin-bottom: 0; /* No margin-bottom */
   }
 
   .theme-switch input {
@@ -1059,29 +1065,22 @@
       <h3>Main Menu</h3>
       <button id="closeLeftMenuBtn" class="close-mobile-menu-btn" title="Close main menu">X</button>
     </div>
-    <button id="addLabelBtn" class="left-menu-button" title="Add a new blank label block">+ Add Label</button>
+    <button id="addLabelBtn" class="left-menu-button" title="Add a new blank label block">➕</button>
     <div class="separator"></div>
-    <button id="collapseAllBtn" class="left-menu-button" title="Collapse all label content areas">Collapse All</button>
-    <button id="expandAllBtn" class="left-menu-button" title="Expand all label content areas">Expand All</button>
-    <button id="resetClearBtn" class="left-menu-button" title="Clear all labels or reset to default">Reset / Clear All</button>
+    <button id="collapseAllBtn" class="left-menu-button" title="Collapse all label content areas">➖</button>
+    <button id="expandAllBtn" class="left-menu-button" title="Expand all label content areas">➕</button>
+    <button id="resetClearBtn" class="left-menu-button" title="Clear all labels or reset to default">🧹</button>
     <div class="separator"></div>
-    <div class="theme-switch-wrapper" title="Toggle between light and dark mode">
-      <span class="theme-switch-label-text">Dark Mode</span>
-      <label class="theme-switch" for="checkbox">
-        <input type="checkbox" id="checkbox" />
-        <div class="slider round"></div>
-      </label>
-    </div>
+    <button id="versionHistoryBtn" class="left-menu-button" title="View and revert to previous saved versions">📜</button>
+    <button id="saveBtn" class="left-menu-button" title="Save the current state as a new version in history">💾</button>
+    <button id="undoBtn" class="left-menu-button" disabled title="Undo the last change">↩️</button>
+    <button id="redoBtn" class="left-menu-button" disabled title="Redo the last undone change">↪️</button>
     <div class="separator"></div>
-    <button id="optionsBtn" class="left-menu-button" title="Open options menu">⚙️ Options</button>
-    <button id="versionHistoryBtn" class="left-menu-button" title="View and revert to previous saved versions">Version History</button>
-    <button id="saveBtn" class="left-menu-button" title="Save the current state as a new version in history">Save Current Version</button>
-    <button id="undoBtn" class="left-menu-button" disabled title="Undo the last change">Undo</button>
-    <button id="redoBtn" class="left-menu-button" disabled title="Redo the last undone change">Redo</button>
-    <div class="separator"></div>
-    <button id="saveSessionFileBtn" class="left-menu-button" title="Download current labels and categories as a session file (.ozm)">Save Session File</button>
-    <button id="loadSessionFileBtn" class="left-menu-button" title="Load labels and categories from a session file (.ozm or .json)">Load Session File</button>
+    <button id="saveSessionFileBtn" class="left-menu-button" title="Download current labels and categories as a session file (.ozm)">📥</button>
+    <button id="loadSessionFileBtn" class="left-menu-button" title="Load labels and categories from a session file (.ozm or .json)">📤</button>
     <input type="file" id="sessionFileInput" accept=".json,.ozm" style="display:none" />
+    <div class="separator"></div>
+    <button id="optionsBtn" class="left-menu-button" title="Open options menu">⚙️</button>
   </div>
 
   <div id="container">
@@ -1261,6 +1260,13 @@
       <label for="defaultLocaleLangSelect" style="text-align: left; margin-bottom: 0.5em;">Default Locale Language:</label>
       <select id="defaultLocaleLangSelect" title="Set the default language for new locales" style="width: 100%; padding: 0.5em; border-radius: var(--border-radius); border: 1px solid var(--input-border); background: var(--block-background); color: var(--text-color);">
       </select>
+      <div class="theme-switch-wrapper" title="Toggle between light and dark mode">
+        <span class="theme-switch-label-text">Dark Mode</span>
+        <label class="theme-switch" for="checkbox">
+          <input type="checkbox" id="checkbox" />
+          <div class="slider round"></div>
+        </label>
+      </div>
       <button id="closeOptionsModalBtn" class="confirm-btn" style="margin-top: 1em;">Close</button>
     </div>
   </div>
@@ -1637,7 +1643,12 @@
             const selectedIndex = snippetSelect.value;
             if (selectedIndex !== '') {
                 const snippetText = descriptionSnippets[parseInt(selectedIndex)].content;
-                descriptionTextarea.value = snippetText;
+                // Append snippet content, ensuring it starts on a new line
+                if (descriptionTextarea.value.trim() !== '') {
+                    descriptionTextarea.value += '\n' + snippetText;
+                } else {
+                    descriptionTextarea.value = snippetText;
+                }
                 saveFullSessionStateToLocalStorage();
                 updateJSONOutput();
             }
@@ -3225,11 +3236,15 @@ Original text:
             return;
         }
 
-        showCustomModal(`Apply snippet to descriptions of ${targetLabels.length} labels? This will overwrite existing descriptions in all locales of these labels.`, 'confirm', (response) => {
+        showCustomModal(`Apply snippet to descriptions of ${targetLabels.length} labels? This will append to existing descriptions in all locales of these labels.`, 'confirm', (response) => {
             if (response) {
                 targetLabels.forEach(labelDiv => {
                     labelDiv.querySelectorAll('.locale-block .description').forEach(descTextarea => {
-                        descTextarea.value = snippetContent;
+                        if (descTextarea.value.trim() !== '') {
+                            descTextarea.value += '\n' + snippetContent;
+                        } else {
+                            descTextarea.value = snippetContent;
+                        }
                     });
                 });
                 saveFullSessionStateToLocalStorage();
@@ -3351,6 +3366,16 @@ Original text:
         loadDescriptionSnippets(); // Load description snippets on app start
         updateUndoRedoButtons(); // Initialize button states
         updateLabelNumbers(); // Initial numbering on app start
+
+        // Initialize theme toggle state in options modal
+        const themeToggle = document.getElementById('checkbox');
+        const currentTheme = localStorage.getItem('theme');
+        if (currentTheme === 'dark-mode') {
+          themeToggle.checked = true;
+        } else {
+          themeToggle.checked = false;
+        }
+
       } catch (error) {
         console.error("Error initializing app from Local Storage:", error);
         showCustomModal("Error loading saved data. Starting with a fresh page.", "alert");
@@ -3636,19 +3661,8 @@ Original text:
 
     document.getElementById('searchInput').addEventListener('input', filterLabels);
 
-    // Theme toggle logic
+    // Theme toggle logic (now inside options modal)
     const themeToggle = document.getElementById('checkbox');
-    const currentTheme = localStorage.getItem('theme');
-
-    // Apply saved theme on load
-    if (currentTheme) {
-      document.body.classList.add(currentTheme);
-      if (currentTheme === 'dark-mode') {
-        themeToggle.checked = true;
-      }
-    }
-
-    // Listen for theme toggle changes
     themeToggle.addEventListener('change', () => {
       if (themeToggle.checked) {
         document.body.classList.add('dark-mode');
