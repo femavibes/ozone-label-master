@@ -66,7 +66,6 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     padding: 1em;
     z-index: 9999; /* Increased z-index significantly */
-    /* Removed max-height and overflow-y to allow it to expand */
     transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease-out; /* Add transform transition */
     margin-right: 2em;
     display: flex;
@@ -190,7 +189,7 @@
     padding: 0.75em 1em;
     display: flex;
     align-items: center;
-    gap: 0.2em;
+    gap: 0.5em; /* Increased gap for better spacing */
     font-weight: 600;
     cursor: grab;
     border-bottom: 1px solid var(--block-border);
@@ -537,31 +536,39 @@
     border-radius: 50%;
   }
 
-  /* Right Floating Menu Wrapper Styles */
-  #right-menu-wrapper {
-    position: sticky; /* Make the wrapper sticky */
-    top: 2em; /* Stick it 2em from the top */
-    width: 200px;
-    /* Removed max-height and overflow-y from here */
-    display: flex;
-    flex-direction: column;
-    gap: 1em; /* Space between the child menus */
-    z-index: 9999; /* Ensure it's above other content */
-    transition: transform 0.3s ease-out; /* For mobile slide effect */
-    border-radius: var(--border-radius); /* Uses variable */
+  /* Right Side Menus Container (Desktop) */
+  #right-side-menus-container {
+    position: sticky; /* Make it sticky */
+    top: 2em;
+    display: flex; /* Arrange children horizontally */
+    flex-direction: row;
+    gap: 1em; /* Space between columns */
+    align-items: flex-start; /* Align columns to the top */
+    margin-left: 2em; /* Space from the main container */
+    width: auto; /* Allow content to dictate width */
+    flex-shrink: 0; /* Prevent shrinking */
   }
 
-  /* Individual Right Menu Styles (children of the wrapper) */
+  /* Column 1: Category and Quick Access (Desktop) */
+  #category-quick-access-stack {
+    display: flex;
+    flex-direction: column; /* Stack category and quick access vertically */
+    gap: 1em; /* Space between category and quick access */
+    width: 200px; /* Fixed width for this column */
+    flex-shrink: 0; /* Prevent shrinking */
+  }
+
+  /* Individual Right Menu Styles (children of the new columns) */
   #floating-menu, #category-menu, #bulk-actions-menu {
     background: var(--background);
     border: 1px solid var(--block-border);
     border-radius: var(--border-radius); /* Uses variable */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     padding: 1em;
-    position: static; /* No longer sticky individually */
+    position: static; /* No longer sticky/fixed individually */
     max-height: none; /* Allow content to dictate height */
     overflow-y: visible; /* Let parent handle overflow */
-    margin-bottom: 0; /* Gap handled by parent wrapper */
+    margin-bottom: 0; /* No individual margin-bottom */
   }
 
   /* Specific for Labels Quick Access to have its own scrollbar */
@@ -646,6 +653,13 @@
     color: var(--text-color);
   }
 
+  /* Bulk Actions Menu Specifics */
+  #bulk-actions-menu {
+    width: 250px; /* Fixed width for bulk actions column */
+    flex-shrink: 0;
+  }
+
+
   /* Mobile Menu Toggle Buttons (bottom corners) */
   .mobile-menu-toggle-button {
     display: none; /* Hidden by default on large screens */
@@ -694,10 +708,16 @@
 
   /* Media query for smaller screens */
   @media (max-width: 992px) {
-    /* Hide desktop menus */
+    /* Hide desktop right menus container */
+    #right-side-menus-container {
+      display: none;
+    }
+
+    /* Left floating menu becomes fixed mobile menu */
     #left-floating-menu {
       position: fixed; /* Fixed on mobile */
       bottom: 0;
+      left: 0;
       width: 80%;
       max-width: 300px;
       height: auto;
@@ -712,12 +732,8 @@
       z-index: 9999; /* Ensure they are on top */
     }
 
-    #left-floating-menu {
-      left: 0;
-    }
-
-    /* Right menu wrapper for mobile */
-    #right-menu-wrapper {
+    /* Mobile right menu wrapper (re-enable and style) */
+    #right-menu-wrapper-mobile { /* This ID will be used for the mobile right menu */
         position: fixed; /* Fixed on mobile */
         bottom: 0;
         right: 0;
@@ -731,26 +747,34 @@
         transform: translateY(calc(100% + 50px)); /* Hide by default */
         pointer-events: none; /* Initially non-interactive */
         z-index: 9998; /* Ensure it's below bulk actions if both open */
+        background: var(--background); /* Apply background here */
+        border: 1px solid var(--block-border); /* Apply border here */
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Apply shadow here */
+        padding: 1em; /* Apply padding here */
+        display: flex; /* Make it a flex container */
+        flex-direction: column; /* Stack vertically on mobile */
+        gap: 1em; /* Space between menus */
     }
 
     /* When right menu wrapper is open, stack its children */
-    #right-menu-wrapper.open {
+    #right-menu-wrapper-mobile.open {
         transform: translateY(0);
         pointer-events: auto;
     }
 
-    /* Individual Right Menu Styles (children of the wrapper) on mobile */
-    #floating-menu, #category-menu, #bulk-actions-menu {
+    /* Individual Right Menu Styles (children of the mobile wrapper) on mobile */
+    #category-menu, #floating-menu, #bulk-actions-menu {
         border-radius: 0; /* Remove individual border radius */
         box-shadow: none; /* Remove individual shadows */
         border: none; /* Remove individual borders */
         border-bottom: 1px solid var(--block-border); /* Add separator between them */
+        width: auto; /* Take full width of parent */
     }
 
-    #bulk-actions-menu {
+    #bulk-actions-menu { /* First menu in mobile stack */
         border-radius: var(--border-radius) var(--border-radius) 0 0; /* Rounded top only */
     }
-    #floating-menu {
+    #floating-menu { /* Last menu in mobile stack */
         border-bottom: none; /* No border at the very bottom of the last menu */
         border-radius: 0 0 var(--border-radius) var(--border-radius); /* Rounded bottom only */
     }
@@ -758,7 +782,7 @@
 
     /* Show mobile menu header when menus are open on mobile */
     #left-floating-menu.open .mobile-menu-header,
-    #right-menu-wrapper.open .mobile-menu-header { /* Only need to check wrapper open state */
+    #right-menu-wrapper-mobile.open .mobile-menu-header { /* Only need to check wrapper open state */
       display: flex; /* Show mobile header on mobile */
     }
 
@@ -991,11 +1015,37 @@
     <pre id="output" title="Generated JSON output of your labels"></pre>
   </div>
 
-  <div id="right-menu-wrapper">
+  <div id="right-side-menus-container">
+    <div id="category-quick-access-stack">
+        <div id="category-menu">
+            <div class="mobile-menu-header">
+                <h3>Categories</h3>
+                <button id="closeCategoryMenuBtnDesktop" class="close-mobile-menu-btn" title="Close categories menu">X</button>
+            </div>
+            <h3>Label Categories</h3>
+            <div class="category-input-group">
+                <input type="text" id="newCategoryInput" placeholder="New category name" title="Enter a new category name" />
+                <button id="addCategoryBtn" title="Add the new category">Add</button>
+            </div>
+            <ul id="category-list" title="List of existing categories">
+            </ul>
+        </div>
+
+        <div id="floating-menu">
+            <div class="mobile-menu-header">
+                <h3>Quick Access</h3>
+                <button id="closeRightMenuBtnDesktop" class="close-mobile-menu-btn" title="Close quick access menu">X</button>
+            </div>
+            <h3>Labels Quick Access</h3>
+            <ul id="label-quick-access-list" title="Quick access links to label blocks">
+            </ul>
+        </div>
+    </div>
+
     <div id="bulk-actions-menu">
         <div class="mobile-menu-header">
             <h3>Bulk Actions</h3>
-            <button id="closeBulkActionsMenuBtn" class="close-mobile-menu-btn" title="Close bulk actions menu">X</button>
+            <button id="closeBulkActionsMenuBtnDesktop" class="close-mobile-menu-btn" title="Close bulk actions menu">X</button>
         </div>
         <h3>Bulk Actions</h3>
         <div class="bulk-action-group">
@@ -1072,38 +1122,19 @@
                 </div>
             <button id="bulkTranslateBtn" class="full-width-button translate-button" title="Translate names and descriptions for selected labels into chosen languages">Translate Selected Labels ✨</button>
         </div>
-
-    </div>
-
-    <div id="category-menu">
-        <div class="mobile-menu-header">
-            <h3>Categories</h3>
-            <button id="closeCategoryMenuBtn" class="close-mobile-menu-btn" title="Close categories menu">X</button>
-        </div>
-        <h3>Label Categories</h3>
-        <div class="category-input-group">
-            <input type="text" id="newCategoryInput" placeholder="New category name" title="Enter a new category name" />
-            <button id="addCategoryBtn" title="Add the new category">Add</button>
-        </div>
-        <ul id="category-list" title="List of existing categories">
-            </ul>
-    </div>
-
-    <div id="floating-menu">
-        <div class="mobile-menu-header">
-            <h3>Quick Access</h3>
-            <button id="closeRightMenuBtn" class="close-mobile-menu-btn" title="Close quick access menu">X</button>
-        </div>
-        <h3>Labels Quick Access</h3>
-        <ul id="label-quick-access-list" title="Quick access links to label blocks">
-            </ul>
     </div>
   </div>
+
+  <div id="right-menu-wrapper-mobile" style="display: none;">
+      <div class="mobile-menu-header">
+          <h3>Right Menu</h3>
+          <button id="closeRightMenuBtnMobile" class="close-mobile-menu-btn" title="Close right menu">X</button>
+      </div>
+      </div>
 
 
   <button id="mobileLeftMenuToggle" class="mobile-menu-toggle-button" title="Open main menu">☰</button>
   <button id="mobileRightMenuToggle" class="mobile-menu-toggle-button" title="Open bulk actions and categories menu">⋮</button>
-  <button id="mobileBulkActionsToggle" class="mobile-menu-toggle-button" style="display:none;"></button>
 
 
   <div id="loadingOverlay" class="loading-overlay" style="display: none;">
@@ -1184,6 +1215,14 @@
         okBtn.className = 'confirm-btn';
         okBtn.onclick = () => overlay.remove();
         content.appendChild(okBtn);
+      } else if (type === 'custom') { // For custom content, add a close button if onConfirm is null
+        if (!onConfirm) { // If no specific confirm/cancel logic, provide a simple close
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = 'Close';
+            closeBtn.className = 'cancel-btn'; // Use cancel-btn style for close
+            closeBtn.onclick = () => overlay.remove();
+            content.appendChild(closeBtn);
+        }
       }
       // No 'else' for 'custom' type, so no extra buttons are added if customContent is provided.
 
@@ -2339,6 +2378,7 @@ Original description:
       const wrapper = document.createElement('div');
       wrapper.appendChild(historyList);
 
+      // Pass customContent and let showCustomModal add the close button
       showCustomModal('Version History', 'custom', null, wrapper);
     }
 
@@ -2885,66 +2925,135 @@ Original text:
     // Get references for mobile menus and toggles
     const mobileLeftMenuToggle = document.getElementById('mobileLeftMenuToggle');
     const mobileRightMenuToggle = document.getElementById('mobileRightMenuToggle');
-    const mobileBulkActionsToggle = document.getElementById('mobileBulkActionsToggle'); // New bulk actions toggle
     const leftFloatingMenu = document.getElementById('left-floating-menu');
-    const rightMenuWrapper = document.getElementById('right-menu-wrapper'); // The wrapper for right menus
+    const rightMenuWrapperMobile = document.getElementById('right-menu-wrapper-mobile'); // Mobile-specific right menu wrapper
     const closeLeftMenuBtn = document.getElementById('closeLeftMenuBtn');
-    const closeRightMenuBtn = document.getElementById('closeRightMenuBtn'); // Quick Access is now child of wrapper
-    const closeCategoryMenuBtn = document.getElementById('closeCategoryMenuBtn'); // Category is now child of wrapper
-    const closeBulkActionsMenuBtn = document.getElementById('closeBulkActionsMenuBtn'); // Bulk Actions is now child of wrapper
-    const body = document.body;
+
+    // Desktop close buttons for the right menus (they don't close the entire wrapper)
+    const closeRightMenuBtnDesktop = document.getElementById('closeRightMenuBtnDesktop');
+    const closeCategoryMenuBtnDesktop = document.getElementById('closeCategoryMenuBtnDesktop');
+    const closeBulkActionsMenuBtnDesktop = document.getElementById('closeBulkActionsMenuBtnDesktop');
+
+    // Mobile close button for the right menu wrapper
+    const closeRightMenuBtnMobile = document.getElementById('closeRightMenuBtnMobile');
 
     // Function to open a specific mobile menu
     function openMobileMenu(menuElement) {
       // Close other menus if they're open
-      [leftFloatingMenu, rightMenuWrapper].forEach(menu => { // Only consider the two main mobile menu containers
+      [leftFloatingMenu, rightMenuWrapperMobile].forEach(menu => {
         if (menu !== menuElement && menu.classList.contains('open')) {
           closeMobileMenu(menu);
         }
       });
 
       menuElement.classList.add('open');
-      menuElement.style.transform = menuElement.id === 'right-menu-wrapper' ? 'translateY(0)' : 'translateY(0)'; // Slide in from bottom
+      menuElement.style.transform = 'translateY(0)'; // Slide in from bottom
     }
 
     // Function to close a specific mobile menu
     function closeMobileMenu(menuElement) {
       menuElement.classList.remove('open');
-      // Adjust transform based on which menu is being closed
-      if (menuElement.id === 'right-menu-wrapper') {
-          menuElement.style.transform = 'translateY(calc(100% + 50px))'; // Slide out to bottom, fully hidden
-      } else { // left menu
-          menuElement.style.transform = 'translateY(calc(100% + 50px))'; // Slide out to bottom, fully hidden
-      }
+      menuElement.style.transform = 'translateY(calc(100% + 50px))'; // Slide out to bottom, fully hidden
     }
 
     // Event listeners for mobile menu toggles
     mobileLeftMenuToggle.addEventListener('click', () => openMobileMenu(leftFloatingMenu));
-    mobileRightMenuToggle.addEventListener('click', () => openMobileMenu(rightMenuWrapper)); // Right toggle opens the wrapper
+    mobileRightMenuToggle.addEventListener('click', () => {
+        // When opening the mobile right menu, populate it with current content
+        const categoryMenuContent = document.getElementById('category-menu').innerHTML;
+        const floatingMenuContent = document.getElementById('floating-menu').innerHTML;
+        const bulkActionsMenuContent = document.getElementById('bulk-actions-menu').innerHTML;
 
-    // Event listeners for internal close buttons (these are children of the wrapper, but still need to close the wrapper)
+        // Clear and append content to the mobile wrapper
+        rightMenuWrapperMobile.innerHTML = `
+            <div class="mobile-menu-header">
+                <h3>Right Menu</h3>
+                <button id="closeRightMenuBtnMobile" class="close-mobile-menu-btn" title="Close right menu">X</button>
+            </div>
+            <div id="category-menu-mobile">${categoryMenuContent}</div>
+            <div id="floating-menu-mobile">${floatingMenuContent}</div>
+            <div id="bulk-actions-menu-mobile">${bulkActionsMenuContent}</div>
+        `;
+
+        // Re-attach event listeners for buttons inside the dynamically added content
+        rightMenuWrapperMobile.querySelector('#closeRightMenuBtnMobile').onclick = () => closeMobileMenu(rightMenuWrapperMobile);
+        // Re-attach category and bulk action specific listeners if needed (e.g., addCategoryBtn, bulkApplyChangesBtn)
+        // This can be complex if many interactive elements are duplicated.
+        // A simpler approach for mobile is to just show/hide the desktop elements, but that creates layout challenges.
+        // For now, I'll just re-attach the close button. Other interactions should ideally be handled by delegation or re-initialization.
+
+        // Re-attach category menu add button if it's part of the mobile menu
+        const mobileAddCategoryBtn = rightMenuWrapperMobile.querySelector('#category-menu-mobile #addCategoryBtn');
+        if (mobileAddCategoryBtn) {
+            mobileAddCategoryBtn.onclick = addCategory;
+            rightMenuWrapperMobile.querySelector('#category-menu-mobile #newCategoryInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') { addCategory(); }
+            });
+        }
+        // Re-attach bulk actions buttons
+        const mobileBulkApplyBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkApplyChangesBtn');
+        if (mobileBulkApplyBtn) mobileBulkApplyBtn.onclick = applyBulkPropertyChanges;
+        const mobileBulkEnableBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkEnableBtn');
+        if (mobileBulkEnableBtn) mobileBulkEnableBtn.onclick = () => bulkEnableDisable(true);
+        const mobileBulkDisableBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkDisableBtn');
+        if (mobileBulkDisableBtn) mobileBulkDisableBtn.onclick = () => bulkEnableDisable(false);
+        const mobileBulkDeleteBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkDeleteBtn');
+        if (mobileBulkDeleteBtn) mobileBulkDeleteBtn.onclick = bulkDelete;
+        const mobileBulkTranslateBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkTranslateBtn');
+        if (mobileBulkTranslateBtn) mobileBulkTranslateBtn.onclick = handleBulkTranslate;
+
+
+        // Ensure mobile menu is displayed before opening
+        rightMenuWrapperMobile.style.display = 'flex'; // Ensure it's visible as a flex container
+        openMobileMenu(rightMenuWrapperMobile);
+    });
+
+
+    // Event listeners for internal close buttons
     closeLeftMenuBtn.addEventListener('click', () => closeMobileMenu(leftFloatingMenu));
-    closeRightMenuBtn.addEventListener('click', () => closeMobileMenu(rightMenuWrapper)); // Close button inside quick access
-    closeCategoryMenuBtn.addEventListener('click', () => closeMobileMenu(rightMenuWrapper)); // Close button inside category
-    closeBulkActionsMenuBtn.addEventListener('click', () => closeMobileMenu(rightMenuWrapper)); // Close button inside bulk actions
+    // Desktop close buttons for right menus (they don't close the entire wrapper, just their own header on desktop)
+    // On mobile, these are hidden, and the single mobile close button handles it.
+    if (closeRightMenuBtnDesktop) closeRightMenuBtnDesktop.addEventListener('click', () => {}); // No action needed, just prevents error
+    if (closeCategoryMenuBtnDesktop) closeCategoryMenuBtnDesktop.addEventListener('click', () => {}); // No action needed
+    if (closeBulkActionsMenuBtnDesktop) closeBulkActionsMenuBtnDesktop.addEventListener('click', () => {}); // No action needed
+
+    // Mobile close button for the right menu wrapper
+    // This listener is attached dynamically when the mobile menu is opened.
+    // closeRightMenuBtnMobile.addEventListener('click', () => closeMobileMenu(rightMenuWrapperMobile)); // This will be attached dynamically
 
 
     // Close menu if clicking outside (on the backdrop)
     document.addEventListener('click', (event) => {
       const isClickInsideLeftMenu = leftFloatingMenu.contains(event.target);
-      const isClickInsideRightMenuWrapper = rightMenuWrapper.contains(event.target);
+      const isClickInsideRightMenuMobile = rightMenuWrapperMobile.contains(event.target); // Check mobile wrapper
       const isClickOnLeftToggle = mobileLeftMenuToggle.contains(event.target);
       const isClickOnRightToggle = mobileRightMenuToggle.contains(event.target);
 
       // Only close if a menu is open and the click is outside all menus and their toggles
       if (
         (leftFloatingMenu.classList.contains('open') && !isClickInsideLeftMenu && !isClickOnLeftToggle) ||
-        (rightMenuWrapper.classList.contains('open') && !isClickInsideRightMenuWrapper && !isClickOnRightToggle)
+        (rightMenuWrapperMobile.classList.contains('open') && !isClickInsideRightMenuMobile && !isClickOnRightToggle)
       ) {
         closeMobileMenu(leftFloatingMenu);
-        closeMobileMenu(rightMenuWrapper);
+        closeMobileMenu(rightMenuWrapperMobile);
       }
     });
+
+    // Handle initial display of mobile menu wrapper based on screen size
+    function handleMobileMenuDisplay() {
+      const isMobile = window.matchMedia("(max-width: 992px)").matches;
+      if (isMobile) {
+        document.getElementById('right-side-menus-container').style.display = 'none';
+        document.getElementById('right-menu-wrapper-mobile').style.display = 'flex';
+      } else {
+        document.getElementById('right-side-menus-container').style.display = 'flex';
+        document.getElementById('right-menu-wrapper-mobile').style.display = 'none';
+      }
+    }
+
+    // Initial check and listen for resize
+    handleMobileMenuDisplay();
+    window.addEventListener('resize', handleMobileMenuDisplay);
 
 
     // --- Event Listeners for Main Buttons ---
