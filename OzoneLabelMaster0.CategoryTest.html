@@ -317,19 +317,19 @@
     transition: background 0.3s ease, border-color 0.3s ease;
   }
 
-  .locale-header-row { /* New flex container for locale header elements */
+  .locale-header-row {
     display: flex;
     align-items: center;
     gap: 0.5em;
-    margin-bottom: 0.5em; /* Space between header row and content */
+    margin-bottom: 0.5em;
   }
 
-  .locale-header-row .collapse-btn { /* Style for locale collapse button */
+  .locale-header-row .collapse-btn {
     background: var(--primary);
     color: white;
     border: none;
-    padding: 6px 12px; /* Match main collapse button padding */
-    border-radius: var(--border-radius); /* Uses variable */
+    padding: 6px 12px;
+    border-radius: var(--border-radius);
     cursor: pointer;
     font-size: 0.875rem;
     transition: background 0.3s ease;
@@ -341,13 +341,13 @@
   }
 
   .locale-header-row .locale-identifier-display {
-    flex: 1; /* Take remaining space */
+    flex: 1;
     user-select: text;
-    font-weight: 600; /* Make it stand out */
-    color: var(--text-color); /* Ensure text color is visible */
+    font-weight: 600;
+    color: var(--text-color);
   }
 
-  .locale-content-area { /* Collapsible content for locale */
+  .locale-content-area {
     /* No specific styles needed here, just acts as a container */
   }
 
@@ -355,13 +355,13 @@
     display: flex;
     gap: 0.5em;
     margin-top: 0.5em;
-    justify-content: flex-start; /* Aligns content to the left */
+    justify-content: flex-start;
   }
 
   .locale-block .llm-buttons button {
     padding: 0.4em 0.8em;
     font-size: 0.85rem;
-    border-radius: var(--border-radius); /* Uses variable */
+    border-radius: var(--border-radius);
     background: #10b981;
   }
 
@@ -371,7 +371,7 @@
 
   label {
     display: block;
-    margin-top: 1em; /* Keep for labels not in input-group-row */
+    margin-top: 1em;
     font-weight: 500;
   }
 
@@ -380,10 +380,10 @@
   textarea {
     width: 100%;
     padding: 0.5em 0.75em;
-    margin-top: 0.25em; /* Keep for labels not in input-group-row */
+    margin-top: 0.25em;
     font-size: 1rem;
     border: 1px solid var(--input-border);
-    border-radius: var(--border-radius); /* Uses variable */
+    border-radius: var(--border-radius);
     background: var(--block-background);
     color: var(--text-color);
     box-sizing: border-box;
@@ -393,7 +393,7 @@
   /* Override for inputs/selects within input-group-row */
   .label-content .input-group-row input[type="text"],
   .label-content .input-group-row select {
-    margin-top: 0; /* Remove margin-top as it's handled by parent flex */
+    margin-top: 0;
   }
 
 
@@ -407,7 +407,7 @@
     background: var(--primary);
     color: white;
     border: none;
-    border-radius: var(--border-radius); /* Uses variable */
+    border-radius: var(--border-radius);
     cursor: pointer;
     transition: background 0.2s;
   }
@@ -428,35 +428,35 @@
     margin-top: 1em;
     margin-right: 0.5em;
     vertical-align: middle;
-    border-radius: var(--border-radius); /* Uses variable */
+    border-radius: var(--border-radius);
   }
 
   /* New class for left menu buttons to ensure consistent sizing */
   .left-menu-button {
-    padding: 0; /* Remove padding for icon buttons */
-    font-size: 1.1rem; /* Slightly smaller icon size */
-    width: 40px; /* Make it square */
-    height: 40px; /* Make it square */
-    display: flex; /* Center icon */
+    padding: 0;
+    font-size: 1.1rem;
+    width: 40px;
+    height: 40px;
+    display: flex;
     justify-content: center;
     align-items: center;
     margin-top: 0;
     margin-right: 0;
-    border-radius: var(--border-radius); /* Uses variable */
-    flex-shrink: 0; /* Prevent shrinking */
+    border-radius: var(--border-radius);
+    flex-shrink: 0;
   }
 
   /* Styling for Add Locale button */
   .add-locale-btn {
-    background: var(--primary); /* Keep blue */
+    background: var(--primary);
     color: white;
     border: none;
-    border-radius: var(--border-radius); /* Uses variable */
+    border-radius: var(--border-radius);
     cursor: pointer;
-    font-size: 0.85rem; /* Match translate buttons */
-    padding: 0.4em 0.8em; /* Match translate buttons */
+    font-size: 0.85rem;
+    padding: 0.4em 0.8em;
     transition: background 0.2s;
-    margin-top: 1em; /* Add more spacing from above */
+    margin-top: 1em;
   }
 
   .add-locale-btn:hover {
@@ -465,14 +465,14 @@
 
   /* Spacing for Locales: text and separator */
   .locales-container {
-    border-top: 1px solid var(--block-border); /* Add a line separator */
-    padding-top: 1em; /* Space above the line */
-    margin-top: 1.5em; /* Space below the line and above this container */
+    border-top: 1px solid var(--block-border);
+    padding-top: 1em;
+    margin-top: 1.5em;
   }
 
   .locales-container strong {
-    display: block; /* Ensure it takes its own line for margin to apply correctly */
-    margin-bottom: 0.5em; /* Space between "Locales:" and the first locale block */
+    display: block;
+    margin-bottom: 0.5em;
   }
 
   #output {
@@ -483,7 +483,7 @@
     border: 1px solid var(--output-border);
     font-family: 'Courier New', monospace;
     font-size: 0.95rem;
-    border-radius: var(--border-radius); /* Uses variable */
+    border-radius: var(--border-radius);
     max-height: 300px;
     overflow-y: auto;
     color: var(--text-color);
@@ -499,20 +499,20 @@
 
   /* Theme switch styles (now inside options modal) */
   .theme-switch-wrapper {
-    background: none; /* No background for this wrapper inside modal */
-    color: var(--text-color); /* Text color from modal */
-    padding: 0; /* No padding for this wrapper inside modal */
+    background: none;
+    color: var(--text-color);
+    padding: 0;
     border-radius: 0;
-    cursor: default; /* Not a button anymore */
+    cursor: default;
     font-size: 1rem;
     transition: none;
     display: flex;
-    flex-direction: row; /* Horizontal layout for label and toggle */
+    flex-direction: row;
     align-items: center;
-    justify-content: space-between; /* Space between label and toggle */
+    justify-content: space-between;
     width: 100%;
     box-sizing: border-box;
-    margin-top: 1em; /* Space from previous modal content */
+    margin-top: 1em;
     margin-bottom: 0;
   }
 
@@ -523,9 +523,9 @@
   .theme-switch-label-text {
     font-weight: 500;
     color: var(--text-color);
-    margin-bottom: 0; /* No margin-bottom */
+    margin-bottom: 0;
     text-align: left;
-    font-size: 1rem; /* Larger font size */
+    font-size: 1rem;
   }
 
   .theme-switch {
@@ -533,8 +533,8 @@
     height: 16px;
     position: relative;
     width: 60px;
-    margin-top: 0; /* No margin-top */
-    margin-bottom: 0; /* No margin-bottom */
+    margin-top: 0;
+    margin-bottom: 0;
   }
 
   .theme-switch input {
@@ -542,7 +542,7 @@
   }
 
   .slider {
-    background-color: #9ca3af; /* Changed to a darker gray for visibility when unchecked */
+    background-color: #9ca3af;
     bottom: 0;
     cursor: pointer;
     left: 0;
@@ -553,7 +553,7 @@
   }
 
   .slider:before {
-    background-color: #fff; /* This is the ball color */
+    background-color: #fff;
     bottom: 2px;
     content: "";
     height: 12px;
@@ -564,7 +564,7 @@
   }
 
   input:checked + .slider {
-    background-color: var(--primary); /* Track color when checked */
+    background-color: var(--primary);
   }
 
   input:checked + .slider:before {
@@ -581,72 +581,73 @@
 
   /* Right Side Menus Container (Desktop) */
   #right-side-menus-container {
-    position: sticky; /* Make it sticky */
+    position: sticky;
     top: 2em;
-    display: flex; /* Arrange children horizontally */
-    flex-direction: row;
-    gap: 1em; /* Space between columns */
-    align-items: flex-start; /* Align columns to the top */
-    margin-left: 1em; /* Reduced margin to bring closer */
-    width: auto; /* Allow content to dictate width */
-    flex-shrink: 0; /* Prevent shrinking */
+    display: flex;
+    flex-direction: column; /* Changed to column */
+    gap: 1em; /* Space between rows (top row and bulk actions) */
+    align-items: flex-start;
+    margin-left: 1em;
+    width: calc(200px + 1em + 200px); /* Combined width of two top menus + gap */
+    flex-shrink: 0;
   }
 
-  /* Column 1: Category and Quick Access (Desktop) */
-  #category-quick-access-stack {
+  /* New container for top row menus */
+  #top-right-menus-row {
     display: flex;
-    flex-direction: column; /* Stack category and quick access vertically */
-    gap: 1em; /* Space between category and quick access */
-    width: 200px; /* Fixed width for this column */
-    flex-shrink: 0; /* Prevent shrinking */
+    flex-direction: row;
+    gap: 1em; /* Space between quick access and category menus */
+    width: 100%; /* Take full width of parent */
   }
 
   /* Individual Right Menu Styles (children of the new columns) */
-  #floating-menu, #category-menu, #bulk-actions-menu {
+  #floating-menu, #category-menu {
     background: var(--background);
     border: 1px solid var(--block-border);
-    border-radius: var(--border-radius); /* Uses variable */
+    border-radius: var(--border-radius);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    padding: 1em; /* Consistent padding */
-    position: static; /* No longer sticky/fixed individually */
-    max-height: none; /* Allow content to dictate height */
-    overflow-y: visible; /* Let parent handle overflow */
-    margin-bottom: 0; /* No individual margin-bottom */
-    display: flex; /* Enable flex for internal spacing */
-    flex-direction: column; /* Stack children vertically */
-    gap: 0.5em; /* Consistent internal gap */
+    padding: 1em;
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    flex: 1; /* Allow them to share space equally within the row */
+    min-width: 180px; /* Ensure they don't get too small */
   }
 
   /* Specific for Labels Quick Access to have its own scrollbar */
   #floating-menu {
-    max-height: 300px; /* Example max height for quick access list */
-    overflow-y: auto; /* Only this menu scrolls */
+    max-height: 300px;
+    overflow-y: auto;
   }
 
   /* Adjust gap for specific elements within menus if needed */
   #category-menu .category-input-group {
-    margin-bottom: 0.5em; /* Adjust to match general gap */
+    margin-bottom: 0.5em;
   }
   #category-menu ul {
-    margin-top: 0; /* Remove default ul margin */
+    margin-top: 0;
   }
   #bulk-actions-menu .bulk-action-group {
-    margin-top: 0.5em; /* Consistent spacing between groups */
+    margin-top: 0.5em;
   }
   #bulk-actions-menu .bulk-action-group:first-child {
-    margin-top: 0; /* No top margin for first group */
+    margin-top: 0;
   }
 
 
   #floating-menu .mobile-menu-header, #category-menu .mobile-menu-header, #bulk-actions-menu .mobile-menu-header {
-    display: none; /* Hide mobile header on desktop */
+    display: none;
   }
 
   #floating-menu h3, #category-menu h3, #bulk-actions-menu h3 {
     margin-top: 0;
     color: var(--primary);
     font-size: 1.2rem;
-    margin-bottom: 0.8em; /* Keep some margin for titles */
+    margin-bottom: 0.8em;
   }
 
   #floating-menu ul, #category-menu ul {
@@ -656,13 +657,13 @@
   }
 
   #floating-menu li {
-    margin-bottom: 0.5em; /* Consistent spacing for list items */
-    display: flex; /* Make list item a flex container */
-    align-items: center; /* Vertically align contents */
-    gap: 0.5em; /* Space between number box and link */
+    margin-bottom: 0.5em;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
   }
   #floating-menu li:last-child {
-    margin-bottom: 0; /* No margin after last item */
+    margin-bottom: 0;
   }
 
 
@@ -670,21 +671,21 @@
   #floating-menu a {
     background: var(--label-box-background);
     color: var(--label-box-text);
-    padding: 0.5em 0.8em; /* Adjusted padding for button feel */
+    padding: 0.5em 0.8em;
     border-radius: var(--border-radius);
-    display: block; /* Ensure it takes full width */
+    display: block;
     text-align: center;
     font-weight: 600;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     transition: background 0.2s ease, box-shadow 0.2s ease;
-    cursor: grab; /* Indicate draggable */
+    cursor: grab;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    flex-grow: 1; /* Allow the anchor to take remaining space */
+    flex-grow: 1;
   }
   #floating-menu a:hover {
-    background: var(--primary); /* Hover effect */
+    background: var(--primary);
     color: white;
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   }
@@ -698,25 +699,25 @@
 
   /* Quick Access Label Number Box */
   #floating-menu .label-number-box {
-    background: var(--gray); /* Grey background */
-    color: white; /* White text */
+    background: var(--gray);
+    color: white;
     padding: 0.3em 0.6em;
     border-radius: var(--border-radius);
     font-size: 0.9em;
     font-weight: 600;
-    flex-shrink: 0; /* Prevent shrinking */
-    min-width: 30px; /* Ensure enough width for 2-3 digits */
+    flex-shrink: 0;
+    min-width: 30px;
     text-align: center;
-    box-sizing: border-box; /* Include padding in width */
-    display: flex; /* Added flex to align number and checkbox */
-    align-items: center; /* Vertically center items */
-    justify-content: center; /* Horizontally center items */
-    gap: 0.3em; /* Small gap between number and checkbox */
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3em;
   }
 
   #floating-menu .label-number-box input[type="checkbox"] {
-    margin: 0; /* Remove default checkbox margin */
-    transform: scale(1.1); /* Slightly larger checkbox */
+    margin: 0;
+    transform: scale(1.1);
   }
 
 
@@ -730,13 +731,13 @@
   #category-menu .category-input-group input {
     flex-grow: 1;
     padding: 0.5em;
-    border-radius: var(--border-radius); /* Uses variable */
+    border-radius: var(--border-radius);
     border: 1px solid var(--input-border);
   }
 
   #category-menu .category-input-group button {
     padding: 0.5em 0.8em;
-    border-radius: var(--border-radius); /* Uses variable */
+    border-radius: var(--border-radius);
     background: var(--primary);
     color: white;
     border: none;
@@ -749,8 +750,8 @@
     align-items: center;
     padding: 0.3em 0.5em;
     background: var(--light-gray);
-    border-radius: var(--border-radius); /* Uses variable */
-    gap: 0.5em; /* Space between checkbox and text */
+    border-radius: var(--border-radius);
+    gap: 0.5em;
   }
 
   #category-menu .category-list-item span {
@@ -760,44 +761,51 @@
 
   /* New style for the category select box (similar to label number box, but no number) */
   .label-category-select-box {
-    background: var(--gray); /* Grey background */
-    color: white; /* White text */
-    padding: 0.3em 0.6em; /* Match label number box padding */
-    border-radius: var(--border-radius); /* Uses variable */
+    background: var(--gray);
+    color: white;
+    padding: 0.3em 0.6em;
+    border-radius: var(--border-radius);
     font-size: 0.9em;
     font-weight: 600;
-    flex-shrink: 0; /* Prevent shrinking */
-    width: 30px; /* Fixed width for the box */
-    height: 30px; /* Fixed height for the box */
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
     text-align: center;
-    box-sizing: border-box; /* Include padding in width */
-    display: flex; /* Added flex to align checkbox */
-    align-items: center; /* Vertically center items */
-    justify-content: center; /* Horizontally center items */
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .label-category-select-box input[type="checkbox"] {
-    margin: 0; /* Remove default checkbox margin */
-    transform: scale(1.1); /* Slightly larger checkbox */
+    margin: 0;
+    transform: scale(1.1);
   }
 
 
   /* Bulk Actions Menu Specifics */
   #bulk-actions-menu {
-    width: 250px; /* Fixed width for bulk actions column */
-    flex-shrink: 0;
+    width: 100%; /* Take full width of its parent (#right-side-menus-container) */
+    background: var(--background);
+    border: 1px solid var(--block-border);
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 1em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
   }
 
 
   /* Mobile Menu Toggle Buttons (bottom corners) */
   .mobile-menu-toggle-button {
-    display: none; /* Hidden by default on large screens */
+    display: none;
     position: fixed;
     bottom: 1em;
     background: var(--primary);
     color: white;
     border: none;
-    border-radius: 50%; /* Make it round */
+    border-radius: 50%;
     width: 50px;
     height: 50px;
     font-size: 1.8rem;
@@ -805,7 +813,7 @@
     align-items: center;
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    z-index: 1000; /* Ensure it's above other content */
+    z-index: 1000;
     transition: background 0.2s ease, transform 0.2s ease;
   }
 
@@ -824,14 +832,14 @@
 
   /* Mobile Menu Header (inside the menus when open) */
   .mobile-menu-header {
-    display: none; /* Hidden by default, shown in media query */
+    display: none;
     width: 100%;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1em;
-    padding: 0.5em 1em; /* Adjusted padding to give space for absolute button */
+    padding: 0.5em 1em;
     border-bottom: 1px solid var(--block-border);
-    box-sizing: border-box; /* Include padding in width */
+    box-sizing: border-box;
   }
 
 
@@ -844,45 +852,45 @@
 
     /* Left floating menu becomes fixed mobile menu */
     #left-floating-menu {
-      position: fixed; /* Fixed on mobile */
+      position: fixed;
       bottom: 0;
       left: 0;
       width: 80%;
       max-width: 300px;
       height: auto;
-      max-height: 80vh; /* Re-add max-height for mobile to prevent overflow off screen */
-      overflow-y: auto; /* Re-add overflow for mobile */
+      max-height: 80vh;
+      overflow-y: auto;
       border-radius: var(--border-radius) var(--border-radius) 0 0;
       border-bottom: none;
-      transform: translateY(calc(100% + 50px)); /* Start collapsed and fully hidden */
-      display: flex; /* Ensure they are flex containers when active */
-      margin-right: 0; /* Remove desktop margin */
-      pointer-events: none; /* Make menu non-interactive when collapsed */
-      z-index: 9999; /* Ensure they are on top */
+      transform: translateY(calc(100% + 50px));
+      display: flex;
+      margin-right: 0;
+      pointer-events: none;
+      z-index: 9999;
     }
 
     /* Mobile right menu wrapper (re-enable and style) */
-    #right-menu-wrapper-mobile { /* This ID will be used for the mobile right menu */
-        position: fixed; /* Fixed on mobile */
+    #right-menu-wrapper-mobile {
+        position: fixed;
         bottom: 0;
         right: 0;
         width: 80%;
         max-width: 300px;
         height: auto;
-        max-height: 80vh; /* Max height for the entire wrapper */
-        overflow-y: auto; /* Enable scrolling for the entire wrapper */
+        max-height: 80vh;
+        overflow-y: auto;
         border-radius: var(--border-radius) var(--border-radius) 0 0;
         border-bottom: none;
-        transform: translateY(calc(100% + 50px)); /* Hide by default */
-        pointer-events: none; /* Initially non-interactive */
-        z-index: 9998; /* Ensure it's below bulk actions if both open */
-        background: var(--background); /* Apply background here */
-        border: 1px solid var(--block-border); /* Apply border here */
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Apply shadow here */
-        padding: 1em; /* Apply padding here */
-        display: flex; /* Make it a flex container */
-        flex-direction: column; /* Stack vertically on mobile */
-        gap: 1em; /* Space between menus */
+        transform: translateY(calc(100% + 50px));
+        pointer-events: none;
+        z-index: 9998;
+        background: var(--background);
+        border: 1px solid var(--block-border);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        padding: 1em;
+        display: flex;
+        flex-direction: column;
+        gap: 1em;
     }
 
     /* When right menu wrapper is open, stack its children */
@@ -892,37 +900,38 @@
     }
 
     /* Individual Right Menu Styles (children of the mobile wrapper) on mobile */
-    #category-menu, #floating-menu, #bulk-actions-menu {
-        border-radius: 0; /* Remove individual border radius */
-        box-shadow: none; /* Remove individual shadows */
-        border: none; /* Remove individual borders */
-        border-bottom: 1px solid var(--block-border); /* Add separator between them */
-        width: auto; /* Take full width of parent */
+    #category-menu-mobile, #floating-menu-mobile, #bulk-actions-menu-mobile { /* Target the mobile-specific IDs */
+        border-radius: 0;
+        box-shadow: none;
+        border: none;
+        border-bottom: 1px solid var(--block-border);
+        width: auto;
+        padding: 1em; /* Ensure padding is applied to these inner divs */
     }
 
-    #bulk-actions-menu { /* First menu in mobile stack */
-        border-radius: var(--border-radius) var(--border-radius) 0 0; /* Rounded top only */
+    #bulk-actions-menu-mobile { /* First menu in mobile stack */
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
     }
-    #floating-menu { /* Last menu in mobile stack */
-        border-bottom: none; /* No border at the very bottom of the last menu */
-        border-radius: 0 0 var(--border-radius) var(--border-radius); /* Rounded bottom only */
+    #category-menu-mobile { /* Last menu in mobile stack */
+        border-bottom: none;
+        border-radius: 0 0 var(--border-radius) var(--border-radius);
     }
 
 
     /* Show mobile menu header when menus are open on mobile */
     #left-floating-menu.open .mobile-menu-header,
-    #right-menu-wrapper-mobile.open .mobile-menu-header { /* Only need to check wrapper open state */
-      display: flex; /* Show mobile header on mobile */
+    #right-menu-wrapper-mobile.open .mobile-menu-header {
+      display: flex;
     }
 
     /* Show the mobile toggle buttons */
     .mobile-menu-toggle-button {
-      display: flex; /* Show the buttons */
+      display: flex;
     }
 
     /* Adjust main container on mobile */
     #container {
-      margin-left: auto; /* Center main content */
+      margin-left: auto;
       margin-right: auto;
     }
 
@@ -949,12 +958,12 @@
   }
   /* New style for the bulk translate button */
   .translate-button {
-    background: #10b981; /* Green color */
+    background: #10b981;
     color: white;
   }
 
   .translate-button:hover {
-    background: #059669; /* Darker green on hover */
+    background: #059669;
   }
 
   /* Custom Modal Styles */
@@ -964,11 +973,11 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black backdrop */
+    background-color: rgba(0, 0, 0, 0.6);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10000; /* Ensure it's above everything else */
+    z-index: 10000;
   }
 
   .custom-modal-content {
@@ -1024,7 +1033,7 @@
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background-color: #10b981; /* Green background */
+    background-color: #10b981;
     color: white;
     padding: 10px 20px;
     border-radius: var(--border-radius);
@@ -1032,7 +1041,7 @@
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease;
-    z-index: 10001; /* Above modals */
+    z-index: 10001;
     font-size: 0.9rem;
     white-space: nowrap;
   }
@@ -1051,58 +1060,66 @@
 
   /* Adjust category select in header */
   .category-in-header {
-    display: flex; /* Make it a flex container */
-    align-items: center; /* Align items vertically */
-    gap: 0.2em; /* Space between label and select (if label was present) */
-    /* flex-grow: 1; Removed flex-grow here as it's now inside header-right-group */
-    margin-right: 0.5em; /* Small margin from previous element */
+    display: flex;
+    align-items: center;
+    gap: 0.2em;
+    margin-right: 0.5em;
   }
 
   .category-in-header select {
-    flex-grow: 1; /* Allow the select to grow within its container */
-    max-width: 150px; /* Limit its max width to prevent it from pushing too much */
+    flex-grow: 1;
+    max-width: 150px;
   }
 
   /* New wrapper for elements aligned to the right in the header */
   .header-right-group {
     display: flex;
     align-items: center;
-    gap: 0.5em; /* Space between category and action buttons */
-    margin-left: auto; /* Pushes this whole group to the far right */
+    gap: 0.5em;
+    margin-left: auto;
   }
 
   /* Style for the label number box */
   .label-number-box {
-    background: var(--gray); /* Grey background */
-    color: white; /* White text */
+    background: var(--gray);
+    color: white;
     padding: 0.3em 0.6em;
     border-radius: var(--border-radius);
     font-size: 0.9em;
     font-weight: 600;
-    flex-shrink: 0; /* Prevent shrinking */
-    min-width: 30px; /* Ensure enough width for 2-3 digits */
+    flex-shrink: 0;
+    min-width: 30px;
     text-align: center;
-    box-sizing: border-box; /* Include padding in width */
-    display: flex; /* Added flex to align number and checkbox */
-    align-items: center; /* Vertically center items */
-    justify-content: center; /* Horizontally center items */
-    gap: 0.3em; /* Small gap between number and checkbox */
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3em;
   }
 
   /* Style for the enabled toggle in the header */
   .enabled-toggle-header {
     display: flex;
     align-items: center;
-    gap: 0.2em; /* Small gap between label and checkbox */
-    font-weight: 500; /* Match other labels */
+    gap: 0.2em;
+    font-weight: 500;
     color: var(--text-color);
-    margin-right: 0.5em; /* Space from category dropdown */
-    flex-shrink: 0; /* Prevent shrinking */
+    margin-right: 0.5em;
+    flex-shrink: 0;
   }
 
   .enabled-toggle-header input[type="checkbox"] {
-    margin: 0; /* Remove default checkbox margin */
-    transform: scale(1.1); /* Slightly larger checkbox */
+    margin: 0;
+    transform: scale(1.1);
+  }
+
+  /* Styling for danger buttons */
+  .danger-button {
+      background: var(--danger);
+      color: white;
+  }
+  .danger-button:hover {
+      background: #dc2626; /* Darker red on hover */
   }
 </style>
 
@@ -1160,7 +1177,17 @@
   </div>
 
   <div id="right-side-menus-container">
-    <div id="category-quick-access-stack">
+    <div id="top-right-menus-row">
+        <div id="floating-menu">
+            <div class="mobile-menu-header">
+                <h3>Quick Access</h3>
+                <button id="closeRightMenuBtnDesktop" class="close-mobile-menu-btn" title="Close quick access menu">X</button>
+            </div>
+            <h3>Labels Quick Access</h3>
+            <ul id="label-quick-access-list" title="Quick access links to label blocks">
+            </ul>
+        </div>
+
         <div id="category-menu">
             <div class="mobile-menu-header">
                 <h3>Categories</h3>
@@ -1174,16 +1201,6 @@
             <ul id="category-list" style="list-style: none; padding: 0; margin-top: 1em;" title="List of existing categories">
             </ul>
             <button id="deleteSelectedCategoriesBtn" class="action-button danger-button" title="Delete all selected categories" style="margin-top: 1em;">Delete Selected Categories</button>
-        </div>
-
-        <div id="floating-menu">
-            <div class="mobile-menu-header">
-                <h3>Quick Access</h3>
-                <button id="closeRightMenuBtnDesktop" class="close-mobile-menu-btn" title="Close quick access menu">X</button>
-            </div>
-            <h3>Labels Quick Access</h3>
-            <ul id="label-quick-access-list" title="Quick access links to label blocks">
-            </ul>
         </div>
     </div>
 
@@ -2089,13 +2106,17 @@ Original description:
       };
 
       labelDiv.querySelector('.remove-btn').onclick = () => {
-        labelDiv.remove();
-        selectedLabelIds.delete(uniqueHtmlId); // Remove from selection set
-        updateBulkSelectAllCheckbox(); // Update "Select All" state
-        updateBulkSelectAllTranslateCheckbox(); // Update "Select All" for translate
-        saveFullSessionStateToLocalStorage(); // Save full session state
-        updateJSONOutput(); // Update JSON output display
-        updateLabelNumbers(); // Update numbers after removal
+        showCustomModal('Are you sure you want to delete this label? This action cannot be undone.', 'confirm', (response) => {
+            if (response) {
+                labelDiv.remove();
+                selectedLabelIds.delete(uniqueHtmlId); // Remove from selection set
+                updateBulkSelectAllCheckbox(); // Update "Select All" state
+                updateBulkSelectAllTranslateCheckbox(); // Update "Select All" for translate
+                saveFullSessionStateToLocalStorage(); // Save full session state
+                updateJSONOutput(); // Update JSON output display
+                updateLabelNumbers(); // Update numbers after removal
+            }
+        });
       };
 
       // New move buttons
@@ -3602,15 +3623,13 @@ Original text:
         const floatingMenuContent = document.getElementById('floating-menu').innerHTML;
         const bulkActionsMenuContent = document.getElementById('bulk-actions-menu').innerHTML;
 
-        // Clear and append content to the mobile wrapper
+        // Clear and append content to the mobile wrapper in the desired order
         rightMenuWrapperMobile.innerHTML = `
             <div class="mobile-menu-header">
                 <h3>Right Menu</h3>
                 <button id="closeRightMenuBtnMobile" class="close-mobile-menu-btn" title="Close right menu">X</button>
             </div>
-            <div id="category-menu-mobile">${categoryMenuContent}</div>
-            <div id="floating-menu-mobile">${floatingMenuContent}</div>
-            <div id="bulk-actions-menu-mobile">${bulkActionsMenuContent}</div>
+            <div id="floating-menu-mobile">${floatingMenuContent}</div> <div id="category-menu-mobile">${categoryMenuContent}</div> <div id="bulk-actions-menu-mobile">${bulkActionsMenuContent}</div>
         `;
 
         // Re-attach event listeners for buttons inside the dynamically added content
