@@ -279,10 +279,10 @@
     color: white;
   }
 
-  .move-up-btn,
-  .move-down-btn {
-    background: var(--gray); /* Grey color */
-    color: white;
+  .move-up-btn:disabled,
+  .move-down-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
   }
 
   .snippet-action-btn { /* Style for snippet edit/delete buttons */
@@ -297,12 +297,6 @@
   .close-mobile-menu-btn:hover {
     background: #dc2626; /* Darker red on hover */
     transform: none; /* Ensure no unwanted transform from previous styles */
-  }
-
-  .move-up-btn:disabled,
-  .move-down-btn:disabled {
-    background: #9ca3af;
-    cursor: not-allowed;
   }
 
   .snippet-action-btn:hover {
@@ -1188,6 +1182,65 @@
   .danger-button:hover {
       background: #dc2626; /* Darker red on hover */
   }
+
+  /* Snippet management section styling */
+  .snippet-management-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5em;
+  }
+
+  .snippet-management-section .snippet-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5em;
+  }
+
+  .snippet-management-section .snippet-actions {
+      display: flex;
+      justify-content: flex-end; /* Push button to the right */
+      margin-top: 0.5em;
+  }
+
+  .snippet-management-section .snippet-actions button {
+      width: auto; /* Allow button to size naturally */
+      padding: 0.4em 0.8em;
+  }
+
+  /* Bulk Translate Modal Specific Styles */
+  #bulkTranslateModal .modal-lang-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 0.5em;
+      margin-bottom: 1em;
+      padding: 0.5em;
+      border: 1px solid var(--input-border);
+      border-radius: var(--border-radius);
+      background: var(--header-background);
+      max-height: 200px;
+      overflow-y: auto;
+  }
+
+  #bulkTranslateModal .modal-lang-options label {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      margin: 0; /* Override default label margin */
+      font-weight: normal;
+  }
+
+  #bulkTranslateModal .modal-lang-options input[type="checkbox"] {
+      margin: 0;
+      transform: scale(1.1);
+  }
+
+  #bulkTranslateModal .modal-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 0.5em;
+      margin-top: 1em;
+  }
+
 </style>
 
 </head>
@@ -1224,7 +1277,7 @@
       </a>
       <div class="header-text-group">
         <h1>OZONE LABEL MASTER</h1>
-        <p>version 0.81</p>
+        <p>version 0.82</p>
       </div>
     </header>
 
@@ -1338,70 +1391,31 @@
                 <button id="bulkApplyPropertiesBtn" class="action-button full-width-button" style="margin-top: 1em;" title="Apply selected property changes to target labels">Apply Selected Properties</button>
             </div>
         </div>
-        <div class="scrollable-content">
-            <div class="bulk-action-group">
-                <div class="bulk-action-row">
-                    <label for="bulkTargetSelect" title="Choose whether to apply actions to selected labels or labels in a specific category">Apply to:</label>
-                    <select id="bulkTargetSelect" title="Select target for bulk actions">
-                        <option value="selected">Selected Labels (from editor or quick access)</option>
-                        <option value="category">Labels in Specific Category</option>
-                        <option value="selectedCategories">Labels in Selected Categories (from category menu)</option>
-                    </select>
-                    <select id="bulkCategoryFilterSelect" style="display:none;" title="Select category to filter labels"></select>
-                </div>
-                <div class="bulk-action-row">
-                    <input type="checkbox" id="bulkSelectAllCheckbox" title="Select or deselect all visible labels">
-                    <label for="bulkSelectAllCheckbox">Select All Visible Labels</label>
-                </div>
-            </div>
 
-            <div class="bulk-action-group">
-                <button id="bulkEnableBtn" class="full-width-button" title="Enable all selected labels">Enable Selected</button>
-                <button id="bulkDisableBtn" class="full-width-button" title="Disable all selected labels">Disable Selected</button>
-            </div>
+        <div class="bulk-action-group">
+            <button id="bulkTranslateLabelsBtn" class="action-button full-width-button translate-button" title="Translate names and descriptions for selected labels into chosen languages">Bulk Translate Labels ✨</button>
+        </div>
 
-            <div class="bulk-action-group">
-                <button id="bulkDeleteBtn" class="full-width-button danger-button" title="Permanently delete all selected labels">Delete Selected</button>
-            </div>
-
-            <div class="bulk-action-group">
-                <h4>Bulk Translate Locales</h4>
-                <div class="bulk-action-row">
-                    <label for="bulkTargetSelectTranslate" title="Choose whether to apply actions to selected labels or labels in a specific category">Apply to:</label>
-                    <select id="bulkTargetSelectTranslate" title="Select target for bulk translate actions">
-                        <option value="selected">Selected Labels (from editor or quick access)</option>
-                        <option value="category">Labels in Specific Category</option>
-                        <option value="selectedCategories">Labels in Selected Categories (from category menu)</option>
-                    </select>
-                    <select id="bulkCategoryFilterSelectTranslate" style="display:none;" title="Select category to filter labels for translation"></select>
-                </div>
-                <div class="bulk-action-row">
-                    <input type="checkbox" id="bulkSelectAllTranslateCheckbox" title="Select or deselect all visible labels for translation">
-                    <label for="bulkSelectAllTranslateCheckbox">Select All Visible Labels</label>
-                </div>
-                <label title="Select one or more languages to translate into">Translate To:</label>
-                <div id="bulkTranslateTargetLangs" title="Target languages for bulk translation">
-                    </div>
-                <button id="bulkTranslateBtn" class="full-width-button translate-button" title="Translate names and descriptions for selected labels into chosen languages">Translate Selected Labels ✨</button>
-            </div>
-
-            <div class="bulk-action-group">
-                <h4>Description Snippets</h4>
+        <div class="bulk-action-group snippet-management-section">
+            <h4>Description Snippets</h4>
+            <div class="snippet-input-group">
                 <label for="newSnippetName">Snippet Name:</label>
                 <input type="text" id="newSnippetName" placeholder="e.g., 'Common Disclaimer'" title="Enter a name for your snippet">
                 <label for="newSnippetContent">Snippet Content:</label>
                 <textarea id="newSnippetContent" placeholder="Enter the prewritten text here..." title="Enter the text content of your snippet"></textarea>
-                <button id="addSnippetBtn" class="full-width-button" title="Add this text as a reusable snippet">Add Snippet</button>
-                <ul id="snippet-list" style="list-style: none; padding: 0; margin-top: 1em;">
-                    </ul>
-                <div class="bulk-action-row" style="margin-top: 1em;">
-                    <label for="bulkApplySnippetSelect">Apply Snippet:</label>
-                    <select id="bulkApplySnippetSelect" title="Select a snippet to apply to descriptions">
-                        <option value="">(Select Snippet)</option>
-                    </select>
-                </div>
-                <button id="bulkApplySnippetBtn" class="full-width-button" disabled title="Apply the selected snippet to descriptions of target labels">Bulk Apply Snippet</button>
             </div>
+            <div class="snippet-actions">
+                <button id="addSnippetBtn" class="action-button" style="background: var(--primary); color: white;" title="Add this text as a reusable snippet">Add Snippet</button>
+            </div>
+            <ul id="snippet-list" style="list-style: none; padding: 0; margin-top: 1em;">
+            </ul>
+            <div class="bulk-action-row" style="margin-top: 1em;">
+                <label for="bulkApplySnippetSelect">Apply Snippet:</label>
+                <select id="bulkApplySnippetSelect" title="Select a snippet to apply to descriptions">
+                    <option value="">(Select Snippet)</option>
+                </select>
+            </div>
+            <button id="bulkApplySnippetBtn" class="full-width-button" disabled title="Apply the selected snippet to descriptions of target labels">Bulk Apply Snippet</button>
         </div>
     </div>
   </div>
@@ -1451,6 +1465,19 @@
         <button id="applySnippetToLocaleBtn" class="confirm-btn">Apply</button>
         <button id="cancelApplySnippetToLocaleBtn" class="cancel-btn">Cancel</button>
       </div>
+    </div>
+  </div>
+
+  <div id="bulkTranslateModal" class="custom-modal-overlay" style="display: none;">
+    <div class="custom-modal-content">
+        <h3>Bulk Translate Labels</h3>
+        <p>Select languages to translate currently selected labels into. Existing locales in target languages will be overwritten.</p>
+        <div class="modal-lang-options" id="bulkTranslateTargetLangsModal">
+            </div>
+        <div class="modal-buttons">
+            <button id="startBulkTranslateBtn" class="confirm-btn translate-button">Start Translation</button>
+            <button id="cancelBulkTranslateBtn" class="cancel-btn">Cancel</button>
+        </div>
     </div>
   </div>
 
@@ -2220,8 +2247,7 @@ Original description:
             if (response) {
                 labelDiv.remove();
                 selectedLabelIds.delete(uniqueHtmlId); // Remove from selection set
-                updateBulkSelectAllCheckbox(); // Update "Select All" state
-                updateBulkSelectAllTranslateCheckbox(); // Update "Select All" for translate
+                updateFloatingMenu(); // Update quick access checkboxes
                 saveFullSessionStateToLocalStorage(); // Save full session state
                 updateJSONOutput(); // Update JSON output display
                 updateLabelNumbers(); // Update numbers after removal
@@ -2256,8 +2282,6 @@ Original description:
           } else {
               selectedLabelIds.delete(uniqueHtmlId);
           }
-          updateBulkSelectAllCheckbox(); // Update "Select All" state
-          updateBulkSelectAllTranslateCheckbox(); // Update "Select All" for translate
           updateFloatingMenu(); // Update quick access checkboxes
       });
 
@@ -2536,9 +2560,6 @@ Original description:
           labelDiv.style.display = 'none';
         }
       });
-      // Re-evaluate bulk select all checkboxes when filter changes
-      updateBulkSelectAllCheckbox();
-      updateBulkSelectAllTranslateCheckbox();
       updateFloatingMenu(); // Update quick access checkboxes based on visibility
     }
 
@@ -2587,9 +2608,6 @@ Original description:
           updateUndoRedoButtons(); // Update button states
           renderCategoryMenu(); // Re-render category menu
           updateLabelCategoryDropdowns(); // Update label dropdowns
-          updateBulkActionsCategoryTargetVisibility(); // Update bulk target visibility
-          updateBulkSelectAllCheckbox(); // Update "Select All" state
-          updateBulkSelectAllTranslateCheckbox(); // Update "Select All" for translate
           updateLabelNumbers(); // Update numbers after reset
           renderSnippetManagementUI(); // Re-render snippets
           populateBulkApplySnippetSelect(); // Update bulk apply snippet dropdown
@@ -2837,9 +2855,6 @@ Original description:
         }
         renderCategoryMenu();
         updateLabelCategoryDropdowns();
-        updateBulkCategoryFilterDropdown(); // Update bulk category filter for general bulk actions
-        updateBulkCategoryFilterTranslateDropdown(); // Update bulk category filter for translate
-        updateBulkActionsCategoryTargetVisibility(); // Initial visibility check
     }
 
     function saveCategories() {
@@ -2881,9 +2896,6 @@ Original description:
                 } else {
                     selectedCategoryNames.delete(categoryName);
                 }
-                updateBulkActionsCategoryTargetVisibility(); // Update visibility of category filters
-                updateBulkSelectAllCheckbox(); // Re-evaluate bulk select all
-                updateBulkSelectAllTranslateCheckbox(); // Re-evaluate bulk translate select all
             };
 
             // Add drag handlers to the new list item
@@ -2943,7 +2955,7 @@ Original description:
                 saveCategories();
                 renderCategoryMenu(); // Re-render the menu to reflect new order
                 updateLabelCategoryDropdowns(); // Update label dropdowns to reflect new order
-                saveFullSessionStateToLocalStorage(); // Save full session state
+                saveFullSessionStateToLocalStorage(); // Save full session state after category change
                 updateJSONOutput(); // Update JSON output display
             }
         }
@@ -2965,8 +2977,6 @@ Original description:
             saveCategories();
             renderCategoryMenu();
             updateLabelCategoryDropdowns(); // Update all label dropdowns
-            updateBulkCategoryFilterDropdown(); // Update bulk category filter
-            updateBulkCategoryFilterTranslateDropdown(); // Update bulk category filter for translate
             saveFullSessionStateToLocalStorage(); // Save full session state after category change
             updateJSONOutput(); // Update JSON output display
         } else if (categories.includes(categoryName)) {
@@ -2987,13 +2997,8 @@ Original description:
             }
         });
         updateLabelCategoryDropdowns(); // Update all label dropdowns
-        updateBulkCategoryFilterDropdown(); // Update bulk category filter
-        updateBulkCategoryFilterTranslateDropdown(); // Update bulk category filter for translate
         saveFullSessionStateToLocalStorage(); // Save full session state after category change
         updateJSONOutput(); // Update JSON output display
-        updateBulkActionsCategoryTargetVisibility(); // Update visibility of category filters
-        updateBulkSelectAllCheckbox(); // Re-evaluate bulk select all
-        updateBulkSelectAllTranslateCheckbox(); // Re-evaluate bulk translate select all
     }
 
     function deleteSelectedCategories() {
@@ -3038,88 +3043,21 @@ Original description:
         document.querySelectorAll('.bulk-select-checkbox').forEach(checkbox => {
             checkbox.checked = false;
         });
-        document.getElementById('bulkSelectAllCheckbox').checked = false;
-        document.getElementById('bulkSelectAllTranslateCheckbox').checked = false; // Clear translate checkbox too
         updateFloatingMenu(); // Update quick access checkboxes
     }
 
-    // Helper to get filtered checkboxes based on current bulk target
-    function getFilteredLabelCheckboxes(targetSelectId) {
-        const targetType = document.getElementById(targetSelectId).value;
-        const allVisibleLabelDivs = Array.from(document.querySelectorAll('.label-block:not([style*="display: none"])'));
-        let filteredLabelDivs = [];
-
-        if (targetType === 'selected') {
-            filteredLabelDivs = allVisibleLabelDivs.filter(labelDiv => selectedLabelIds.has(labelDiv.id));
-        } else if (targetType === 'category') {
-            const selectedCategory = document.getElementById(targetSelectId.replace('Select', 'CategoryFilterSelect'))?.value || ''; // Added null check
-            if (selectedCategory) {
-                filteredLabelDivs = allVisibleLabelDivs.filter(labelDiv => labelDiv.querySelector('.label-category')?.value === selectedCategory); // Added null check
-            }
-        } else if (targetType === 'selectedCategories') {
-            if (selectedCategoryNames.size > 0) {
-                filteredLabelDivs = allVisibleLabelDivs.filter(labelDiv => {
-                    const labelCategory = labelDiv.querySelector('.label-category')?.value || ''; // Added null check
-                    return selectedCategoryNames.has(labelCategory);
-                });
-            }
-        } else { // Default or no specific target, consider all visible
-            filteredLabelDivs = allVisibleLabelDivs;
-        }
-        return filteredLabelDivs.map(labelDiv => labelDiv.querySelector('.bulk-select-checkbox')).filter(cb => cb); // Filter out any null checkboxes
-    }
-
-    function updateBulkSelectAllCheckbox() {
-        const bulkSelectAllCheckbox = document.getElementById('bulkSelectAllCheckbox');
-        const relevantCheckboxes = getFilteredLabelCheckboxes('bulkTargetSelect');
-
-        if (relevantCheckboxes.length === 0) {
-            bulkSelectAllCheckbox.checked = false;
-            bulkSelectAllCheckbox.indeterminate = false;
-            return;
-        }
-
-        const allChecked = relevantCheckboxes.every(cb => cb.checked);
-        const someChecked = relevantCheckboxes.some(cb => cb.checked);
-
-        bulkSelectAllCheckbox.checked = allChecked;
-        bulkSelectAllCheckbox.indeterminate = someChecked && !allChecked;
-    }
-
-    function getTargetLabelDivs(targetSelectId) {
-        const targetType = document.getElementById(targetSelectId).value;
-        let targetLabels = [];
-
-        if (targetType === 'selected') {
-            selectedLabelIds.forEach(id => {
-                const labelDiv = document.getElementById(id);
-                if (labelDiv) targetLabels.push(labelDiv);
-            });
-        } else if (targetType === 'category') {
-            const selectedCategory = document.getElementById(targetSelectId.replace('Select', 'CategoryFilterSelect'))?.value || ''; // Added null check
-            if (selectedCategory) {
-                document.querySelectorAll('.label-block').forEach(labelDiv => {
-                    const categorySelect = labelDiv.querySelector('.label-category');
-                    if (categorySelect && categorySelect.value === selectedCategory) {
-                        targetLabels.push(labelDiv);
-                    }
-                });
-            }
-        } else if (targetType === 'selectedCategories') {
-            if (selectedCategoryNames.size > 0) {
-                document.querySelectorAll('.label-block').forEach(labelDiv => {
-                    const labelCategory = labelDiv.querySelector('.label-category')?.value || ''; // Added null check
-                    if (selectedCategoryNames.has(labelCategory)) {
-                        targetLabels.push(labelDiv);
-                    }
-                });
-            }
-        }
+    function getTargetLabelDivsForBulkActions() {
+        // For bulk actions, we now only target labels explicitly selected via checkboxes
+        const targetLabels = [];
+        selectedLabelIds.forEach(id => {
+            const labelDiv = document.getElementById(id);
+            if (labelDiv) targetLabels.push(labelDiv);
+        });
         return targetLabels;
     }
 
-    function applyBulkProperties() { // Renamed from applyBulkPropertyChanges
-        const targetLabels = getTargetLabelDivs('bulkTargetSelect');
+    function applyBulkProperties() {
+        const targetLabels = getTargetLabelDivsForBulkActions();
         const newSeverity = document.getElementById('bulkSeverityControl').value;
         const newBlurs = document.getElementById('bulkBlursControl').value;
         const newDefaultSetting = document.getElementById('bulkDefaultSettingControl').value;
@@ -3127,7 +3065,7 @@ Original description:
         const newEnabled = document.getElementById('bulkEnabledControl').checked; // Get the state of the bulk enabled checkbox
 
         if (targetLabels.length === 0) {
-            showCustomModal('No labels selected or found for the chosen target.', 'alert');
+            showCustomModal('No labels selected for bulk property application.', 'alert');
             return;
         }
 
@@ -3160,34 +3098,10 @@ Original description:
         });
     }
 
-    function bulkEnableDisable(enable) {
-        const targetLabels = getTargetLabelDivs('bulkTargetSelect');
+    function bulkDeleteLabels() {
+        const targetLabels = getTargetLabelDivsForBulkActions(); // Re-use existing target label logic
         if (targetLabels.length === 0) {
-            showCustomModal('No labels selected or found for the chosen target.', 'alert');
-            return;
-        }
-
-        const action = enable ? 'Enable' : 'Disable';
-        showCustomModal(`${action} ${targetLabels.length} labels?`, 'confirm', (response) => {
-            if (response) {
-                targetLabels.forEach(labelDiv => {
-                    const enabledCheckbox = labelDiv.querySelector('.enabled');
-                    if (enabledCheckbox) { // Added null check
-                        enabledCheckbox.checked = enable;
-                        updateLabelBlockVisualState(labelDiv);
-                    }
-                });
-                saveFullSessionStateToLocalStorage();
-                updateJSONOutput();
-                showCustomModal(`Labels ${action.toLowerCase()}d.`, 'alert');
-            }
-        });
-    }
-
-    function bulkDeleteLabels() { // New function for deleting selected labels
-        const targetLabels = getTargetLabelDivs('bulkTargetSelect'); // Re-use existing target label logic
-        if (targetLabels.length === 0) {
-            showCustomModal('No labels selected or found for the chosen target.', 'alert');
+            showCustomModal('No labels selected for deletion.', 'alert');
             return;
         }
 
@@ -3197,82 +3111,29 @@ Original description:
                     labelDiv.remove();
                     selectedLabelIds.delete(labelDiv.id); // Ensure removed from selection
                 });
-                updateBulkSelectAllCheckbox(); // Update "Select All" state
-                updateBulkSelectAllTranslateCheckbox(); // Update "Select All" for translate
                 saveFullSessionStateToLocalStorage();
                 updateJSONOutput();
                 updateLabelNumbers(); // Update numbers after bulk delete
+                updateFloatingMenu(); // Update quick access checkboxes
                 showCustomModal('Labels deleted.', 'alert');
             }
         });
     }
 
-    function updateBulkCategoryFilterDropdown() {
-        const bulkCategoryFilterSelect = document.getElementById('bulkCategoryFilterSelect');
-        if (!bulkCategoryFilterSelect) return; // Added null check
-
-        const currentSelectedCategory = bulkCategoryFilterSelect.value; // Preserve selection if possible
-        bulkCategoryFilterSelect.innerHTML = '<option value="">(Select Category)</option>';
-        categories.forEach(cat => {
-            const option = document.createElement('option');
-            option.value = cat;
-            option.textContent = cat;
-            bulkCategoryFilterSelect.appendChild(option);
-        });
-        if (categories.includes(currentSelectedCategory)) {
-            bulkCategoryFilterSelect.value = currentSelectedCategory;
-        } else {
-            bulkCategoryFilterSelect.value = '';
-        }
-    }
-
-    // Function to control visibility of category filter dropdowns based on bulk target selection
-    function updateBulkActionsCategoryTargetVisibility() {
-        const bulkTargetSelect = document.getElementById('bulkTargetSelect');
-        const bulkCategoryFilterSelect = document.getElementById('bulkCategoryFilterSelect');
-        const bulkTargetSelectTranslate = document.getElementById('bulkTargetSelectTranslate');
-        const bulkCategoryFilterSelectTranslate = document.getElementById('bulkCategoryFilterSelectTranslate');
-
-        if (bulkTargetSelect && bulkCategoryFilterSelect) { // Added null checks
-            if (bulkTargetSelect.value === 'category') {
-                bulkCategoryFilterSelect.style.display = '';
-                updateBulkCategoryFilterDropdown(); // Ensure it's populated
-            } else {
-                bulkCategoryFilterSelect.style.display = 'none';
-            }
-        }
-
-
-        if (bulkTargetSelectTranslate && bulkCategoryFilterSelectTranslate) { // Added null checks
-            if (bulkTargetSelectTranslate.value === 'category') {
-                bulkCategoryFilterSelectTranslate.style.display = '';
-                updateBulkCategoryFilterTranslateDropdown(); // Ensure it's populated
-            } else {
-                bulkCategoryFilterSelectTranslate.style.display = 'none';
-            }
-        }
-
-        // Re-evaluate bulk select all checkboxes when target visibility changes
-        updateBulkSelectAllCheckbox();
-        updateBulkSelectAllTranslateCheckbox();
-    }
-
-
     // --- Bulk Translate Locales Functions ---
 
-    // Populates the target language checkboxes for bulk translation
-    function populateBulkTranslateLanguageOptions() {
-        const targetLangsDiv = document.getElementById('bulkTranslateTargetLangs');
-        if (!targetLangsDiv) return; // Added null check
+    // Populates the target language checkboxes for bulk translation modal
+    function populateBulkTranslateLanguageOptionsModal() {
+        const targetLangsDiv = document.getElementById('bulkTranslateTargetLangsModal');
+        if (!targetLangsDiv) return;
 
         targetLangsDiv.innerHTML = ''; // Clear existing options
 
         commonLanguages.forEach(langObj => {
-            // Populate target languages checkboxes
             const checkboxLabel = document.createElement('label');
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
-            checkbox.className = 'target-lang-checkbox';
+            checkbox.className = 'target-lang-checkbox-modal';
             checkbox.value = langObj.code;
             checkbox.title = `Translate to ${langObj.name}`;
             checkboxLabel.appendChild(checkbox);
@@ -3314,52 +3175,13 @@ Original text:
         }
     }
 
-    function updateBulkSelectAllTranslateCheckbox() {
-        const bulkSelectAllTranslateCheckbox = document.getElementById('bulkSelectAllTranslateCheckbox');
-        if (!bulkSelectAllTranslateCheckbox) return; // Added null check
-
-        const relevantCheckboxes = getFilteredLabelCheckboxes('bulkTargetSelectTranslate');
-
-        if (relevantCheckboxes.length === 0) {
-            bulkSelectAllTranslateCheckbox.checked = false;
-            bulkSelectAllTranslateCheckbox.indeterminate = false;
-            return;
-        }
-
-        const allChecked = relevantCheckboxes.every(cb => cb.checked);
-        const someChecked = relevantCheckboxes.some(cb => cb.checked);
-
-        bulkSelectAllTranslateCheckbox.checked = allChecked;
-        bulkSelectAllTranslateCheckbox.indeterminate = someChecked && !allChecked;
-    }
-
-    function updateBulkCategoryFilterTranslateDropdown() {
-        const bulkCategoryFilterSelect = document.getElementById('bulkCategoryFilterSelectTranslate');
-        if (!bulkCategoryFilterSelect) return; // Added null check
-
-        const currentSelectedCategory = bulkCategoryFilterSelect.value; // Preserve selection if possible
-        bulkCategoryFilterSelect.innerHTML = '<option value="">(Select Category)</option>';
-        categories.forEach(cat => {
-            const option = document.createElement('option');
-            option.value = cat;
-            option.textContent = cat;
-            bulkCategoryFilterSelect.appendChild(option);
-        });
-        if (categories.includes(currentSelectedCategory)) {
-            bulkCategoryFilterSelect.value = currentSelectedCategory;
-        } else {
-            bulkCategoryFilterSelect.value = '';
-        }
-    }
-
-
-    async function handleBulkTranslate() {
-        const targetLabelDivs = getTargetLabelDivs('bulkTargetSelectTranslate'); // Use the translate-specific target labels
-        const targetLangCheckboxes = Array.from(document.querySelectorAll('#bulkTranslateTargetLangs .target-lang-checkbox:checked'));
+    async function handleBulkTranslateModal() {
+        const targetLabelDivs = getTargetLabelDivsForBulkActions(); // Get currently selected labels
+        const targetLangCheckboxes = Array.from(document.querySelectorAll('#bulkTranslateTargetLangsModal .target-lang-checkbox-modal:checked'));
         const targetLangCodes = targetLangCheckboxes.map(cb => cb.value);
 
         if (targetLabelDivs.length === 0) {
-            showCustomModal('No labels selected or found for the chosen target for translation.', 'alert');
+            showCustomModal('No labels selected for translation. Please select labels using the checkboxes in the editor or quick access menu.', 'alert');
             return;
         }
         if (targetLangCodes.length === 0) {
@@ -3367,9 +3189,10 @@ Original text:
             return;
         }
 
-        showCustomModal(`Translate locales for ${targetLabelDivs.length} labels into ${targetLangCodes.length} target languages? Existing locales in target languages will be overwritten.`, 'confirm', async (response) => {
+        showCustomModal(`Translate locales for ${targetLabelDivs.length} selected labels into ${targetLangCodes.length} target languages? Existing locales in target languages will be overwritten.`, 'confirm', async (response) => {
             if (!response) return;
 
+            document.getElementById('bulkTranslateModal').style.display = 'none'; // Close the modal
             showLoadingOverlay('Translating labels...');
             let translationsPerformed = 0;
             let errors = [];
@@ -3381,7 +3204,7 @@ Original text:
                 // Determine source language from the first locale of the current label
                 const firstLocale = existingLocales[0];
                 if (!firstLocale) {
-                    errors.push(`Label "${labelDiv.querySelector('.identifier')?.value || '(Untitled)'}" has no locales to translate from.`); // Added null check
+                    errors.push(`Label "${labelDiv.querySelector('.identifier')?.value || '(Untitled)'}" has no locales to translate from.`);
                     continue;
                 }
                 const sourceLangSelect = firstLocale.querySelector('.lang');
@@ -3394,7 +3217,7 @@ Original text:
 
 
                 if (!sourceLangCode) {
-                    errors.push(`Label "${labelDiv.querySelector('.identifier')?.value || '(Untitled)'}" has a first locale with no language specified. Skipping.`); // Added null check
+                    errors.push(`Label "${labelDiv.querySelector('.identifier')?.value || '(Untitled)'}" has a first locale with no language specified. Skipping.`);
                     continue;
                 }
 
@@ -3404,7 +3227,7 @@ Original text:
                     if (targetCode === sourceLangCode) continue; // Skip translating to the same language
 
                     const targetLangName = commonLanguages.find(l => l.code === targetCode)?.name || targetCode;
-                    let targetLocaleDiv = existingLocales.find(loc => loc.querySelector('.lang')?.value === targetCode); // Added null check
+                    let targetLocaleDiv = existingLocales.find(loc => loc.querySelector('.lang')?.value === targetCode);
 
                     let translatedName = sourceName;
                     let translatedDescription = sourceDescription;
@@ -3430,8 +3253,8 @@ Original text:
                         }
                         translationsPerformed++;
                     } catch (error) {
-                        errors.push(`Failed to translate for label "${labelDiv.querySelector('.identifier')?.value || '(Untitled)'}" to ${targetLangName}: ${error.message}`); // Added null check
-                        console.error(`Error translating for label ${labelDiv.querySelector('.identifier')?.value} to ${targetLangName}:`, error); // Added null check
+                        errors.push(`Failed to translate for label "${labelDiv.querySelector('.identifier')?.value || '(Untitled)'}" to ${targetLangName}: ${error.message}`);
+                        console.error(`Error translating for label ${labelDiv.querySelector('.identifier')?.value} to ${targetLangName}:`, error);
                     }
                 }
             }
@@ -3468,7 +3291,7 @@ Original text:
 
     function renderSnippetManagementUI() {
         const snippetList = document.getElementById('snippet-list');
-        if (!snippetList) return; // Added null check
+        if (!snippetList) return;
 
         snippetList.innerHTML = ''; // Clear existing list
 
@@ -3480,8 +3303,8 @@ Original text:
             snippetList.appendChild(listItem);
             const bulkApplySnippetBtn = document.getElementById('bulkApplySnippetBtn');
             const bulkApplySnippetSelect = document.getElementById('bulkApplySnippetSelect');
-            if (bulkApplySnippetBtn) bulkApplySnippetBtn.disabled = true; // Added null check
-            if (bulkApplySnippetSelect) { // Added null check
+            if (bulkApplySnippetBtn) bulkApplySnippetBtn.disabled = true;
+            if (bulkApplySnippetSelect) {
                 bulkApplySnippetSelect.disabled = true;
                 bulkApplySnippetSelect.innerHTML = '<option value="">(No Snippets)</option>';
             }
@@ -3517,16 +3340,16 @@ Original text:
 
         const bulkApplySnippetBtn = document.getElementById('bulkApplySnippetBtn');
         const bulkApplySnippetSelect = document.getElementById('bulkApplySnippetSelect');
-        if (bulkApplySnippetBtn) bulkApplySnippetBtn.disabled = false; // Added null check
-        if (bulkApplySnippetSelect) bulkApplySnippetSelect.disabled = false; // Added null check
+        if (bulkApplySnippetBtn) bulkApplySnippetBtn.disabled = false;
+        if (bulkApplySnippetSelect) bulkApplySnippetSelect.disabled = false;
         populateBulkApplySnippetSelect();
     }
 
     function addSnippet() {
         const nameInput = document.getElementById('newSnippetName');
         const contentTextarea = document.getElementById('newSnippetContent');
-        const name = nameInput ? nameInput.value.trim() : ''; // Added null check
-        const content = contentTextarea ? contentTextarea.value.trim() : ''; // Added null check
+        const name = nameInput ? nameInput.value.trim() : '';
+        const content = contentTextarea ? contentTextarea.value.trim() : '';
 
         if (!name) {
             showCustomModal('Please enter a name for the snippet.', 'alert');
@@ -3538,8 +3361,8 @@ Original text:
         }
 
         descriptionSnippets.push({ name, content });
-        if (nameInput) nameInput.value = ''; // Added null check
-        if (contentTextarea) contentTextarea.value = ''; // Added null check
+        if (nameInput) nameInput.value = '';
+        if (contentTextarea) contentTextarea.value = '';
         saveDescriptionSnippets();
         renderSnippetManagementUI();
         populateBulkApplySnippetSelect();
@@ -3627,7 +3450,7 @@ Original text:
 
     function populateBulkApplySnippetSelect() {
         const select = document.getElementById('bulkApplySnippetSelect');
-        if (!select) return; // Added null check
+        if (!select) return;
 
         const currentSelectedValue = select.value; // Preserve selection
         select.innerHTML = '<option value="">(Select Snippet)</option>';
@@ -3644,21 +3467,21 @@ Original text:
             select.value = '';
         }
         const bulkApplySnippetBtn = document.getElementById('bulkApplySnippetBtn');
-        if (bulkApplySnippetBtn) bulkApplySnippetBtn.disabled = (descriptionSnippets.length === 0 || select.value === ''); // Added null check
+        if (bulkApplySnippetBtn) bulkApplySnippetBtn.disabled = (descriptionSnippets.length === 0 || select.value === '');
     }
 
     function handleBulkApplySnippet() {
-        const selectedSnippetIndex = document.getElementById('bulkApplySnippetSelect')?.value; // Added null check
-        if (selectedSnippetIndex === '' || selectedSnippetIndex === undefined) { // Check for undefined too
+        const selectedSnippetIndex = document.getElementById('bulkApplySnippetSelect')?.value;
+        if (selectedSnippetIndex === '' || selectedSnippetIndex === undefined) {
             showCustomModal('Please select a snippet to apply.', 'alert');
             return;
         }
 
         const snippetContent = descriptionSnippets[parseInt(selectedSnippetIndex)].content;
-        const targetLabels = getTargetLabelDivs('bulkTargetSelect'); // Re-use existing target label logic
+        const targetLabels = getTargetLabelDivsForBulkActions();
 
         if (targetLabels.length === 0) {
-            showCustomModal('No labels selected or found for the chosen target.', 'alert');
+            showCustomModal('No labels selected for applying snippet.', 'alert');
             return;
         }
 
@@ -3666,7 +3489,7 @@ Original text:
             if (response) {
                 targetLabels.forEach(labelDiv => {
                     labelDiv.querySelectorAll('.locale-block .description').forEach(descTextarea => {
-                        if (descTextarea) { // Added null check
+                        if (descTextarea) {
                             if (descTextarea.value.trim() !== '') {
                                 descTextarea.value += '\n' + snippetContent;
                             } else {
@@ -3710,7 +3533,7 @@ Original text:
     // Function to load a session from a .ozm or .json file
     function loadSessionFile() {
       const fileInput = document.getElementById('sessionFileInput');
-      if (fileInput) fileInput.click(); // Added null check
+      if (fileInput) fileInput.click();
     }
 
     // Event listener for the hidden session file input
@@ -3741,7 +3564,7 @@ Original text:
     // Function to populate the default locale language select dropdown
     function populateDefaultLocaleLanguageSelect() {
         const select = document.getElementById('defaultLocaleLangSelect');
-        if (!select) return; // Added null check
+        if (!select) return;
 
         select.innerHTML = '<option value="">(None)</option>'; // Option to not set a default
         commonLanguages.forEach(langObj => {
@@ -3790,7 +3613,7 @@ Original text:
         }
 
         loadCategories(); // Load categories on app start
-        populateBulkTranslateLanguageOptions(); // Populate bulk translate options
+        populateBulkTranslateLanguageOptionsModal(); // Populate bulk translate options for modal
         populateDefaultLocaleLanguageSelect(); // Populate default locale language select
         loadDescriptionSnippets(); // Load description snippets on app start
         updateUndoRedoButtons(); // Initialize button states
@@ -3799,7 +3622,7 @@ Original text:
         // Initialize theme toggle state in options modal
         const themeToggle = document.getElementById('checkbox');
         const currentTheme = localStorage.getItem('theme');
-        if (themeToggle) { // Added null check
+        if (themeToggle) {
             if (currentTheme === 'dark-mode') {
               document.body.classList.add('dark-mode');
               themeToggle.checked = true;
@@ -3824,7 +3647,7 @@ Original text:
         updateUndoRedoButtons();
         renderCategoryMenu(); // Render empty categories
         updateLabelCategoryDropdowns();
-        populateBulkTranslateLanguageOptions(); // Ensure options are populated even on error
+        populateBulkTranslateLanguageOptionsModal(); // Ensure options are populated even on error
         populateDefaultLocaleLanguageSelect(); // Ensure options are populated even on error
         renderSnippetManagementUI(); // Ensure snippets are rendered
         populateBulkApplySnippetSelect(); // Ensure bulk apply snippet dropdown is populated
@@ -3855,19 +3678,16 @@ Original text:
     const closeCategoryMenuBtnDesktop = document.getElementById('closeCategoryMenuBtnDesktop');
     const closeBulkActionsMenuBtnDesktop = document.getElementById('closeBulkActionsMenuBtnDesktop');
 
-    // Mobile close button for the right menu wrapper
-    // const closeRightMenuBtnMobile = document.getElementById('closeRightMenuBtnMobile'); // This is attached dynamically
-
     // Function to open a specific mobile menu
     function openMobileMenu(menuElement) {
       // Close other menus if they're open
       [leftFloatingMenu, rightMenuWrapperMobile].forEach(menu => {
-        if (menu && menu.classList.contains('open')) { // Added null check
+        if (menu && menu.classList.contains('open')) {
           closeMobileMenu(menu);
         }
       });
 
-      if (menuElement) { // Added null check
+      if (menuElement) {
         menuElement.classList.add('open');
         menuElement.style.transform = 'translateY(0)'; // Slide in from bottom
       }
@@ -3875,22 +3695,22 @@ Original text:
 
     // Function to close a specific mobile menu
     function closeMobileMenu(menuElement) {
-      if (menuElement) { // Added null check
+      if (menuElement) {
         menuElement.classList.remove('open');
         menuElement.style.transform = 'translateY(calc(100% + 50px))'; // Slide out to bottom, fully hidden
       }
     }
 
     // Event listeners for mobile menu toggles
-    if (mobileLeftMenuToggle) mobileLeftMenuToggle.addEventListener('click', () => openMobileMenu(leftFloatingMenu)); // Added null check
-    if (mobileRightMenuToggle) mobileRightMenuToggle.addEventListener('click', () => { // Added null check
+    if (mobileLeftMenuToggle) mobileLeftMenuToggle.addEventListener('click', () => openMobileMenu(leftFloatingMenu));
+    if (mobileRightMenuToggle) mobileRightMenuToggle.addEventListener('click', () => {
         // When opening the mobile right menu, populate it with current content
-        const categoryMenuContent = document.getElementById('category-menu')?.innerHTML || ''; // Added null check
-        const floatingMenuContent = document.getElementById('floating-menu')?.innerHTML || ''; // Added null check
-        const bulkActionsMenuContent = document.getElementById('bulk-actions-menu')?.innerHTML || ''; // Added null check
+        const categoryMenuContent = document.getElementById('category-menu')?.innerHTML || '';
+        const floatingMenuContent = document.getElementById('floating-menu')?.innerHTML || '';
+        const bulkActionsMenuContent = document.getElementById('bulk-actions-menu')?.innerHTML || '';
 
         // Clear and append content to the mobile wrapper in the desired order
-        if (rightMenuWrapperMobile) { // Added null check
+        if (rightMenuWrapperMobile) {
             rightMenuWrapperMobile.innerHTML = `
                 <div class="mobile-menu-header">
                     <h3>Right Menu</h3>
@@ -3901,14 +3721,14 @@ Original text:
 
             // Re-attach event listeners for buttons inside the dynamically added content
             const closeBtnMobile = rightMenuWrapperMobile.querySelector('#closeRightMenuBtnMobile');
-            if (closeBtnMobile) closeBtnMobile.onclick = () => closeMobileMenu(rightMenuWrapperMobile); // Added null check
+            if (closeBtnMobile) closeBtnMobile.onclick = () => closeMobileMenu(rightMenuWrapperMobile);
 
             // Re-attach category menu add button if it's part of the mobile menu
             const mobileAddCategoryBtn = rightMenuWrapperMobile.querySelector('#category-menu-mobile #addCategoryBtn');
             if (mobileAddCategoryBtn) {
                 mobileAddCategoryBtn.onclick = addCategory;
                 const newCategoryInput = rightMenuWrapperMobile.querySelector('#category-menu-mobile #newCategoryInput');
-                if (newCategoryInput) newCategoryInput.addEventListener('keypress', (e) => { // Added null check
+                if (newCategoryInput) newCategoryInput.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') { addCategory(); }
                 });
             }
@@ -3918,15 +3738,13 @@ Original text:
 
             // Re-attach bulk actions buttons
             const mobileBulkApplyPropertiesBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkApplyPropertiesBtn');
-            if (mobileBulkApplyPropertiesBtn) mobileBulkApplyPropertiesBtn.onclick = applyBulkProperties; // Updated to new function
-            const mobileBulkEnableBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkEnableBtn');
-            if (mobileBulkEnableBtn) mobileBulkEnableBtn.onclick = () => bulkEnableDisable(true);
-            const mobileBulkDisableBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkDisableBtn');
-            if (mobileBulkDisableBtn) mobileBulkDisableBtn.onclick = () => bulkEnableDisable(false);
-            const mobileBulkDeleteBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkDeleteBtn');
-            if (mobileBulkDeleteBtn) mobileBulkDeleteBtn.onclick = bulkDeleteLabels; // Updated to new function
-            const mobileBulkTranslateBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkTranslateBtn');
-            if (mobileBulkTranslateBtn) mobileBulkTranslateBtn.onclick = handleBulkTranslate;
+            if (mobileBulkApplyPropertiesBtn) mobileBulkApplyPropertiesBtn.onclick = applyBulkProperties;
+            const mobileBulkTranslateLabelsBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkTranslateLabelsBtn');
+            if (mobileBulkTranslateLabelsBtn) mobileBulkTranslateLabelsBtn.onclick = () => {
+                populateBulkTranslateLanguageOptionsModal(); // Ensure options are populated each time
+                document.getElementById('bulkTranslateModal').style.display = 'flex';
+            };
+
 
             // Re-attach snippet management buttons
             const mobileAddSnippetBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #addSnippetBtn');
@@ -3962,9 +3780,6 @@ Original text:
                     } else {
                         selectedCategoryNames.delete(categoryName);
                     }
-                    updateBulkActionsCategoryTargetVisibility(); // Update visibility of category filters
-                    updateBulkSelectAllCheckbox(); // Re-evaluate bulk select all
-                    updateBulkSelectAllTranslateCheckbox(); // Re-evaluate bulk translate select all
                 };
             });
 
@@ -3982,32 +3797,28 @@ Original text:
 
 
     // Event listeners for internal close buttons
-    if (closeLeftMenuBtn) closeLeftMenuBtn.addEventListener('click', () => closeMobileMenu(leftFloatingMenu)); // Added null check
+    if (closeLeftMenuBtn) closeLeftMenuBtn.addEventListener('click', () => closeMobileMenu(leftFloatingMenu));
     // Desktop close buttons for right menus (they don't close the entire wrapper, just their own header on desktop)
     // On mobile, these are hidden, and the single mobile close button handles it.
     if (closeRightMenuBtnDesktop) closeRightMenuBtnDesktop.addEventListener('click', () => {}); // No action needed, just prevents error
     if (closeCategoryMenuBtnDesktop) closeCategoryMenuBtnDesktop.addEventListener('click', () => {}); // No action needed
     if (closeBulkActionsMenuBtnDesktop) closeBulkActionsMenuBtnDesktop.addEventListener('click', () => {}); // No action needed
 
-    // Mobile close button for the right menu wrapper
-    // This listener is attached dynamically when the mobile menu is opened.
-    // closeRightMenuBtnMobile.addEventListener('click', () => closeMobileMenu(rightMenuWrapperMobile)); // This will be attached dynamically
-
-
     // Close menu if clicking outside (on the backdrop)
     document.addEventListener('click', (event) => {
-      const isClickInsideLeftMenu = leftFloatingMenu && leftFloatingMenu.contains(event.target); // Added null check
-      const isClickInsideRightMenuMobile = rightMenuWrapperMobile && rightMenuWrapperMobile.contains(event.target); // Check mobile wrapper, added null check
-      const isClickOnLeftToggle = mobileLeftMenuToggle && mobileLeftMenuToggle.contains(event.target); // Added null check
-      const isClickOnRightToggle = mobileRightMenuToggle && mobileRightMenuToggle.contains(event.target); // Added null check
+      const isClickInsideLeftMenu = leftFloatingMenu && leftFloatingMenu.contains(event.target);
+      const isClickInsideRightMenuMobile = rightMenuWrapperMobile && rightMenuWrapperMobile.contains(event.target);
+      const isClickOnLeftToggle = mobileLeftMenuToggle && mobileLeftMenuToggle.contains(event.target);
+      const isClickOnRightToggle = mobileRightMenuToggle && mobileRightMenuToggle.contains(event.target);
 
       // Get modal elements, check if they exist before calling .contains()
-      // Retrieve them here to ensure they are available in the DOM
       const optionsModal = document.getElementById('optionsModal');
       const applySnippetModal = document.getElementById('applySnippetModal');
+      const bulkTranslateModal = document.getElementById('bulkTranslateModal'); // New bulk translate modal
 
       const isClickInsideOptionsModal = optionsModal && optionsModal.contains(event.target);
       const isClickInsideApplySnippetModal = applySnippetModal && applySnippetModal.contains(event.target);
+      const isClickInsideBulkTranslateModal = bulkTranslateModal && bulkTranslateModal.contains(event.target);
 
 
       // Only close if a menu is open and the click is outside all menus and their toggles
@@ -4015,12 +3826,14 @@ Original text:
         (leftFloatingMenu && leftFloatingMenu.classList.contains('open') && !isClickInsideLeftMenu && !isClickOnLeftToggle) ||
         (rightMenuWrapperMobile && rightMenuWrapperMobile.classList.contains('open') && !isClickInsideRightMenuMobile && !isClickOnRightToggle) ||
         (optionsModal && optionsModal.style.display === 'flex' && !isClickInsideOptionsModal && event.target.id !== 'optionsBtn') ||
-        (applySnippetModal && applySnippetModal.style.display === 'flex' && !isClickInsideApplySnippetModal && !event.target.classList.contains('apply-snippet-btn'))
+        (applySnippetModal && applySnippetModal.style.display === 'flex' && !isClickInsideApplySnippetModal && !event.target.classList.contains('apply-snippet-btn')) ||
+        (bulkTranslateModal && bulkTranslateModal.style.display === 'flex' && !isClickInsideBulkTranslateModal && event.target.id !== 'bulkTranslateLabelsBtn')
       ) {
         closeMobileMenu(leftFloatingMenu);
         closeMobileMenu(rightMenuWrapperMobile);
-        if (optionsModal) optionsModal.style.display = 'none'; // Close options modal too
-        if (applySnippetModal) applySnippetModal.style.display = 'none'; // Close apply snippet modal too
+        if (optionsModal) optionsModal.style.display = 'none';
+        if (applySnippetModal) applySnippetModal.style.display = 'none';
+        if (bulkTranslateModal) bulkTranslateModal.style.display = 'none'; // Close bulk translate modal too
       }
     });
 
@@ -4031,11 +3844,11 @@ Original text:
       const rMWM = document.getElementById('right-menu-wrapper-mobile');
 
       if (isMobile) {
-        if (rightSideMenusContainer) rightSideMenusContainer.style.display = 'none'; // Added null check
-        if (rMWM) rMWM.style.display = 'flex'; // Added null check
+        if (rightSideMenusContainer) rightSideMenusContainer.style.display = 'none';
+        if (rMWM) rMWM.style.display = 'flex';
       } else {
-        if (rightSideMenusContainer) rightSideMenusContainer.style.display = 'flex'; // Added null check
-        if (rMWM) rMWM.style.display = 'none'; // Added null check
+        if (rightSideMenusContainer) rightSideMenusContainer.style.display = 'flex';
+        if (rMWM) rMWM.style.display = 'none';
       }
     }
 
@@ -4056,8 +3869,8 @@ Original text:
 
     document.getElementById('exportJsonBtn').onclick = () => {
       const outputElement = document.getElementById('output');
-      const text = outputElement ? outputElement.textContent : ''; // Added null check
-      if (!text || JSON.parse(text).labelValueDefinitions.length === 0) { // Check new structure
+      const text = outputElement ? outputElement.textContent : '';
+      if (!text || JSON.parse(text).labelValueDefinitions.length === 0) {
         showCustomModal('Nothing to export.', 'alert');
         return;
       }
@@ -4072,7 +3885,7 @@ Original text:
 
     document.getElementById('importJsonBtn').onclick = () => {
       const fileInput = document.getElementById('fileInput');
-      if (fileInput) fileInput.click(); // Added null check
+      if (fileInput) fileInput.click();
     };
 
     document.getElementById('fileInput').onchange = e => {
@@ -4141,7 +3954,7 @@ Original text:
 
     // Theme toggle logic (now inside options modal)
     const themeToggle = document.getElementById('checkbox');
-    if (themeToggle) { // Added null check
+    if (themeToggle) {
         themeToggle.addEventListener('change', () => {
           if (themeToggle.checked) {
             document.body.classList.add('dark-mode');
@@ -4196,7 +4009,7 @@ Original text:
         if (dragSrcQuickAccessEl !== this) {
             const draggedAnchor = dragSrcQuickAccessEl.querySelector('a');
             const targetAnchor = this.querySelector('a');
-            if (!draggedAnchor || !targetAnchor) return false; // Added null check
+            if (!draggedAnchor || !targetAnchor) return false;
 
             const draggedLabelId = draggedAnchor.getAttribute('href').substring(1); // Get main label ID
             const targetLabelId = targetAnchor.getAttribute('href').substring(1); // Get main label ID
@@ -4233,7 +4046,7 @@ Original text:
     // Function to update the floating quick access menu
     function updateFloatingMenu() {
       const quickAccessList = document.getElementById('label-quick-access-list');
-      if (!quickAccessList) return; // Added null check
+      if (!quickAccessList) return;
       quickAccessList.innerHTML = ''; // Clear existing list items
 
       // Define the user-friendly placeholder for the quick access menu
@@ -4248,7 +4061,7 @@ Original text:
         const labelId = labelDiv.id; // Get the unique HTML ID of the label block
         // Use the new placeholder for display in the quick access list
         const identifierInput = labelDiv.querySelector('.identifier');
-        const labelIdentifier = identifierInput ? identifierInput.value.trim() : identifierPlaceholder; // Added null check
+        const labelIdentifier = identifierInput ? identifierInput.value.trim() : identifierPlaceholder;
         const mainCheckbox = labelDiv.querySelector('.bulk-select-checkbox');
         const isChecked = mainCheckbox ? mainCheckbox.checked : false;
 
@@ -4285,7 +4098,7 @@ Original text:
 
         // Add event listener for the quick access checkbox
         const quickAccessCheckbox = numberBox.querySelector('.quick-access-bulk-select-checkbox');
-        if (quickAccessCheckbox) { // Added null check
+        if (quickAccessCheckbox) {
             quickAccessCheckbox.onchange = (e) => {
                 const currentLabelId = e.target.dataset.labelId;
                 const mainLabelCheckbox = document.getElementById(currentLabelId)?.querySelector('.bulk-select-checkbox');
@@ -4338,75 +4151,34 @@ Original text:
             addCategory();
         }
     });
-    document.getElementById('deleteSelectedCategoriesBtn').onclick = deleteSelectedCategories; // New delete button for categories
+    document.getElementById('deleteSelectedCategoriesBtn').onclick = deleteSelectedCategories;
 
 
     // Bulk Actions Event Listeners
-    document.getElementById('bulkSelectAllCheckbox').addEventListener('change', (e) => {
-        const isChecked = e.target.checked;
-        const relevantCheckboxes = getFilteredLabelCheckboxes('bulkTargetSelect');
-        relevantCheckboxes.forEach(checkbox => {
-            if (checkbox) { // Added null check
-                checkbox.checked = isChecked;
-                const labelId = checkbox.dataset.labelId;
-                if (isChecked) {
-                    selectedLabelIds.add(labelId);
-                } else {
-                    selectedLabelIds.delete(labelId);
-                }
-            }
-        });
-        updateBulkSelectAllTranslateCheckbox(); // Keep translate checkbox in sync
-        updateFloatingMenu(); // Update quick access checkboxes
-    });
+    document.getElementById('bulkApplyPropertiesBtn').onclick = applyBulkProperties;
 
-    document.getElementById('bulkTargetSelect').addEventListener('change', (e) => {
-        updateBulkActionsCategoryTargetVisibility(); // Update visibility based on target selection
-        updateBulkSelectAllCheckbox(); // Re-evaluate "Select All" state
-    });
+    // Bulk Translate Modal Event Listeners
+    document.getElementById('bulkTranslateLabelsBtn').onclick = () => {
+        populateBulkTranslateLanguageOptionsModal(); // Ensure options are populated each time
+        document.getElementById('bulkTranslateModal').style.display = 'flex';
+    };
+    document.getElementById('startBulkTranslateBtn').onclick = handleBulkTranslateModal;
+    document.getElementById('cancelBulkTranslateBtn').onclick = () => {
+        document.getElementById('bulkTranslateModal').style.display = 'none';
+    };
 
-    document.getElementById('bulkApplyPropertiesBtn').onclick = applyBulkProperties; // Updated to new function
-    document.getElementById('bulkEnableBtn').onclick = () => bulkEnableDisable(true);
-    document.getElementById('bulkDisableBtn').onclick = () => bulkEnableDisable(false);
-    document.getElementById('bulkDeleteBtn').onclick = bulkDeleteLabels; // Use new function for deleting selected labels
-
-    // Bulk Translate Event Listeners
-    document.getElementById('bulkTranslateBtn').onclick = handleBulkTranslate;
-
-    document.getElementById('bulkTargetSelectTranslate').addEventListener('change', (e) => {
-        updateBulkActionsCategoryTargetVisibility(); // Update visibility based on target selection
-        updateBulkSelectAllTranslateCheckbox(); // Re-evaluate "Select All" state
-    });
-
-    document.getElementById('bulkSelectAllTranslateCheckbox').addEventListener('change', (e) => {
-        const isChecked = e.target.checked;
-        const relevantCheckboxes = getFilteredLabelCheckboxes('bulkTargetSelectTranslate');
-        relevantCheckboxes.forEach(checkbox => {
-            if (checkbox) { // Added null check
-                checkbox.checked = isChecked;
-                const labelId = checkbox.dataset.labelId;
-                if (isChecked) {
-                    selectedLabelIds.add(labelId);
-                } else {
-                    selectedLabelIds.delete(labelId);
-                }
-            }
-        });
-        updateBulkSelectAllCheckbox(); // Keep general checkbox in sync
-        updateFloatingMenu(); // Update quick access checkboxes
-    });
 
     // Options Modal Event Listeners
     document.getElementById('optionsBtn').onclick = () => {
         console.log('Options button clicked. Showing options modal.');
         populateDefaultLocaleLanguageSelect(); // Ensure dropdown is up-to-date
         const optionsModal = document.getElementById('optionsModal');
-        if (optionsModal) optionsModal.style.display = 'flex'; // Directly show the modal, added null check
+        if (optionsModal) optionsModal.style.display = 'flex';
     };
     document.getElementById('closeOptionsModalBtn').onclick = () => {
         console.log('Closing options modal.');
         const optionsModal = document.getElementById('optionsModal');
-        if (optionsModal) optionsModal.style.display = 'none'; // Added null check
+        if (optionsModal) optionsModal.style.display = 'none';
     };
     document.getElementById('defaultLocaleLangSelect').addEventListener('change', (e) => {
         defaultLocaleLanguage = e.target.value;
@@ -4423,7 +4195,7 @@ Original text:
     });
     document.getElementById('bulkApplySnippetSelect').addEventListener('change', (e) => {
         const bulkApplySnippetBtn = document.getElementById('bulkApplySnippetBtn');
-        if (bulkApplySnippetBtn) bulkApplySnippetBtn.disabled = (e.target.value === ''); // Added null check
+        if (bulkApplySnippetBtn) bulkApplySnippetBtn.disabled = (e.target.value === '');
     });
     document.getElementById('bulkApplySnippetBtn').onclick = handleBulkApplySnippet;
 
@@ -4436,7 +4208,7 @@ Original text:
     };
 
     // New "Delete Selected Labels" button for Quick Access menu
-    document.getElementById('deleteSelectedLabelsBtn').onclick = bulkDeleteLabels; // Re-use existing bulk delete logic
+    document.getElementById('deleteSelectedLabelsBtn').onclick = bulkDeleteLabels;
 
   </script>
 </body>
