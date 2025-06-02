@@ -1018,6 +1018,26 @@
     text-align: center;
     box-sizing: border-box; /* Include padding in width */
     margin-right: 0.5em; /* Space between number and checkbox */
+    display: flex; /* Added flex to align number and checkbox */
+    align-items: center; /* Vertically center items */
+    justify-content: center; /* Horizontally center items */
+    gap: 0.3em; /* Small gap between number and checkbox */
+  }
+
+  /* Style for the enabled toggle in the header */
+  .enabled-toggle-header {
+    display: flex;
+    align-items: center;
+    gap: 0.2em; /* Small gap between label and checkbox */
+    font-weight: 500; /* Match other labels */
+    color: var(--text-color);
+    margin-right: 0.5em; /* Space from category dropdown */
+    flex-shrink: 0; /* Prevent shrinking */
+  }
+
+  .enabled-toggle-header input[type="checkbox"] {
+    margin: 0; /* Remove default checkbox margin */
+    transform: scale(1.1); /* Slightly larger checkbox */
   }
 </style>
 
@@ -1818,12 +1838,20 @@ Original description:
 
       labelDiv.innerHTML = `
         <div class="label-header" title="Click to expand/collapse this label">
-          <div class="label-number-box"></div> <input type="checkbox" class="bulk-select-checkbox" data-label-id="${uniqueHtmlId}" title="Select this label for bulk actions">
+          <div class="label-number-box">
+            <span class="label-number"></span>
+            <input type="checkbox" class="bulk-select-checkbox" data-label-id="${uniqueHtmlId}" title="Select this label for bulk actions">
+          </div>
           <button class="collapse-btn" title="Collapse/expand this label's details">Collapse</button>
           <div class="label-identifier-box">
             <span class="label-identifier-display">${id || identifierPlaceholder}</span>
           </div>
-          <div class="header-right-group"> <div class="category-in-header">
+          <div class="header-right-group">
+            <div class="enabled-toggle-header">
+              <span>Enabled:</span>
+              <input type="checkbox" class="enabled" ${enabled ? 'checked' : ''} title="Toggle label enabled/disabled state">
+            </div>
+            <div class="category-in-header">
               <select id="${uniqueHtmlId}-category" class="label-category" title="Assign a category to this label">
                 <option value="">(No Category)</option>
               </select>
@@ -1836,7 +1864,6 @@ Original description:
           </div>
         </div>
         <div class="label-content">
-          <label>Enabled: <input type="checkbox" class="enabled" ${enabled ? 'checked' : ''} title="Toggle label enabled/disabled state"></label>
           <div class="input-group-row">
             <div>
               <label for="${uniqueHtmlId}-identifier">Identifier:</label>
@@ -2268,7 +2295,7 @@ Original description:
     // Function to update the sequential numbers of labels
     function updateLabelNumbers() {
       document.querySelectorAll('.label-block').forEach((labelDiv, index) => {
-        const numberBox = labelDiv.querySelector('.label-number-box');
+        const numberBox = labelDiv.querySelector('.label-number-box .label-number');
         if (numberBox) {
           numberBox.textContent = (index + 1).toString(); // 1-based numbering
         }
