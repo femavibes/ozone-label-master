@@ -70,7 +70,7 @@
     margin-right: 2em;
     display: flex;
     flex-direction: column;
-    gap: 0.5em;
+    gap: 0.5em; /* Consistent gap for children */
   }
 
   #left-floating-menu .mobile-menu-header {
@@ -91,7 +91,7 @@
   }
 
   #container {
-    max-width: 600px;
+    max-width: 750px; /* Increased width by ~25% from 600px */
     width: 100%;
     background: var(--background);
     padding: 2em;
@@ -278,6 +278,28 @@
     padding: 1em;
   }
 
+  /* New flex containers for side-by-side inputs/selects */
+  .label-content .input-group-row {
+    display: flex;
+    gap: 1em; /* Space between items in the row */
+    margin-top: 1em; /* Space from previous elements */
+  }
+
+  .label-content .input-group-row:first-of-type {
+    margin-top: 0; /* No top margin for the very first row */
+  }
+
+  .label-content .input-group-row > div {
+    flex: 1; /* Each item takes equal space */
+    display: flex; /* Enable flex for label and input/select */
+    flex-direction: column; /* Stack label and input/select */
+  }
+
+  .label-content .input-group-row label {
+    margin-top: 0; /* Remove extra top margin from general label style */
+    margin-bottom: 0.25em; /* Small space between label and input */
+  }
+
   .locale-block {
     border: 1px solid var(--block-border);
     padding: 1em;
@@ -341,7 +363,7 @@
 
   label {
     display: block;
-    margin-top: 1em;
+    margin-top: 1em; /* Keep for labels not in input-group-row */
     font-weight: 500;
   }
 
@@ -350,7 +372,7 @@
   textarea {
     width: 100%;
     padding: 0.5em 0.75em;
-    margin-top: 0.25em;
+    margin-top: 0.25em; /* Keep for labels not in input-group-row */
     font-size: 1rem;
     border: 1px solid var(--input-border);
     border-radius: var(--border-radius); /* Uses variable */
@@ -359,6 +381,13 @@
     box-sizing: border-box;
     transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
   }
+
+  /* Override for inputs/selects within input-group-row */
+  .label-content .input-group-row input[type="text"],
+  .label-content .input-group-row select {
+    margin-top: 0; /* Remove margin-top as it's handled by parent flex */
+  }
+
 
   textarea {
     resize: vertical;
@@ -564,17 +593,34 @@
     border: 1px solid var(--block-border);
     border-radius: var(--border-radius); /* Uses variable */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    padding: 1em;
+    padding: 1em; /* Consistent padding */
     position: static; /* No longer sticky/fixed individually */
     max-height: none; /* Allow content to dictate height */
     overflow-y: visible; /* Let parent handle overflow */
     margin-bottom: 0; /* No individual margin-bottom */
+    display: flex; /* Enable flex for internal spacing */
+    flex-direction: column; /* Stack children vertically */
+    gap: 0.5em; /* Consistent internal gap */
   }
 
   /* Specific for Labels Quick Access to have its own scrollbar */
   #floating-menu {
     max-height: 300px; /* Example max height for quick access list */
     overflow-y: auto; /* Only this menu scrolls */
+  }
+
+  /* Adjust gap for specific elements within menus if needed */
+  #category-menu .category-input-group {
+    margin-bottom: 0.5em; /* Adjust to match general gap */
+  }
+  #category-menu ul {
+    margin-top: 0; /* Remove default ul margin */
+  }
+  #bulk-actions-menu .bulk-action-group {
+    margin-top: 0.5em; /* Consistent spacing between groups */
+  }
+  #bulk-actions-menu .bulk-action-group:first-child {
+    margin-top: 0; /* No top margin for first group */
   }
 
 
@@ -586,7 +632,7 @@
     margin-top: 0;
     color: var(--primary);
     font-size: 1.2rem;
-    margin-bottom: 0.8em;
+    margin-bottom: 0.8em; /* Keep some margin for titles */
   }
 
   #floating-menu ul, #category-menu ul {
@@ -596,25 +642,42 @@
   }
 
   #floating-menu li, #category-menu li {
-    margin-bottom: 0.5em;
+    margin-bottom: 0.5em; /* Consistent spacing for list items */
+  }
+  #floating-menu li:last-child, #category-menu li:last-child {
+    margin-bottom: 0; /* No margin after last item */
   }
 
-  #floating-menu a, #category-menu a {
-    display: block;
-    padding: 0.3em 0.5em;
-    color: var(--text-color);
-    text-decoration: none;
-    border-radius: var(--border-radius); /* Uses variable */
-    transition: background 0.2s ease, color 0.2s ease;
+
+  /* Styled Quick Access Labels */
+  #floating-menu a {
+    background: var(--label-box-background);
+    color: var(--label-box-text);
+    padding: 0.5em 0.8em; /* Adjusted padding for button feel */
+    border-radius: var(--border-radius);
+    display: block; /* Ensure it takes full width */
+    text-align: center;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+    cursor: grab; /* Indicate draggable */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-
-  #floating-menu a:hover, #category-menu a:hover {
-    background: var(--light-gray);
-    color: var(--primary);
+  #floating-menu a:hover {
+    background: var(--primary); /* Hover effect */
+    color: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   }
+  #floating-menu a.is-dragging {
+    opacity: 0.6;
+    transform: translateY(-2px);
+  }
+  #floating-menu a.over {
+    border: 2px dashed var(--primary);
+  }
+
 
   /* Category Menu Specifics */
   #category-menu .category-input-group {
@@ -1145,7 +1208,8 @@
   <script type="module">
     // No Firebase SDK imports needed as we are using Local Storage only.
 
-    let dragSrcEl = null;
+    let dragSrcEl = null; // For main label block drag-and-drop
+    let dragSrcQuickAccessEl = null; // For quick access link drag-and-drop
 
     // --- State Management for Undo/Redo and Local Storage ---
     const LOCAL_STORAGE_KEY = 'ozoneLabelMasterData'; // Now stores full session state
@@ -1773,28 +1837,38 @@ Original description:
         </div>
         <div class="label-content">
           <label>Enabled: <input type="checkbox" class="enabled" ${enabled ? 'checked' : ''} title="Toggle label enabled/disabled state"></label>
-          <label>Identifier: <input type="text" class="identifier" value="${id}" title="Unique identifier for this label"></label>
-          <label>Severity:
-            <select class="severity" title="Severity level of the label">
-              <option value="inform" ${severity === 'inform' ? 'selected' : ''}>inform</option>
-              <option value="alert" ${severity === 'alert' ? 'selected' : ''}>alert</option>
-              <option value="none" ${severity === 'none' ? 'selected' : ''}>none</option>
-            </select>
-          </label>
-          <label>Blurs:
-            <select class="blurs" title="Content blurring setting for the label">
-              <option value="content" ${blurs === 'content' ? 'selected' : ''}>content</option>
-              <option value="media" ${blurs === 'media' ? 'selected' : ''}>media</option>
-              <option value="none" ${blurs === 'none' ? 'selected' : ''}>none</option>
-            </select>
-          </label>
-          <label>Default Setting:
-            <select class="defaultSetting" title="Default action when this label is applied">
-              <option value="ignore" ${defaultSetting === 'ignore' ? 'selected' : ''}>ignore</option>
-              <option value="warn" ${defaultSetting === 'warn' ? 'selected' : ''}>warn</option>
-              <option value="hide" ${defaultSetting === 'hide' ? 'selected' : ''}>hide</option>
-            </select>
-          </label>
+          <div class="input-group-row">
+            <div>
+              <label for="${uniqueHtmlId}-identifier">Identifier:</label>
+              <input type="text" id="${uniqueHtmlId}-identifier" class="identifier" value="${id}" title="Unique identifier for this label">
+            </div>
+            <div>
+              <label for="${uniqueHtmlId}-blurs">Blurs:</label>
+              <select id="${uniqueHtmlId}-blurs" class="blurs" title="Content blurring setting for the label">
+                <option value="content" ${blurs === 'content' ? 'selected' : ''}>content</option>
+                <option value="media" ${blurs === 'media' ? 'selected' : ''}>media</option>
+                <option value="none" ${blurs === 'none' ? 'selected' : ''}>none</option>
+              </select>
+            </div>
+          </div>
+          <div class="input-group-row">
+            <div>
+              <label for="${uniqueHtmlId}-severity">Severity:</label>
+              <select id="${uniqueHtmlId}-severity" class="severity" title="Severity level of the label">
+                <option value="inform" ${severity === 'inform' ? 'selected' : ''}>inform</option>
+                <option value="alert" ${severity === 'alert' ? 'selected' : ''}>alert</option>
+                <option value="none" ${severity === 'none' ? 'selected' : ''}>none</option>
+              </select>
+            </div>
+            <div>
+              <label for="${uniqueHtmlId}-defaultSetting">Default Setting:</label>
+              <select id="${uniqueHtmlId}-defaultSetting" class="defaultSetting" title="Default action when this label is applied">
+                <option value="ignore" ${defaultSetting === 'ignore' ? 'selected' : ''}>ignore</option>
+                <option value="warn" ${defaultSetting === 'warn' ? 'selected' : ''}>warn</option>
+                <option value="hide" ${defaultSetting === 'hide' ? 'selected' : ''}>hide</option>
+              </select>
+            </div>
+          </div>
           <label>Adult Only: <input type="checkbox" class="adultOnly" ${adultOnly ? 'checked' : ''} title="Mark if this label is for adult content only"></label>
           <div class="locales-container">
             <strong>Locales:</strong>
@@ -3002,6 +3076,11 @@ Original text:
         const mobileBulkTranslateBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkTranslateBtn');
         if (mobileBulkTranslateBtn) mobileBulkTranslateBtn.onclick = handleBulkTranslate;
 
+        // Re-attach drag handlers for quick access list items in the mobile menu
+        rightMenuWrapperMobile.querySelectorAll('#floating-menu-mobile #label-quick-access-list a').forEach(anchor => {
+            addQuickAccessDragHandlers(anchor);
+        });
+
 
         // Ensure mobile menu is displayed before opening
         rightMenuWrapperMobile.style.display = 'flex'; // Ensure it's visible as a flex container
@@ -3171,6 +3250,76 @@ Original text:
       }
     });
 
+    // --- Quick Access Drag-and-Drop Functions ---
+    function addQuickAccessDragHandlers(anchorElement) {
+        anchorElement.setAttribute('draggable', 'true');
+        anchorElement.addEventListener('dragstart', dragStartQuickAccess);
+        anchorElement.addEventListener('dragenter', dragEnterQuickAccess);
+        anchorElement.addEventListener('dragover', dragOverQuickAccess);
+        anchorElement.addEventListener('dragleave', dragLeaveQuickAccess);
+        anchorElement.addEventListener('drop', dropQuickAccess);
+        anchorElement.addEventListener('dragend', dragEndQuickAccess);
+    }
+
+    function dragStartQuickAccess(e) {
+        dragSrcQuickAccessEl = this;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', this.href); // Store the ID of the main label block
+        this.classList.add('is-dragging');
+    }
+
+    function dragEnterQuickAccess(e) {
+        if (this !== dragSrcQuickAccessEl) {
+            this.classList.add('over');
+        }
+    }
+
+    function dragOverQuickAccess(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        return false;
+    }
+
+    function dragLeaveQuickAccess(e) {
+        this.classList.remove('over');
+    }
+
+    function dropQuickAccess(e) {
+        e.stopPropagation();
+        this.classList.remove('over');
+
+        if (dragSrcQuickAccessEl !== this) {
+            const draggedLabelId = dragSrcQuickAccessEl.getAttribute('href').substring(1); // Get main label ID
+            const targetLabelId = this.getAttribute('href').substring(1); // Get main label ID
+
+            const draggedLabelDiv = document.getElementById(draggedLabelId);
+            const targetLabelDiv = document.getElementById(targetLabelId);
+
+            if (draggedLabelDiv && targetLabelDiv) {
+                const labelsContainer = document.getElementById('labels-container');
+                const nodes = Array.from(labelsContainer.children);
+                const srcIndex = nodes.indexOf(draggedLabelDiv);
+                const tgtIndex = nodes.indexOf(targetLabelDiv);
+
+                if (srcIndex < tgtIndex) {
+                    labelsContainer.insertBefore(draggedLabelDiv, targetLabelDiv.nextSibling);
+                } else {
+                    labelsContainer.insertBefore(draggedLabelDiv, targetLabelDiv);
+                }
+                saveFullSessionStateToLocalStorage();
+                updateJSONOutput(); // This will re-render quick access and update numbers
+            }
+        }
+        return false;
+    }
+
+    function dragEndQuickAccess(e) {
+        this.classList.remove('is-dragging');
+        document.querySelectorAll('#floating-menu a.over').forEach(el => el.classList.remove('over'));
+    }
+    // --- End Quick Access Drag-and-Drop Functions ---
+
+
     // Function to update the floating quick access menu
     function updateFloatingMenu() {
       const quickAccessList = document.getElementById('label-quick-access-list');
@@ -3198,6 +3347,9 @@ Original text:
 
         listItem.appendChild(anchor);
         quickAccessList.appendChild(listItem);
+
+        // Add drag handlers to the newly created anchor element
+        addQuickAccessDragHandlers(anchor);
       });
     }
 
