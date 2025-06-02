@@ -1223,10 +1223,18 @@
       flex-direction: column;
       gap: 0.5em;
   }
+  /* Adjust label margin within snippet-input-group to bring closer to title */
+  .snippet-management-section .snippet-input-group label {
+      margin-top: 0.5em; /* Reduced margin */
+  }
+  .snippet-management-section .snippet-input-group label:first-child {
+      margin-top: 0; /* No top margin for the very first label */
+  }
+
 
   .snippet-management-section .snippet-actions {
       display: flex;
-      justify-content: flex-end; /* Push button to the right */
+      justify-content: flex-start; /* Push button to the left */
       margin-top: 0.5em;
   }
 
@@ -1276,6 +1284,48 @@
   }
   .blue-button:hover {
     background: #2563eb; /* Darker blue on hover */
+  }
+
+  /* View Snippets Modal Specific Styles */
+  #viewSnippetsModal .snippet-item {
+      background: var(--light-gray);
+      border: 1px solid var(--block-border);
+      border-radius: var(--border-radius);
+      padding: 0.8em;
+      margin-bottom: 0.8em;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5em;
+  }
+  #viewSnippetsModal .snippet-item:last-child {
+      margin-bottom: 0;
+  }
+
+  #viewSnippetsModal .snippet-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      color: var(--text-color);
+  }
+
+  #viewSnippetsModal .snippet-item-content {
+      background: var(--output-background);
+      border: 1px solid var(--output-border);
+      border-radius: var(--border-radius);
+      padding: 0.6em;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+      white-space: pre-wrap;
+      max-height: 100px;
+      overflow-y: auto;
+      color: var(--text-color);
+  }
+  #viewSnippetsModal .snippet-item-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5em;
+      margin-top: 0.5em;
   }
 
 </style>
@@ -1446,18 +1496,19 @@
                 <label for="newSnippetContent">Snippet Content:</label>
                 <textarea id="newSnippetContent" placeholder="Enter the prewritten text here..." title="Enter the text content of your snippet"></textarea>
             </div>
-            <div class="snippet-actions">
+            <div class="snippet-actions" style="justify-content: flex-start;">
                 <button id="addSnippetBtn" class="action-button" style="background: var(--primary); color: white;" title="Add this text as a reusable snippet">Add Snippet</button>
             </div>
             <ul id="snippet-list" style="list-style: none; padding: 0; margin-top: 1em;">
             </ul>
-            <div class="bulk-action-row" style="margin-top: 1em;">
-                <label for="bulkApplySnippetSelect">Apply Snippet:</label>
-                <select id="bulkApplySnippetSelect" title="Select a snippet to apply to descriptions">
+            <div class="bulk-action-row" style="margin-top: 1em; display: flex; align-items: center; gap: 0.5em;">
+                <label for="bulkApplySnippetSelect" style="margin-top: 0;">Apply Snippet:</label>
+                <select id="bulkApplySnippetSelect" style="flex-grow: 1;" title="Select a snippet to apply to descriptions">
                     <option value="">(Select Snippet)</option>
                 </select>
+                <button id="bulkApplySnippetBtn" class="action-button" disabled title="Apply the selected snippet to descriptions of target labels">Apply</button>
             </div>
-            <button id="bulkApplySnippetBtn" class="full-width-button" disabled title="Apply the selected snippet to descriptions of target labels">Bulk Apply Snippet</button>
+            <button id="viewSnippetsBtn" class="action-button blue-button" style="width: 100%; margin-top: 0.5em;" title="View, edit, or delete existing snippets">View Snippets</button>
         </div>
     </div>
   </div>
@@ -1535,6 +1586,17 @@
     </div>
   </div>
 
+  <div id="viewSnippetsModal" class="custom-modal-overlay" style="display: none;">
+    <div class="custom-modal-content">
+      <h3>All Description Snippets</h3>
+      <div style="max-height: 300px; overflow-y: auto; text-align: left; padding-right: 10px;">
+        <ul id="view-snippets-list" style="list-style: none; padding: 0; margin: 0;">
+          </ul>
+      </div>
+      <button id="closeViewSnippetsModalBtn" class="confirm-btn" style="margin-top: 1em;">Close</button>
+    </div>
+  </div>
+
   <script type="module">
     // No Firebase SDK imports needed as we are using Local Storage only.
 
@@ -1572,7 +1634,7 @@
     function showCustomModal(message, type = 'alert', onConfirm = null, customContent = null) {
       // Remove any existing modal overlays to prevent multiple modals
       // IMPORTANT: Exclude the static optionsModal from this removal
-      document.querySelectorAll('.custom-modal-overlay:not(#optionsModal):not(#pasteJsonModal):not(#applySnippetModal):not(#bulkTranslateModal)').forEach(el => el.remove());
+      document.querySelectorAll('.custom-modal-overlay:not(#optionsModal):not(#pasteJsonModal):not(#applySnippetModal):not(#bulkTranslateModal):not(#viewSnippetsModal)').forEach(el => el.remove());
 
       const overlay = document.createElement('div');
       overlay.className = 'custom-modal-overlay';
@@ -2011,7 +2073,7 @@ Original name:
             chatHistory.push({ role: "user", parts: [{ text: prompt }] });
             const payload = { contents: chatHistory };
             // IMPORTANT: Replace with your actual Gemini API Key here.
-            const apiKey = "AIzaSyDiYlt8YhzSFIqgvEE7qSFZHVcjYLRXu-c"; 
+            const apiKey = ""; 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             const response = await fetch(apiUrl, {
@@ -2142,7 +2204,7 @@ Original description:
             chatHistory.push({ role: "user", parts: [{ text: prompt }] });
             const payload = { contents: chatHistory };
             // IMPORTANT: Replace with your actual Gemini API Key here.
-            const apiKey = "AIzaSyDiYlt8YhzSFIqgvEE7qSFZHVcjYLRXu-c"; 
+            const apiKey = ""; 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             const response = await fetch(apiUrl, {
@@ -3183,6 +3245,46 @@ Original description:
         });
     }
 
+    // --- View Snippets Modal Functions ---
+    function populateViewSnippetsModal() {
+        const viewSnippetsList = document.getElementById('view-snippets-list');
+        viewSnippetsList.innerHTML = ''; // Clear existing list
+
+        if (descriptionSnippets.length === 0) {
+            viewSnippetsList.innerHTML = '<li style="color: var(--gray); font-size: 0.9em; text-align: center;">No snippets added yet.</li>';
+        }
+
+        descriptionSnippets.forEach((snippet, index) => {
+            const listItem = document.createElement('li');
+            listItem.className = 'snippet-item';
+            listItem.innerHTML = `
+                <div class="snippet-item-header">
+                    <span>${snippet.name}</span>
+                    <button class="snippet-action-btn delete-snippet-from-modal-btn" data-index="${index}" title="Delete this snippet">🗑️</button>
+                </div>
+                <div class="snippet-item-content">${snippet.content}</div>
+            `;
+            viewSnippetsList.appendChild(listItem);
+        });
+
+        // Attach event listeners for delete buttons within the modal
+        viewSnippetsList.querySelectorAll('.delete-snippet-from-modal-btn').forEach(button => {
+            button.onclick = (event) => {
+                const index = parseInt(event.target.dataset.index);
+                showCustomModal(`Are you sure you want to delete the snippet "${descriptionSnippets[index].name}"?`, 'confirm', (response) => {
+                    if (response) {
+                        descriptionSnippets.splice(index, 1);
+                        renderSnippetManagementUI(); // Update main snippet list
+                        populateBulkApplySnippetSelect(); // Update bulk apply dropdown
+                        populateViewSnippetsModal(); // Re-populate the modal
+                        saveFullSessionStateToLocalStorage();
+                        updateJSONOutput();
+                    }
+                });
+            };
+        });
+    }
+
     // --- Bulk Translate Functionality (New) ---
     function populateBulkTranslateLanguageOptionsModal(sourceLangCode) {
         const modalOptionsDiv = document.getElementById('bulkTranslateTargetLangsModal');
@@ -3304,7 +3406,7 @@ Original description:
         chatHistory.push({ role: "user", parts: [{ text: prompt }] });
         const payload = { contents: chatHistory };
         // IMPORTANT: Replace with your actual Gemini API Key here.
-        const apiKey = "AIzaSyDiYlt8YhzSFIqgvEE7qSFZHVcjYLRXu-c"; 
+        const apiKey = ""; 
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
         const response = await fetch(apiUrl, {
@@ -3691,6 +3793,10 @@ Original description:
           bulkActionsMenuMobile.querySelector('#addSnippetBtn').onclick = addOrUpdateSnippet;
           bulkActionsMenuMobile.querySelector('#bulkApplySnippetBtn').onclick = bulkApplySnippet;
           bulkActionsMenuMobile.querySelector('#bulkApplySnippetSelect').addEventListener('change', populateBulkApplySnippetSelect);
+          bulkActionsMenuMobile.querySelector('#viewSnippetsBtn').onclick = () => { // Attach for mobile
+              populateViewSnippetsModal();
+              document.getElementById('viewSnippetsModal').style.display = 'flex';
+          };
           // Note: snippet list item event listeners are re-attached by renderSnippetManagementUI()
       }
 
@@ -3781,6 +3887,13 @@ Original description:
       document.getElementById('addSnippetBtn').onclick = addOrUpdateSnippet;
       document.getElementById('bulkApplySnippetBtn').onclick = bulkApplySnippet;
       document.getElementById('bulkApplySnippetSelect').addEventListener('change', populateBulkApplySnippetSelect);
+      document.getElementById('viewSnippetsBtn').onclick = () => { // Attach for desktop
+          populateViewSnippetsModal();
+          document.getElementById('viewSnippetsModal').style.display = 'flex';
+      };
+      document.getElementById('closeViewSnippetsModalBtn').onclick = () => {
+          document.getElementById('viewSnippetsModal').style.display = 'none';
+      };
 
       // Bulk Translate Modal buttons
       document.getElementById('startBulkTranslateBtn').onclick = startBulkTranslate;
