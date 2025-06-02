@@ -1430,7 +1430,6 @@
         </div>
 
         <div class="bulk-action-group snippet-management-section">
-            <h4>Description Snippets</h4>
             <div class="snippet-input-group">
                 <label for="newSnippetName">Snippet Name:</label>
                 <input type="text" id="newSnippetName" placeholder="e.g., 'Common Disclaimer'" title="Enter a name for your snippet">
@@ -1835,7 +1834,7 @@
           <div class="locale-action-row"> <div class="llm-buttons">
               <button class="translate-name-btn" title="Translate this locale's name using AI">Translate Name ✨</button>
               <button class="translate-description-btn" title="Translate this locale's description using AI">Translate Description ✨</button>
-              ${isFirstLocale ? `<button class="translate-multiple-btn translate-button" title="Translate name and description to multiple languages">Translate All ✨</button>` : ''}
+              ${isFirstLocale ? `<button class="translate-multiple-btn translate-button" title="Translate name and description to multiple languages">Bulk Translate ✨</button>` : ''}
             </div>
             <div class="snippet-action-group"> <button class="apply-snippet-btn blue-button" title="Apply a prewritten description snippet">Apply Snippet</button>
             </div>
@@ -3315,10 +3314,20 @@ Original description:
     document.addEventListener('DOMContentLoaded', () => {
       // Load saved state from local storage or initialize default
       const savedState = localStorage.getItem(LOCAL_STORAGE_KEY);
+      let parsedState = null;
       if (savedState) {
-        loadState(savedState);
+        try {
+          parsedState = JSON.parse(savedState);
+        } catch (e) {
+          console.error("Error parsing saved state from local storage, resetting:", e);
+          localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear corrupted data
+        }
+      }
+
+      if (parsedState) {
+        loadState(JSON.stringify(parsedState)); // Pass the stringified parsed object back to loadState
       } else {
-        // Initial state if no saved data
+        // Initial state if no saved data or corrupted data
         createLabelBlock('example_label', 'inform', 'content', 'ignore', false, true, [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}], '', true); // Pass true for isFirstLabel
         updateJSONOutput();
       }
