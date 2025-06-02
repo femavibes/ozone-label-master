@@ -285,10 +285,10 @@
     cursor: not-allowed;
   }
 
-  .snippet-action-btn { /* Style for snippet edit/delete buttons */
+  .snippet-action-btn {
     background: var(--gray);
     color: white;
-    font-size: 1rem; /* Smaller icon for these */
+    font-size: 1rem;
   }
 
   /* Hover states */
@@ -1673,7 +1673,8 @@
 
       // Load Labels
       const dataLabels = sessionData.labelValueDefinitions || sessionData.labels; // Support old and new formats
-      document.getElementById('labels-container').innerHTML = '';
+      // IMPORTANT: labels-container.innerHTML = ''; is already handled at the very top of DOMContentLoaded
+      document.getElementById('labels-container').innerHTML = ''; // Redundant but harmless, ensures clean slate
       dataLabels.forEach((label, index) => { // Pass index to createLabelBlock
         const labelIdentifier = label.identifier !== undefined ? label.identifier : label.id; // Backward compatibility
         createLabelBlock(
@@ -2105,7 +2106,7 @@ Original name:
 
         translateActionBtn.onclick = async () => {
           const targetLangCode = selectTargetLang.value;
-          const targetLanguageName = selectTargetLang.options[selectTargetLang.selectedIndex].textContent;
+          const targetLangName = selectTargetLang.options[selectTargetLang.selectedIndex].textContent;
 
           if (!targetLangCode) {
             showCustomModal('Please select a target language.', 'alert');
@@ -3312,6 +3313,9 @@ Original description:
 
     // --- Event Listeners and Initialization ---
     document.addEventListener('DOMContentLoaded', () => {
+      // ALWAYS clear the labels container at the very beginning
+      document.getElementById('labels-container').innerHTML = '';
+
       // Load saved state from local storage or initialize default
       const savedState = localStorage.getItem(LOCAL_STORAGE_KEY);
       let parsedState = null;
@@ -3327,9 +3331,9 @@ Original description:
       if (parsedState) {
         loadState(JSON.stringify(parsedState)); // Pass the stringified parsed object back to loadState
       } else {
-        // Initial state if no saved data or corrupted data
-        createLabelBlock('example_label', 'inform', 'content', 'ignore', false, true, [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}], '', true); // Pass true for isFirstLabel
-        updateJSONOutput();
+        // Initial state if no valid saved data or corrupted data was found
+        createLabelBlock('example_label', 'inform', 'content', 'ignore', false, true, [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}], '', true);
+        updateJSONOutput(); // This will save the initial state and add to history
       }
 
       // Load history from local storage
@@ -3338,8 +3342,11 @@ Original description:
           history = JSON.parse(savedHistory);
           historyIndex = history.length - 1;
       } else {
-          // If no history, add the initial state as the first history entry
-          addStateToHistoryForUndoAndRedo();
+          // If no history, and we just created an initial state, add it to history
+          // This check ensures we don't add a duplicate if loadState already populated history
+          if (history.length === 0 && document.querySelectorAll('.label-block').length > 0) {
+              addStateToHistoryForUndoAndRedo();
+          }
       }
       updateUndoRedoButtons();
 
