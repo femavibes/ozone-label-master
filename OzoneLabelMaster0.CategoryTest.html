@@ -377,7 +377,7 @@
   .locale-action-row {
     display: flex;
     justify-content: space-between; /* Pushes groups to ends */
-    align-items: flex-end; /* Align buttons to bottom if descriptions are different heights */
+    align-items: center; /* Align buttons to center */
     margin-top: 0.5em;
     gap: 1em; /* Space between the two groups */
   }
@@ -403,6 +403,21 @@
   .locale-block .llm-buttons button:hover {
     background: #059669;
   }
+
+  /* Apply Snippet button styling */
+  .apply-snippet-btn {
+    padding: 0.4em 0.8em; /* Match padding of other LLM buttons */
+    font-size: 0.85rem; /* Match font-size of other LLM buttons */
+    border-radius: var(--border-radius);
+    background: var(--primary); /* Blue color */
+    color: white;
+    transition: background 0.2s;
+  }
+
+  .apply-snippet-btn:hover {
+    background: #2563eb; /* Darker blue on hover */
+  }
+
 
   label {
     display: block;
@@ -2200,6 +2215,8 @@ Original description:
 
       localesContainer.appendChild(div); // Append the new locale block to the container
       updateLocaleDisplayName(div); // Set initial display name
+
+      return div; // Return the created div
     }
 
     // Function to create a new label block
@@ -3205,16 +3222,17 @@ Original description:
             const targetLangCode = targetLang.code;
             const targetLangName = targetLang.name;
 
+            // Check if locale already exists
             let localeDiv = labelDiv.querySelector(`.locale-block .lang[value="${targetLangCode}"]`)?.closest('.locale-block');
+            
             if (!localeDiv) {
-                // If locale doesn't exist, create it
+                // If locale doesn't exist, create it and get the direct reference
                 const localesContainer = labelDiv.querySelector('.locales-container');
                 // Pass false for isFirstLocale as we are adding subsequent locales for translation
-                createLocaleBlock(localesContainer, targetLangCode, '', '', false);
-                // Re-query to get the newly created localeDiv
-                localeDiv = labelDiv.querySelector(`.locale-block .lang[value="${targetLangCode}"]`)?.closest('.locale-block');
+                localeDiv = createLocaleBlock(localesContainer, targetLangCode, '', '', false);
             }
 
+            // After creation (or if it already existed), ensure localeDiv is valid
             if (!localeDiv) {
                 issues.push(`Failed to find or create locale for ${targetLangName}.`);
                 translationsFailed++;
