@@ -373,12 +373,25 @@
     /* No specific styles needed here, just acts as a container */
   }
 
-  .locale-block .llm-buttons {
+  /* New flex container for buttons within locale block */
+  .locale-action-row {
+    display: flex;
+    justify-content: space-between; /* Pushes groups to ends */
+    align-items: flex-end; /* Align buttons to bottom if descriptions are different heights */
+    margin-top: 0.5em;
+    gap: 1em; /* Space between the two groups */
+  }
+
+  .locale-action-row .llm-buttons {
     display: flex;
     gap: 0.5em;
-    margin-top: 0.5em;
-    justify-content: flex-start;
+    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
   }
+
+  .locale-action-row .snippet-action-group {
+    flex-shrink: 0; /* Prevent snippet button group from shrinking */
+  }
+
 
   .locale-block .llm-buttons button {
     padding: 0.4em 0.8em;
@@ -1241,6 +1254,15 @@
       margin-top: 1em;
   }
 
+  /* New blue button style */
+  .blue-button {
+    background: var(--primary); /* Using primary color for blue */
+    color: white;
+  }
+  .blue-button:hover {
+    background: #2563eb; /* Darker blue on hover */
+  }
+
 </style>
 
 </head>
@@ -1638,7 +1660,7 @@
       // Load Labels
       const dataLabels = sessionData.labelValueDefinitions || sessionData.labels; // Support old and new formats
       document.getElementById('labels-container').innerHTML = '';
-      dataLabels.forEach(label => {
+      dataLabels.forEach((label, index) => { // Pass index to createLabelBlock
         const labelIdentifier = label.identifier !== undefined ? label.identifier : label.id; // Backward compatibility
         createLabelBlock(
           labelIdentifier || '',
@@ -1648,7 +1670,8 @@
           label.adultOnly || false,
           label.enabled !== undefined ? label.enabled : true,
           label.locales || [],
-          label.category || '' // Load category
+          label.category || '',
+          index === 0 // Pass true if it's the first label being loaded
         );
       });
 
@@ -1760,7 +1783,7 @@
     }
 
     // Function to create a new locale block within a label
-    function createLocaleBlock(localesContainer, lang = '', name = '', description = '') {
+    function createLocaleBlock(localesContainer, lang = '', name = '', description = '', isFirstLocale = false) { // Added isFirstLocale
       const div = document.createElement('div');
       div.className = 'locale-block';
 
@@ -1794,11 +1817,13 @@
           </label>
           <label>Name: <input type="text" class="name" value="${name}" title="Enter the name for this locale"></label>
           <label>Description: <textarea class="description" title="Enter the description for this locale">${description}</textarea></label>
-          <div class="llm-buttons">
-            <button class="translate-name-btn" title="Translate this locale's name using AI">Translate Name ✨</button>
-            <button class="translate-description-btn" title="Translate this locale's description using AI">Translate Description ✨</button>
-            <button class="translate-multiple-btn translate-button" title="Translate name and description to multiple languages">Translate All ✨</button>
-            <button class="apply-snippet-btn" title="Apply a prewritten description snippet">Apply Snippet</button>
+          <div class="locale-action-row"> <div class="llm-buttons">
+              <button class="translate-name-btn" title="Translate this locale's name using AI">Translate Name ✨</button>
+              <button class="translate-description-btn" title="Translate this locale's description using AI">Translate Description ✨</button>
+              ${isFirstLocale ? `<button class="translate-multiple-btn translate-button" title="Translate name and description to multiple languages">Translate All ✨</button>` : ''}
+            </div>
+            <div class="snippet-action-group"> <button class="apply-snippet-btn blue-button" title="Apply a prewritten description snippet">Apply Snippet</button>
+            </div>
           </div>
         </div>
       `;
@@ -2130,30 +2155,32 @@ Original description:
       };
 
       // New: Event listener for Translate Multiple button
-      translateMultipleBtn.onclick = () => {
-          const sourceLangCode = langSelect.value;
-          const sourceName = nameInput.value.trim();
-          const sourceDescription = descriptionTextarea.value.trim();
+      if (translateMultipleBtn) { // Only attach if the button exists (i.e., isFirstLocale is true)
+        translateMultipleBtn.onclick = () => {
+            const sourceLangCode = langSelect.value;
+            const sourceName = nameInput.value.trim();
+            const sourceDescription = descriptionTextarea.value.trim();
 
-          if (!sourceLangCode) {
-              showCustomModal('Please select a source language for this locale before translating to multiple languages.', 'alert');
-              return;
-          }
-          if (!sourceName && !sourceDescription) {
-              showCustomModal('Please enter a name or description in this locale to translate.', 'alert');
-              return;
-          }
+            if (!sourceLangCode) {
+                showCustomModal('Please select a source language for this locale before translating to multiple languages.', 'alert');
+                return;
+            }
+            if (!sourceName && !sourceDescription) {
+                showCustomModal('Please enter a name or description in this locale to translate.', 'alert');
+                return;
+            }
 
-          // Populate modal checkboxes and show modal
-          populateBulkTranslateLanguageOptionsModal(sourceLangCode); // Pass source language to disable it
-          document.getElementById('bulkTranslateModal').style.display = 'flex';
+            // Populate modal checkboxes and show modal
+            populateBulkTranslateLanguageOptionsModal(sourceLangCode); // Pass source language to disable it
+            document.getElementById('bulkTranslateModal').style.display = 'flex';
 
-          // Store current locale data in modal for use by startBulkTranslateBtn
-          document.getElementById('startBulkTranslateBtn').dataset.sourceLangCode = sourceLangCode;
-          document.getElementById('startBulkTranslateBtn').dataset.sourceName = sourceName;
-          document.getElementById('startBulkTranslateBtn').dataset.sourceDescription = sourceDescription;
-          document.getElementById('startBulkTranslateBtn').dataset.labelId = div.closest('.label-block').id;
-      };
+            // Store current locale data in modal for use by startBulkTranslateBtn
+            document.getElementById('startBulkTranslateBtn').dataset.sourceLangCode = sourceLangCode;
+            document.getElementById('startBulkTranslateBtn').dataset.sourceName = sourceName;
+            document.getElementById('startBulkTranslateBtn').dataset.sourceDescription = sourceDescription;
+            document.getElementById('startBulkTranslateBtn').dataset.labelId = div.closest('.label-block').id;
+        };
+      }
 
 
       // Use 'change' event for select elements, 'input' for textareas/text inputs
@@ -2176,7 +2203,7 @@ Original description:
     }
 
     // Function to create a new label block
-    function createLabelBlock(id = '', severity = 'inform', blurs = 'content', defaultSetting = 'ignore', adultOnly = false, enabled = true, locales = [], category = '') {
+    function createLabelBlock(id = '', severity = 'inform', blurs = 'content', defaultSetting = 'ignore', adultOnly = false, enabled = true, locales = [], category = '', isFirstLabel = false) { // Added isFirstLabel
       const container = document.getElementById('labels-container');
       const labelDiv = document.createElement('div');
       labelDiv.className = 'label-block';
@@ -2347,10 +2374,10 @@ Original description:
       // Add default locale if none exist
       if (locales.length === 0) {
         // Use the global defaultLocaleLanguage for new labels
-        createLocaleBlock(localesContainer, defaultLocaleLanguage);
+        createLocaleBlock(localesContainer, defaultLocaleLanguage, '', '', true); // Pass true for isFirstLocale
       } else {
-        locales.forEach(loc => {
-          createLocaleBlock(localesContainer, loc.lang || '', loc.name || '', loc.description || '');
+        locales.forEach((loc, index) => { // Pass index to determine if it's the first locale
+          createLocaleBlock(localesContainer, loc.lang || '', loc.name || '', loc.description || '', index === 0);
         });
       }
 
@@ -2368,7 +2395,7 @@ Original description:
           defaultDescription = firstLocale.querySelector('.description').value;
         }
 
-        createLocaleBlock(localesContainer, defaultLang, defaultName, defaultDescription);
+        createLocaleBlock(localesContainer, defaultLang, defaultName, defaultDescription, false); // New locales are not the first
         saveFullSessionStateToLocalStorage(); // Save full session state
         updateJSONOutput(); // Update JSON output display
       };
@@ -3182,7 +3209,8 @@ Original description:
             if (!localeDiv) {
                 // If locale doesn't exist, create it
                 const localesContainer = labelDiv.querySelector('.locales-container');
-                createLocaleBlock(localesContainer, targetLangCode);
+                // Pass false for isFirstLocale as we are adding subsequent locales for translation
+                createLocaleBlock(localesContainer, targetLangCode, '', '', false);
                 // Re-query to get the newly created localeDiv
                 localeDiv = labelDiv.querySelector(`.locale-block .lang[value="${targetLangCode}"]`)?.closest('.locale-block');
             }
@@ -3273,7 +3301,7 @@ Original description:
         loadState(savedState);
       } else {
         // Initial state if no saved data
-        createLabelBlock('example_label', 'inform', 'content', 'ignore', false, true, [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}]);
+        createLabelBlock('example_label', 'inform', 'content', 'ignore', false, true, [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}], '', true); // Pass true for isFirstLabel
         updateJSONOutput();
       }
 
@@ -3291,7 +3319,7 @@ Original description:
 
       // Attach event listeners to buttons
       document.getElementById('addLabelBtn').onclick = () => {
-        createLabelBlock();
+        createLabelBlock('', 'inform', 'content', 'ignore', false, true, [], '', false); // New labels are not the first
         saveFullSessionStateToLocalStorage(); // Save full session state
         updateJSONOutput(); // Update JSON output display
       };
@@ -3333,7 +3361,7 @@ Original description:
               }
 
               document.getElementById('labels-container').innerHTML = ''; // Clear existing
-              labelsToLoad.forEach(label => {
+              labelsToLoad.forEach((label, index) => { // Pass index to createLabelBlock
                 createLabelBlock(
                   label.identifier || label.id || '', // Support old 'id' or new 'identifier'
                   label.severity || 'inform',
@@ -3342,7 +3370,8 @@ Original description:
                   label.adultOnly || false,
                   label.enabled !== undefined ? label.enabled : true,
                   label.locales || [],
-                  label.category || ''
+                  label.category || '',
+                  index === 0 // Pass true if it's the first label being loaded
                 );
               });
 
@@ -3400,7 +3429,7 @@ Original description:
               }
 
               document.getElementById('labels-container').innerHTML = ''; // Clear existing
-              labelsToLoad.forEach(label => {
+              labelsToLoad.forEach((label, index) => { // Pass index to createLabelBlock
                 createLabelBlock(
                   label.identifier || label.id || '',
                   label.severity || 'inform',
@@ -3409,7 +3438,8 @@ Original description:
                   label.adultOnly || false,
                   label.enabled !== undefined ? label.enabled : true,
                   label.locales || [],
-                  label.category || ''
+                  label.category || '',
+                  index === 0 // Pass true if it's the first label being loaded
                 );
               });
 
@@ -3484,7 +3514,7 @@ Original description:
             categories = []; // Clear categories too
             descriptionSnippets = []; // Clear snippets
             defaultLocaleLanguage = 'en'; // Reset default locale
-            createLabelBlock('example_label', 'inform', 'content', 'ignore', false, true, [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}]);
+            createLabelBlock('example_label', 'inform', 'content', 'ignore', false, true, [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}], '', true); // Pass true for isFirstLabel
             saveFullSessionStateToLocalStorage(); // Save the cleared state
             updateJSONOutput(); // Update JSON output and history
             renderCategoryMenu(); // Re-render category menu
