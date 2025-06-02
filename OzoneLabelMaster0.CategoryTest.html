@@ -55,6 +55,34 @@
     box-sizing: border-box; /* Include padding in element's total width and height */
   }
 
+  /* Custom Scrollbar Styles */
+  ::-webkit-scrollbar {
+    width: 8px; /* Width of the scrollbar */
+    height: 8px; /* Height of horizontal scrollbar */
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--light-gray); /* Color of the track */
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--primary); /* Color of the scroll thumb */
+    border-radius: 10px;
+    border: 2px solid var(--light-gray); /* Padding around thumb */
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #2563eb; /* Color when hovering over the thumb */
+  }
+
+  /* For Firefox (less control, but some styling is possible) */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) var(--light-gray);
+  }
+
+
   /* Default (Desktop) Floating Menu Styles */
   #left-floating-menu {
     position: sticky; /* Sticky on desktop */
@@ -520,6 +548,14 @@
     background: none;
   }
 
+  .theme-switch-label-text {
+    font-weight: 500;
+    color: var(--text-color);
+    margin-bottom: 0;
+    text-align: left;
+    font-size: 1rem;
+  }
+
   .theme-switch {
     display: inline-block;
     height: 16px;
@@ -582,6 +618,7 @@
     margin-left: 1em;
     width: auto; /* Allow content to dictate width */
     flex-shrink: 0;
+    height: calc(100vh - 4em); /* 100% viewport height minus 2em top/bottom body padding */
   }
 
   /* New wrapper for the stacked Category and Quick Access menus */
@@ -591,6 +628,7 @@
     gap: 1em; /* Space between Category and Quick Access menus */
     flex-shrink: 0;
     width: 250px; /* Fixed width for this stacked column */
+    height: 100%; /* Take full height of its parent #right-side-menus-container */
   }
 
   /* Individual Menu Styles within the stacked column */
@@ -606,13 +644,18 @@
     flex-direction: column;
     gap: 0.5em;
     flex-shrink: 0;
+    min-height: 0; /* Crucial for flex items with overflow */
   }
 
   /* Labels Quick Access: dynamic height/scrollbar */
+  #category-menu {
+    flex: 3; /* 30% height */
+    overflow-y: auto;
+  }
+
   #floating-menu {
-    flex-grow: 1; /* Allow it to grow to fill available space in its column */
-    max-height: calc(100vh - 4em); /* Initial large max-height, adjusted by JS */
-    overflow-y: visible; /* Default to visible, JS will set to auto if needed */
+    flex: 7; /* 70% height */
+    overflow-y: auto;
   }
 
   /* Adjust gap for specific elements within menus if needed */
@@ -786,6 +829,9 @@
     gap: 0.5em;
     flex-shrink: 0;
     width: 350px; /* Fixed width for bulk actions menu */
+    height: 100%; /* Take full height of its parent #right-side-menus-container */
+    overflow-y: auto; /* Add scroll if content exceeds height */
+    min-height: 0; /* Crucial for flex items with overflow */
   }
 
 
@@ -1446,7 +1492,7 @@
         labels: currentLabels,
         categories: categories,
         defaultLocaleLanguage: defaultLocaleLanguage,
-        descriptionSnippets: descriptionSnippets // Save snippets
+        descriptionSnippets: descriptionSnippets
       };
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentSessionState));
       // console.log("Saved current session state to local storage:", currentSessionState); // Commented for less console noise
@@ -2107,7 +2153,7 @@ Original description:
                 saveFullSessionStateToLocalStorage(); // Save full session state
                 updateJSONOutput(); // Update JSON output display
                 updateLabelNumbers(); // Update numbers after removal
-                adjustQuickAccessHeight(); // Re-adjust quick access height
+                // No need to adjustQuickAccessHeight here, it's handled by CSS flex
             }
         });
       };
@@ -2265,7 +2311,7 @@ Original description:
       saveFullSessionStateToLocalStorage(); // Save full session state
       updateJSONOutput(); // Update JSON output display
       updateLabelNumbers(); // Update numbers after drag and drop
-      adjustQuickAccessHeight(); // Re-adjust quick access height
+      // No need to adjustQuickAccessHeight here, it's handled by CSS flex
       return false;
     }
 
@@ -2343,6 +2389,9 @@ Original description:
 
     // Adds the current state to the in-memory history for undo/redo
     function addStateToHistoryForUndoAndRedo() {
+        // Prevent adding to history if suppressSave is true (e.g., during loadState)
+        if (suppressSave) return;
+
         const currentLabels = getLabelsData();
         // Ensure history also saves in the new format
         const stateToSave = JSON.stringify({
@@ -2400,7 +2449,7 @@ Original description:
       updateBulkSelectAllCheckbox();
       updateBulkSelectAllTranslateCheckbox();
       updateFloatingMenu(); // Update quick access checkboxes based on visibility
-      adjustQuickAccessHeight(); // Re-adjust quick access height after filtering
+      // No need to adjustQuickAccessHeight here, it's handled by CSS flex
     }
 
     // --- New Feature Functions ---
@@ -2454,7 +2503,7 @@ Original description:
           updateLabelNumbers(); // Update numbers after reset
           renderSnippetManagementUI(); // Re-render snippets
           populateBulkApplySnippetSelect(); // Update bulk apply snippet dropdown
-          adjustQuickAccessHeight(); // Re-adjust quick access height
+          // No need to adjustQuickAccessHeight here, it's handled by CSS flex
         }
       });
     }
@@ -2467,7 +2516,7 @@ Original description:
         saveFullSessionStateToLocalStorage(); // Save full session state
         updateJSONOutput(); // Update JSON output display
         updateLabelNumbers(); // Update numbers after move
-        adjustQuickAccessHeight(); // Re-adjust quick access height
+        // No need to adjustQuickAccessHeight here, it's handled by CSS flex
       }
     }
 
@@ -2479,7 +2528,7 @@ Original description:
         saveFullSessionStateToLocalStorage(); // Save full session state
         updateJSONOutput(); // Update JSON output display
         updateLabelNumbers(); // Update numbers after move
-        adjustQuickAccessHeight(); // Re-adjust quick access height
+        // No need to adjustQuickAccessHeight here, it's handled by CSS flex
       }
     }
 
@@ -2566,7 +2615,7 @@ Original description:
                   saveFullSessionStateToLocalStorage(); // Save full session state
                   updateJSONOutput(); // Update JSON output display
                   updateLabelNumbers(); // Update numbers after paste
-                  adjustQuickAccessHeight(); // Re-adjust quick access height
+                  // No need to adjustQuickAccessHeight here, it's handled by CSS flex
                   // Close the modal
                   document.querySelector('.custom-modal-overlay').remove();
               }
@@ -2977,7 +3026,7 @@ Original description:
                 saveFullSessionStateToLocalStorage();
                 updateJSONOutput();
                 updateLabelNumbers(); // Update numbers after bulk delete
-                adjustQuickAccessHeight(); // Re-adjust quick access height
+                // No need to adjustQuickAccessHeight here, it's handled by CSS flex
                 showCustomModal('Labels deleted.', 'alert');
             }
         });
@@ -3497,37 +3546,11 @@ Original text:
     }
 
     // Function to adjust the max-height of the quick access menu dynamically
+    // This function is now mostly redundant due to flexbox, but kept for potential future use or debugging
     function adjustQuickAccessHeight() {
-        const floatingMenu = document.getElementById('floating-menu');
-        const rightSideMenusContainer = document.getElementById('right-side-menus-container');
-        const categoryMenu = document.getElementById('category-menu');
-
-        if (!floatingMenu || !rightSideMenusContainer || !categoryMenu) {
-            return;
-        }
-
-        // Calculate available height for the floating menu
-        // window.innerHeight = total viewport height
-        // rightSideMenusContainer.getBoundingClientRect().top = distance from top of viewport to the top of the right-side-menus-container
-        // categoryMenu.offsetHeight = height of the category menu
-        // 2 * parseFloat(getComputedStyle(document.body).paddingTop) = body top/bottom padding
-        // parseFloat(getComputedStyle(rightSideMenusContainer).gap) = gap between category menu and floating menu
-        // 20 = a small buffer to prevent scrollbar from appearing too aggressively
-        const availableHeight = window.innerHeight -
-                                rightSideMenusContainer.getBoundingClientRect().top -
-                                categoryMenu.offsetHeight -
-                                parseFloat(getComputedStyle(rightSideMenusContainer).gap) -
-                                (2 * parseFloat(getComputedStyle(document.body).paddingTop)) -
-                                20;
-
-
-        if (floatingMenu.scrollHeight > availableHeight) {
-            floatingMenu.style.maxHeight = availableHeight + 'px';
-            floatingMenu.style.overflowY = 'auto';
-        } else {
-            floatingMenu.style.maxHeight = ''; // Remove max-height to allow it to grow naturally
-            floatingMenu.style.overflowY = 'visible'; // Allow content to be fully visible
-        }
+        // No longer needed for height calculation due to flexbox layout
+        // The overflow-y: auto on #category-menu and #floating-menu handles scrolling automatically
+        // within their flex-allocated heights.
     }
 
 
@@ -3571,7 +3594,7 @@ Original text:
         loadDescriptionSnippets(); // Load description snippets on app start
         updateUndoRedoButtons(); // Initialize button states
         updateLabelNumbers(); // Initial numbering on app start
-        adjustQuickAccessHeight(); // Initial adjustment of quick access height
+        // No need to call adjustQuickAccessHeight here, as flexbox handles it
 
         // Initialize theme toggle state in options modal
         const themeToggle = document.getElementById('checkbox');
@@ -3603,7 +3626,7 @@ Original text:
         renderSnippetManagementUI(); // Ensure snippets are rendered
         populateBulkApplySnippetSelect(); // Ensure bulk apply snippet dropdown is populated
         updateLabelNumbers(); // Ensure numbers are updated even on error
-        adjustQuickAccessHeight(); // Ensure quick access height is adjusted on error
+        // No need to call adjustQuickAccessHeight here, as flexbox handles it
       } finally {
         hideLoadingOverlay();
       }
@@ -3616,7 +3639,8 @@ Original text:
 
     // Call the initialization function when the DOM is fully loaded
     document.addEventListener('DOMContentLoaded', initializeApp);
-    window.addEventListener('resize', adjustQuickAccessHeight); // Re-adjust on window resize
+    // No longer need to call adjustQuickAccessHeight on window resize, CSS handles it
+    // window.addEventListener('resize', adjustQuickAccessHeight);
 
 
     // Get references for mobile menus and toggles
@@ -3878,7 +3902,7 @@ Original text:
                   saveFullSessionStateToLocalStorage(); // Save full session state
                   updateJSONOutput(); // Update JSON output display
                   updateLabelNumbers(); // Update numbers after import
-                  adjustQuickAccessHeight(); // Re-adjust quick access height
+                  // No need to adjustQuickAccessHeight here, it's handled by CSS flex
                   showCustomModal('Labels imported successfully!', 'alert');
               }
           });
@@ -3977,7 +4001,7 @@ Original text:
                 saveFullSessionStateToLocalStorage();
                 updateJSONOutput(); // This will re-render quick access
                 updateLabelNumbers(); // Update numbers after quick access drag and drop
-                adjustQuickAccessHeight(); // Re-adjust quick access height
+                // No need to adjustQuickAccessHeight here, it's handled by CSS flex
             }
         }
         return false;
@@ -4054,7 +4078,7 @@ Original text:
             }
         };
       });
-      adjustQuickAccessHeight(); // Re-adjust quick access height after updating content
+      // No need to adjustQuickAccessHeight here, as flexbox handles it
     }
 
     // Add beforeunload event listener to warn about unsaved changes
@@ -4152,7 +4176,7 @@ Original text:
     // Options Modal Event Listeners
     document.getElementById('optionsBtn').onclick = () => {
         populateDefaultLocaleLanguageSelect(); // Ensure dropdown is up-to-date
-        document.getElementById('optionsModal').style.display = 'flex';
+        document.getElementById('optionsModal').style.display = 'flex'; // Directly show the modal
     };
     document.getElementById('closeOptionsModalBtn').onclick = () => {
         document.getElementById('optionsModal').style.display = 'none';
