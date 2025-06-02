@@ -18,7 +18,9 @@
     --input-border: #d1d5db;
     --output-background: #f3f4f6;
     --output-border: #e5e7eb;
-    --border-radius: 8px;
+    --border-radius: 4px; /* Changed to 4px for a more squared look */
+    --label-box-background: hsl(180, 70%, 90%); /* Light teal for the identifier box */
+    --label-box-text: hsl(180, 100%, 20%); /* Darker teal for contrast */
   }
 
   /* Dark Mode Overrides */
@@ -35,6 +37,8 @@
     --input-border: #4b5563; /* Darker input border */
     --output-background: #374151; /* Darker output background */
     --output-border: #4b5563; /* Darker output border */
+    --label-box-background: hsl(180, 100%, 20%); /* Dark teal for dark mode */
+    --label-box-text: hsl(180, 70%, 90%); /* Lighter text for contrast */
   }
 
   body {
@@ -58,17 +62,15 @@
     width: 180px;
     background: var(--background);
     border: 1px solid var(--block-border);
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     padding: 1em;
     z-index: 9999; /* Increased z-index significantly */
-    max-height: calc(100vh - 4em);
-    overflow-y: auto;
     transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease-out; /* Add transform transition */
     margin-right: 2em;
     display: flex;
     flex-direction: column;
-    gap: 0.5em;
+    gap: 0.5em; /* Consistent gap for children */
   }
 
   #left-floating-menu .mobile-menu-header {
@@ -89,11 +91,11 @@
   }
 
   #container {
-    max-width: 600px;
+    max-width: 750px; /* Increased width by ~25% from 600px */
     width: 100%;
     background: var(--background);
     padding: 2em;
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     transition: background 0.3s ease, box-shadow 0.3s ease;
     margin-right: 2em;
@@ -135,7 +137,7 @@
   header a img {
     height: 48px;
     width: auto;
-    border-radius: 8px;
+    border-radius: var(--border-radius); /* Uses variable */
     transition: transform 0.2s ease;
     /* Removed margin-bottom here as it's handled by gap in header */
   }
@@ -149,7 +151,7 @@
     padding: 10px 12px;
     font-size: 1rem;
     border: 1px solid var(--input-border);
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     margin-bottom: 1.5em;
     box-sizing: border-box;
     background: var(--block-background);
@@ -160,7 +162,7 @@
   .label-block {
     background: var(--block-background);
     border: 1px solid var(--block-border);
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     margin-bottom: 1.5em;
     overflow: hidden;
     transition: box-shadow 0.2s, background 0.3s ease, border-color 0.3s ease;
@@ -187,11 +189,25 @@
     padding: 0.75em 1em;
     display: flex;
     align-items: center;
-    gap: 0.2em;
+    gap: 0.5em; /* Increased gap for better spacing */
     font-weight: 600;
     cursor: grab;
     border-bottom: 1px solid var(--block-border);
     transition: background 0.3s ease, border-color 0.3s ease;
+  }
+
+  .label-identifier-box { /* New style for the yellow identifier box */
+    background-color: var(--label-box-background);
+    color: var(--label-box-text);
+    padding: 0.3em 0.6em;
+    border-radius: var(--border-radius); /* Uses variable */
+    font-size: 0.9em;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px; /* Limit width */
+    flex-shrink: 1; /* Allow it to shrink */
   }
 
   .collapse-btn {
@@ -199,7 +215,7 @@
     color: white;
     border: none;
     padding: 6px 12px;
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     cursor: pointer;
     font-size: 0.875rem;
     transition: background 0.3s ease;
@@ -211,7 +227,8 @@
   .close-mobile-menu-btn,
   .move-up-btn,
   .move-down-btn,
-  .remove-category-btn { /* Added remove-category-btn */
+  .remove-category-btn,
+  .snippet-action-btn { /* Added snippet-action-btn */
     border: none;
     cursor: pointer;
     transition: background 0.3s ease;
@@ -224,7 +241,7 @@
     height: 30px; /* Fixed height */
     padding: 0; /* Remove padding for consistent size */
     font-size: 1.2rem; /* Larger 'X' or arrow for small buttons */
-    border-radius: 4px; /* Square with 4px radius */
+    border-radius: var(--border-radius); /* Uses variable */
   }
 
   /* Specific colors for different button types */
@@ -242,6 +259,12 @@
     color: white;
   }
 
+  .snippet-action-btn { /* Style for snippet edit/delete buttons */
+    background: var(--gray);
+    color: white;
+    font-size: 1rem; /* Smaller icon for these */
+  }
+
   /* Hover states */
   .remove-btn:hover,
   .locale-remove-btn:hover,
@@ -257,16 +280,42 @@
     cursor: not-allowed;
   }
 
+  .snippet-action-btn:hover {
+    background: #5a6268;
+  }
+
 
   .label-content {
     padding: 1em;
+  }
+
+  /* New flex containers for side-by-side inputs/selects */
+  .label-content .input-group-row {
+    display: flex;
+    gap: 1em; /* Space between items in the row */
+    margin-top: 1em; /* Space from previous elements */
+  }
+
+  .label-content .input-group-row:first-of-type {
+    margin-top: 0; /* No top margin for the very first row */
+  }
+
+  .label-content .input-group-row > div {
+    flex: 1; /* Each item takes equal space */
+    display: flex; /* Enable flex for label and input/select */
+    flex-direction: column; /* Stack label and input/select */
+  }
+
+  .label-content .input-group-row label {
+    margin-top: 0; /* Remove extra top margin from general label style */
+    margin-bottom: 0.25em; /* Small space between label and input */
   }
 
   .locale-block {
     border: 1px solid var(--block-border);
     padding: 1em;
     margin-top: 1em;
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     background: var(--header-background);
     transition: background 0.3s ease, border-color 0.3s ease;
   }
@@ -283,9 +332,9 @@
     color: white;
     border: none;
     padding: 6px 12px; /* Match main collapse button padding */
-    border-radius: var(--border-radius); /* Match main collapse button border-radius */
+    border-radius: var(--border-radius); /* Uses variable */
     cursor: pointer;
-    font-size: 0.875rem; /* Match main collapse button font-size */
+    font-size: 0.875rem;
     transition: background 0.3s ease;
     flex-shrink: 0;
   }
@@ -315,7 +364,7 @@
   .locale-block .llm-buttons button {
     padding: 0.4em 0.8em;
     font-size: 0.85rem;
-    border-radius: 4px;
+    border-radius: var(--border-radius); /* Uses variable */
     background: #10b981;
   }
 
@@ -325,7 +374,7 @@
 
   label {
     display: block;
-    margin-top: 1em;
+    margin-top: 1em; /* Keep for labels not in input-group-row */
     font-weight: 500;
   }
 
@@ -334,15 +383,22 @@
   textarea {
     width: 100%;
     padding: 0.5em 0.75em;
-    margin-top: 0.25em;
+    margin-top: 0.25em; /* Keep for labels not in input-group-row */
     font-size: 1rem;
     border: 1px solid var(--input-border);
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     background: var(--block-background);
     color: var(--text-color);
     box-sizing: border-box;
     transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
   }
+
+  /* Override for inputs/selects within input-group-row */
+  .label-content .input-group-row input[type="text"],
+  .label-content .input-group-row select {
+    margin-top: 0; /* Remove margin-top as it's handled by parent flex */
+  }
+
 
   textarea {
     resize: vertical;
@@ -354,7 +410,7 @@
     background: var(--primary);
     color: white;
     border: none;
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     cursor: pointer;
     transition: background 0.2s;
   }
@@ -375,6 +431,7 @@
     margin-top: 1em;
     margin-right: 0.5em;
     vertical-align: middle;
+    border-radius: var(--border-radius); /* Uses variable */
   }
 
   /* New class for left menu buttons to ensure consistent sizing */
@@ -384,6 +441,7 @@
     width: 100%;
     margin-top: 0;
     margin-right: 0;
+    border-radius: var(--border-radius); /* Uses variable */
   }
 
   /* Styling for Add Locale button */
@@ -391,7 +449,7 @@
     background: var(--primary); /* Keep blue */
     color: white;
     border: none;
-    border-radius: 4px; /* Match translate buttons */
+    border-radius: var(--border-radius); /* Uses variable */
     cursor: pointer;
     font-size: 0.85rem; /* Match translate buttons */
     padding: 0.4em 0.8em; /* Match translate buttons */
@@ -423,7 +481,7 @@
     border: 1px solid var(--output-border);
     font-family: 'Courier New', monospace;
     font-size: 0.95rem;
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     max-height: 300px;
     overflow-y: auto;
     color: var(--text-color);
@@ -442,7 +500,7 @@
     background: var(--primary);
     color: white;
     padding: 0.5em 0.8em; /* Adjusted vertical padding */
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     cursor: pointer;
     font-size: 1rem;
     transition: background 0.2s;
@@ -518,32 +576,74 @@
     border-radius: 50%;
   }
 
-  /* Right Floating Menu Styles */
-  #floating-menu, #category-menu { /* Combined styles for both right menus */
-    position: sticky; /* Sticky on desktop */
+  /* Right Side Menus Container (Desktop) */
+  #right-side-menus-container {
+    position: sticky; /* Make it sticky */
     top: 2em;
-    width: 200px;
-    background: var(--background);
-    border: 1px solid var(--block-border);
-    border-radius: var(--border-radius);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    padding: 1em;
-    z-index: 9999; /* Increased z-index significantly */
-    max-height: calc(100vh - 4em);
-    overflow-y: auto;
-    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease-out; /* Add transform transition */
-    margin-bottom: 1em; /* Space between category and quick access menus */
+    display: flex; /* Arrange children horizontally */
+    flex-direction: row;
+    gap: 1em; /* Space between columns */
+    align-items: flex-start; /* Align columns to the top */
+    margin-left: 2em; /* Space from the main container */
+    width: auto; /* Allow content to dictate width */
+    flex-shrink: 0; /* Prevent shrinking */
   }
 
-  #floating-menu .mobile-menu-header, #category-menu .mobile-menu-header {
+  /* Column 1: Category and Quick Access (Desktop) */
+  #category-quick-access-stack {
+    display: flex;
+    flex-direction: column; /* Stack category and quick access vertically */
+    gap: 1em; /* Space between category and quick access */
+    width: 200px; /* Fixed width for this column */
+    flex-shrink: 0; /* Prevent shrinking */
+  }
+
+  /* Individual Right Menu Styles (children of the new columns) */
+  #floating-menu, #category-menu, #bulk-actions-menu {
+    background: var(--background);
+    border: 1px solid var(--block-border);
+    border-radius: var(--border-radius); /* Uses variable */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 1em; /* Consistent padding */
+    position: static; /* No longer sticky/fixed individually */
+    max-height: none; /* Allow content to dictate height */
+    overflow-y: visible; /* Let parent handle overflow */
+    margin-bottom: 0; /* No individual margin-bottom */
+    display: flex; /* Enable flex for internal spacing */
+    flex-direction: column; /* Stack children vertically */
+    gap: 0.5em; /* Consistent internal gap */
+  }
+
+  /* Specific for Labels Quick Access to have its own scrollbar */
+  #floating-menu {
+    max-height: 300px; /* Example max height for quick access list */
+    overflow-y: auto; /* Only this menu scrolls */
+  }
+
+  /* Adjust gap for specific elements within menus if needed */
+  #category-menu .category-input-group {
+    margin-bottom: 0.5em; /* Adjust to match general gap */
+  }
+  #category-menu ul {
+    margin-top: 0; /* Remove default ul margin */
+  }
+  #bulk-actions-menu .bulk-action-group {
+    margin-top: 0.5em; /* Consistent spacing between groups */
+  }
+  #bulk-actions-menu .bulk-action-group:first-child {
+    margin-top: 0; /* No top margin for first group */
+  }
+
+
+  #floating-menu .mobile-menu-header, #category-menu .mobile-menu-header, #bulk-actions-menu .mobile-menu-header {
     display: none; /* Hide mobile header on desktop */
   }
 
-  #floating-menu h3, #category-menu h3 {
+  #floating-menu h3, #category-menu h3, #bulk-actions-menu h3 {
     margin-top: 0;
     color: var(--primary);
     font-size: 1.2rem;
-    margin-bottom: 0.8em;
+    margin-bottom: 0.8em; /* Keep some margin for titles */
   }
 
   #floating-menu ul, #category-menu ul {
@@ -553,25 +653,42 @@
   }
 
   #floating-menu li, #category-menu li {
-    margin-bottom: 0.5em;
+    margin-bottom: 0.5em; /* Consistent spacing for list items */
+  }
+  #floating-menu li:last-child, #category-menu li:last-child {
+    margin-bottom: 0; /* No margin after last item */
   }
 
-  #floating-menu a, #category-menu a {
-    display: block;
-    padding: 0.3em 0.5em;
-    color: var(--text-color);
-    text-decoration: none;
-    border-radius: 4px;
-    transition: background 0.2s ease, color 0.2s ease;
+
+  /* Styled Quick Access Labels */
+  #floating-menu a {
+    background: var(--label-box-background);
+    color: var(--label-box-text);
+    padding: 0.5em 0.8em; /* Adjusted padding for button feel */
+    border-radius: var(--border-radius);
+    display: block; /* Ensure it takes full width */
+    text-align: center;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+    cursor: grab; /* Indicate draggable */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-
-  #floating-menu a:hover, #category-menu a:hover {
-    background: var(--light-gray);
-    color: var(--primary);
+  #floating-menu a:hover {
+    background: var(--primary); /* Hover effect */
+    color: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   }
+  #floating-menu a.is-dragging {
+    opacity: 0.6;
+    transform: translateY(-2px);
+  }
+  #floating-menu a.over {
+    border: 2px dashed var(--primary);
+  }
+
 
   /* Category Menu Specifics */
   #category-menu .category-input-group {
@@ -583,13 +700,13 @@
   #category-menu .category-input-group input {
     flex-grow: 1;
     padding: 0.5em;
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     border: 1px solid var(--input-border);
   }
 
   #category-menu .category-input-group button {
     padding: 0.5em 0.8em;
-    border-radius: var(--border-radius);
+    border-radius: var(--border-radius); /* Uses variable */
     background: var(--primary);
     color: white;
     border: none;
@@ -602,13 +719,20 @@
     align-items: center;
     padding: 0.3em 0.5em;
     background: var(--light-gray);
-    border-radius: 4px;
+    border-radius: var(--border-radius); /* Uses variable */
   }
 
   #category-menu .category-list-item span {
     flex-grow: 1;
     color: var(--text-color);
   }
+
+  /* Bulk Actions Menu Specifics */
+  #bulk-actions-menu {
+    width: 250px; /* Fixed width for bulk actions column */
+    flex-shrink: 0;
+  }
+
 
   /* Mobile Menu Toggle Buttons (bottom corners) */
   .mobile-menu-toggle-button {
@@ -658,16 +782,21 @@
 
   /* Media query for smaller screens */
   @media (max-width: 992px) {
-    /* Hide desktop menus */
-    #left-floating-menu,
-    #floating-menu,
-    #category-menu { /* Added category menu */
+    /* Hide desktop right menus container */
+    #right-side-menus-container {
+      display: none;
+    }
+
+    /* Left floating menu becomes fixed mobile menu */
+    #left-floating-menu {
       position: fixed; /* Fixed on mobile */
       bottom: 0;
+      left: 0;
       width: 80%;
       max-width: 300px;
       height: auto;
-      max-height: 80vh;
+      max-height: 80vh; /* Re-add max-height for mobile to prevent overflow off screen */
+      overflow-y: auto; /* Re-add overflow for mobile */
       border-radius: var(--border-radius) var(--border-radius) 0 0;
       border-bottom: none;
       transform: translateY(calc(100% + 50px)); /* Start collapsed and fully hidden */
@@ -677,38 +806,58 @@
       z-index: 9999; /* Ensure they are on top */
     }
 
-    #left-floating-menu {
-      left: 0;
+    /* Mobile right menu wrapper (re-enable and style) */
+    #right-menu-wrapper-mobile { /* This ID will be used for the mobile right menu */
+        position: fixed; /* Fixed on mobile */
+        bottom: 0;
+        right: 0;
+        width: 80%;
+        max-width: 300px;
+        height: auto;
+        max-height: 80vh; /* Max height for the entire wrapper */
+        overflow-y: auto; /* Enable scrolling for the entire wrapper */
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
+        border-bottom: none;
+        transform: translateY(calc(100% + 50px)); /* Hide by default */
+        pointer-events: none; /* Initially non-interactive */
+        z-index: 9998; /* Ensure it's below bulk actions if both open */
+        background: var(--background); /* Apply background here */
+        border: 1px solid var(--block-border); /* Apply border here */
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Apply shadow here */
+        padding: 1em; /* Apply padding here */
+        display: flex; /* Make it a flex container */
+        flex-direction: column; /* Stack vertically on mobile */
+        gap: 1em; /* Space between menus */
     }
 
-    #floating-menu, #category-menu { /* Both right menus slide from right */
-      right: 0;
-    }
-    #category-menu {
-        margin-bottom: 0; /* Remove margin between them on mobile as they'll be separate */
+    /* When right menu wrapper is open, stack its children */
+    #right-menu-wrapper-mobile.open {
+        transform: translateY(0);
+        pointer-events: auto;
     }
 
-    /* Add relative positioning to menus for absolute close button */
-    #left-floating-menu,
-    #floating-menu,
-    #category-menu {
-        position: relative; /* Crucial for absolute positioning of close button */
+    /* Individual Right Menu Styles (children of the mobile wrapper) on mobile */
+    #category-menu, #floating-menu, #bulk-actions-menu {
+        border-radius: 0; /* Remove individual border radius */
+        box-shadow: none; /* Remove individual shadows */
+        border: none; /* Remove individual borders */
+        border-bottom: 1px solid var(--block-border); /* Add separator between them */
+        width: auto; /* Take full width of parent */
+    }
+
+    #bulk-actions-menu { /* First menu in mobile stack */
+        border-radius: var(--border-radius) var(--border-radius) 0 0; /* Rounded top only */
+    }
+    #floating-menu { /* Last menu in mobile stack */
+        border-bottom: none; /* No border at the very bottom of the last menu */
+        border-radius: 0 0 var(--border-radius) var(--border-radius); /* Rounded bottom only */
     }
 
 
     /* Show mobile menu header when menus are open on mobile */
     #left-floating-menu.open .mobile-menu-header,
-    #floating-menu.open .mobile-menu-header,
-    #category-menu.open .mobile-menu-header { /* Added category menu */
+    #right-menu-wrapper-mobile.open .mobile-menu-header { /* Only need to check wrapper open state */
       display: flex; /* Show mobile header on mobile */
-    }
-
-    /* When a menu is "open" on mobile */
-    #left-floating-menu.open,
-    #floating-menu.open,
-    #category-menu.open { /* Added category menu */
-      transform: translateY(0); /* Expand */
-      pointer-events: auto; /* Make menu interactive when open */
     }
 
     /* Show the mobile toggle buttons */
@@ -743,305 +892,164 @@
       font-size: 1.5rem;
     }
   }
+  /* New style for the bulk translate button */
+  .translate-button {
+    background: #10b981; /* Green color */
+    color: white;
+  }
 
-  /* Custom Modal for alerts/confirms */
+  .translate-button:hover {
+    background: #059669; /* Darker green on hover */
+  }
+
+  /* Custom Modal Styles */
   .custom-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black backdrop */
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10000;
+    z-index: 10000; /* Ensure it's above everything else */
   }
 
   .custom-modal-content {
-    background: var(--background);
+    background: var(--block-background);
     padding: 2em;
     border-radius: var(--border-radius);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    text-align: center;
-    max-width: 400px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    max-width: 500px;
     width: 90%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
     color: var(--text-color);
   }
 
-  .custom-modal-content button {
-    margin: 0.5em;
-    padding: 0.7em 1.5em;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background 0.2s;
+  .custom-modal-content p {
+    margin: 0;
+    font-size: 1.1rem;
+    line-height: 1.5;
   }
 
-  .custom-modal-content button.confirm-btn {
+  .custom-modal-content button {
+    padding: 0.6em 1.2em;
+    font-size: 1rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .custom-modal-content .confirm-btn {
     background: var(--primary);
     color: white;
   }
 
-  .custom-modal-content button.cancel-btn {
+  .custom-modal-content .confirm-btn:hover {
+    background: #2563eb;
+  }
+
+  .custom-modal-content .cancel-btn {
     background: var(--gray);
     color: white;
-  }
-
-  .custom-modal-content textarea {
-    width: calc(100% - 20px); /* Adjust for padding */
-    min-height: 150px;
-    margin-bottom: 1em;
-    padding: 10px;
-    border: 1px solid var(--input-border);
-    border-radius: var(--border-radius);
-    background: var(--block-background);
-    color: var(--text-color);
-    box-sizing: border-box;
-    font-family: 'Courier New', monospace;
-    font-size: 0.9rem;
-  }
-
-  .copy-feedback {
-    display: inline-block;
     margin-left: 0.5em;
-    color: var(--primary);
-    font-weight: bold;
-    opacity: 0;
-    transition: opacity 0.3s ease-out;
   }
 
-  .copy-feedback.show {
-    opacity: 1;
+  .custom-modal-content .cancel-btn:hover {
+    background: #5a6268;
   }
 
-  /* Loading Spinner Styles */
-  .loading-overlay {
+  /* Copy Feedback Toast */
+  #copyFeedback {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10001; /* Higher than modal overlay */
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #10b981; /* Green background */
     color: white;
-    font-size: 1.2rem;
-    flex-direction: column;
-    gap: 1em;
+    padding: 10px 20px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 10001; /* Above modals */
+    font-size: 0.9rem;
+    white-space: nowrap;
   }
 
-  .spinner {
-    border: 4px solid rgba(255, 255, 255, 0.3);
-    border-top: 4px solid #fff;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
+  #copyFeedback.show {
+    opacity: 1;
+    visibility: visible;
   }
 
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  /* New style for the action button container in the label header */
+  .header-action-buttons {
+    display: flex;
+    gap: 0.2em;
+    align-items: center;
   }
 
-  /* Category dropdown in header */
-  .label-header .category-in-header {
-    margin-left: auto; /* Push to the right, before move buttons */
-    margin-right: 0.5em; /* Small space before move buttons */
+  /* Adjust category select in header */
+  .category-in-header {
+    display: flex; /* Make it a flex container */
+    align-items: center; /* Align items vertically */
+    gap: 0.2em; /* Space between label and select (if label was present) */
+    /* flex-grow: 1; Removed flex-grow here as it's now inside header-right-group */
+    margin-right: 0.5em; /* Small margin from previous element */
+  }
+
+  .category-in-header select {
+    flex-grow: 1; /* Allow the select to grow within its container */
+    max-width: 150px; /* Limit its max width to prevent it from pushing too much */
+  }
+
+  /* New wrapper for elements aligned to the right in the header */
+  .header-right-group {
     display: flex;
     align-items: center;
-    gap: 0.2em;
-    font-weight: normal; /* Override header's bold */
-    color: var(--text-color);
+    gap: 0.5em; /* Space between category and action buttons */
+    margin-left: auto; /* Pushes this whole group to the far right */
   }
 
-  .label-header .category-in-header label {
-    margin: 0;
-    font-size: 0.85rem;
-    white-space: nowrap; /* Prevent text wrapping */
-  }
-
-  .label-header .category-in-header select {
-    width: auto; /* Allow select to size to content */
-    max-width: 100px; /* Limit width */
-    padding: 0.2em 0.4em;
-    font-size: 0.85rem;
-    margin: 0;
-    background-color: var(--block-background); /* Match block background */
-    border: 1px solid var(--input-border);
+  /* Style for the label number box */
+  .label-number-box {
+    background: var(--gray); /* Grey background */
+    color: white; /* White text */
+    padding: 0.3em 0.6em;
     border-radius: var(--border-radius);
+    font-size: 0.9em;
+    font-weight: 600;
+    flex-shrink: 0; /* Prevent shrinking */
+    min-width: 30px; /* Ensure enough width for 2-3 digits */
+    text-align: center;
+    box-sizing: border-box; /* Include padding in width */
+    margin-right: 0.5em; /* Space between number and checkbox */
+    display: flex; /* Added flex to align number and checkbox */
+    align-items: center; /* Vertically center items */
+    justify-content: center; /* Horizontally center items */
+    gap: 0.3em; /* Small gap between number and checkbox */
+  }
+
+  /* Style for the enabled toggle in the header */
+  .enabled-toggle-header {
+    display: flex;
+    align-items: center;
+    gap: 0.2em; /* Small gap between label and checkbox */
+    font-weight: 500; /* Match other labels */
     color: var(--text-color);
+    margin-right: 0.5em; /* Space from category dropdown */
+    flex-shrink: 0; /* Prevent shrinking */
   }
 
-  /* Bulk Actions Section Styling */
-  #bulk-actions-menu {
-    background: var(--background);
-    border: 1px solid var(--block-border);
-    border-radius: var(--border-radius);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    padding: 1em;
-    margin-bottom: 1em; /* Space between bulk actions and categories */
-    display: flex;
-    flex-direction: column;
-    gap: 0.5em;
+  .enabled-toggle-header input[type="checkbox"] {
+    margin: 0; /* Remove default checkbox margin */
+    transform: scale(1.1); /* Slightly larger checkbox */
   }
-
-  #bulk-actions-menu h3 {
-    margin-top: 0;
-    color: var(--primary);
-    font-size: 1.2rem;
-    margin-bottom: 0.8em;
-  }
-
-  #bulk-actions-menu .bulk-action-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5em;
-    margin-bottom: 1em;
-    border-bottom: 1px solid var(--block-border);
-    padding-bottom: 1em;
-  }
-
-  #bulk-actions-menu .bulk-action-group:last-child {
-      border-bottom: none;
-      padding-bottom: 0;
-      margin-bottom: 0;
-  }
-
-  #bulk-actions-menu .bulk-action-row {
-      display: flex;
-      align-items: center;
-      gap: 0.5em;
-      flex-wrap: wrap; /* Allow wrapping on small screens */
-  }
-
-  #bulk-actions-menu .bulk-action-row label {
-      margin: 0; /* Override default label margin */
-      flex-shrink: 0;
-  }
-
-  #bulk-actions-menu .bulk-action-row select,
-  #bulk-actions-menu .bulk-action-row input[type="checkbox"] {
-      margin: 0; /* Override default input/select margin */
-  }
-
-  #bulk-actions-menu .bulk-action-row select {
-      flex-grow: 1; /* Allow select to take available space */
-      max-width: 120px; /* Limit width */
-      padding: 0.3em 0.5em;
-      font-size: 0.9rem;
-  }
-
-  #bulk-actions-menu .bulk-action-row button {
-      padding: 0.4em 0.8em;
-      font-size: 0.9rem;
-      flex-shrink: 0;
-  }
-
-  #bulk-actions-menu .bulk-action-row .full-width-button {
-      width: 100%;
-      margin-top: 0.5em;
-  }
-
-  #bulk-actions-menu .bulk-action-row .danger-button {
-      background-color: var(--danger);
-  }
-
-  #bulk-actions-menu .bulk-action-row .danger-button:hover {
-      background-color: #dc2626;
-  }
-
-  /* Checkbox styling for bulk select */
-  .label-header .bulk-select-checkbox {
-    margin-left: 0.5em; /* Space from identifier */
-    margin-right: 0.5em;
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-  }
-
-  /* Mobile specific adjustments for bulk action menu */
-  @media (max-width: 992px) {
-    #bulk-actions-menu {
-      position: fixed;
-      bottom: 0;
-      width: 80%;
-      max-width: 300px;
-      height: auto;
-      max-height: 80vh;
-      border-radius: var(--border-radius) var(--border-radius) 0 0;
-      border-bottom: none;
-      transform: translateY(calc(100% + 50px)); /* Start collapsed and fully hidden */
-      display: flex; /* Ensure it's a flex container when active */
-      margin-right: 0;
-      pointer-events: none;
-      z-index: 9999;
-      left: 50%; /* Center horizontally */
-      transform: translateX(-50%) translateY(calc(100% + 50px)); /* Center and hide */
-      transition: transform 0.3s ease-out;
-    }
-
-    #bulk-actions-menu.open {
-      transform: translateX(-50%) translateY(0); /* Center and show */
-      pointer-events: auto;
-    }
-
-    #bulk-actions-menu .mobile-menu-header {
-      display: flex; /* Show mobile header */
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1em;
-      padding: 0.5em 1em;
-      border-bottom: 1px solid var(--block-border);
-      box-sizing: border-box;
-      width: 100%;
-    }
-
-    /* Adjust right menu wrapper for mobile */
-    #right-menu-wrapper {
-        position: fixed;
-        bottom: 0;
-        right: 0;
-        width: 80%;
-        max-width: 300px;
-        flex-direction: column; /* Stack menus vertically */
-        gap: 0; /* Remove gap between them as they will be separate */
-        z-index: 9998; /* Ensure they are below bulk actions if both open */
-        pointer-events: none; /* Initially non-interactive */
-        transform: translateY(calc(100% + 50px)); /* Hide by default */
-        transition: transform 0.3s ease-out;
-    }
-
-    /* When right menu wrapper is open, stack its children */
-    #right-menu-wrapper.open {
-        transform: translateY(0);
-        pointer-events: auto;
-    }
-
-    #floating-menu, #category-menu {
-        position: static; /* Remove sticky positioning */
-        width: 100%; /* Take full width of wrapper */
-        max-height: none; /* Allow content to dictate height */
-        box-shadow: none; /* Remove individual shadows */
-        border: none; /* Remove individual borders */
-        border-radius: 0; /* Remove individual border radius */
-        padding: 1em;
-        margin-bottom: 0; /* No margin between them */
-    }
-
-    #category-menu {
-        border-bottom: 1px solid var(--block-border); /* Add separator between category and quick access */
-        border-radius: var(--border-radius) var(--border-radius) 0 0; /* Rounded top only */
-    }
-
-    #floating-menu {
-        border-radius: 0 0 var(--border-radius) var(--border-radius); /* Rounded bottom only */
-    }
-  }
-
 </style>
 
 </head>
@@ -1049,15 +1057,15 @@
   <div id="left-floating-menu">
     <div class="mobile-menu-header">
       <h3>Main Menu</h3>
-      <button id="closeLeftMenuBtn" class="close-mobile-menu-btn">X</button>
+      <button id="closeLeftMenuBtn" class="close-mobile-menu-btn" title="Close main menu">X</button>
     </div>
-    <button id="addLabelBtn" class="left-menu-button">+ Add Label</button>
+    <button id="addLabelBtn" class="left-menu-button" title="Add a new blank label block">+ Add Label</button>
     <div class="separator"></div>
-    <button id="collapseAllBtn" class="left-menu-button">Collapse All</button>
-    <button id="expandAllBtn" class="left-menu-button">Expand All</button>
-    <button id="resetClearBtn" class="left-menu-button">Reset / Clear All</button>
+    <button id="collapseAllBtn" class="left-menu-button" title="Collapse all label content areas">Collapse All</button>
+    <button id="expandAllBtn" class="left-menu-button" title="Expand all label content areas">Expand All</button>
+    <button id="resetClearBtn" class="left-menu-button" title="Clear all labels or reset to default">Reset / Clear All</button>
     <div class="separator"></div>
-    <div class="theme-switch-wrapper">
+    <div class="theme-switch-wrapper" title="Toggle between light and dark mode">
       <span class="theme-switch-label-text">Dark Mode</span>
       <label class="theme-switch" for="checkbox">
         <input type="checkbox" id="checkbox" />
@@ -1065,13 +1073,14 @@
       </label>
     </div>
     <div class="separator"></div>
-    <button id="versionHistoryBtn" class="left-menu-button">Version History</button>
-    <button id="saveBtn" class="left-menu-button">Save Current Version</button>
-    <button id="undoBtn" class="left-menu-button" disabled>Undo</button>
-    <button id="redoBtn" class="left-menu-button" disabled>Redo</button>
+    <button id="optionsBtn" class="left-menu-button" title="Open options menu">⚙️ Options</button>
+    <button id="versionHistoryBtn" class="left-menu-button" title="View and revert to previous saved versions">Version History</button>
+    <button id="saveBtn" class="left-menu-button" title="Save the current state as a new version in history">Save Current Version</button>
+    <button id="undoBtn" class="left-menu-button" disabled title="Undo the last change">Undo</button>
+    <button id="redoBtn" class="left-menu-button" disabled title="Redo the last undone change">Redo</button>
     <div class="separator"></div>
-    <button id="saveSessionFileBtn" class="left-menu-button">Save Session File</button>
-    <button id="loadSessionFileBtn" class="left-menu-button">Load Session File</button>
+    <button id="saveSessionFileBtn" class="left-menu-button" title="Download current labels and categories as a session file (.ozm)">Save Session File</button>
+    <button id="loadSessionFileBtn" class="left-menu-button" title="Load labels and categories from a session file (.ozm or .json)">Load Session File</button>
     <input type="file" id="sessionFileInput" accept=".json,.ozm" style="display:none" />
   </div>
 
@@ -1091,51 +1100,77 @@
 
     <div id="labels-container"></div>
 
-    <button id="pasteJsonBtn" class="action-button">Paste JSON</button>
-    <button id="copyJsonBtn" class="action-button">Copy JSON</button>
+    <button id="pasteJsonBtn" class="action-button" title="Paste JSON data from clipboard into the editor">Paste JSON</button>
+    <button id="copyJsonBtn" class="action-button" title="Copy the generated JSON to clipboard">Copy JSON</button>
     <span id="copyFeedback" class="copy-feedback">Copied!</span>
-    <button id="importJsonBtn" class="action-button">Import JSON</button>
-    <button id="exportJsonBtn" class="action-button">Export JSON</button>
+    <button id="importJsonBtn" class="action-button" title="Import labels from a JSON file">Import JSON</button>
+    <button id="exportJsonBtn" class="action-button" title="Export current labels to a JSON file">Export JSON</button>
     <input type="file" id="fileInput" accept=".json" style="display:none" />
 
-    <pre id="output"></pre>
+    <pre id="output" title="Generated JSON output of your labels"></pre>
   </div>
 
-  <div id="right-menu-wrapper" style="display: flex; flex-direction: column; gap: 1em;">
+  <div id="right-side-menus-container">
+    <div id="category-quick-access-stack">
+        <div id="category-menu">
+            <div class="mobile-menu-header">
+                <h3>Categories</h3>
+                <button id="closeCategoryMenuBtnDesktop" class="close-mobile-menu-btn" title="Close categories menu">X</button>
+            </div>
+            <h3>Label Categories</h3>
+            <div class="category-input-group">
+                <input type="text" id="newCategoryInput" placeholder="New category name" title="Enter a new category name" />
+                <button id="addCategoryBtn" title="Add the new category">Add</button>
+            </div>
+            <ul id="category-list" style="list-style: none; padding: 0; margin-top: 1em;" title="List of existing categories">
+            </ul>
+        </div>
+
+        <div id="floating-menu">
+            <div class="mobile-menu-header">
+                <h3>Quick Access</h3>
+                <button id="closeRightMenuBtnDesktop" class="close-mobile-menu-btn" title="Close quick access menu">X</button>
+            </div>
+            <h3>Labels Quick Access</h3>
+            <ul id="label-quick-access-list" title="Quick access links to label blocks">
+            </ul>
+        </div>
+    </div>
+
     <div id="bulk-actions-menu">
         <div class="mobile-menu-header">
             <h3>Bulk Actions</h3>
-            <button id="closeBulkActionsMenuBtn" class="close-mobile-menu-btn">X</button>
+            <button id="closeBulkActionsMenuBtnDesktop" class="close-mobile-menu-btn" title="Close bulk actions menu">X</button>
         </div>
         <h3>Bulk Actions</h3>
         <div class="bulk-action-group">
             <div class="bulk-action-row">
-                <label for="bulkTargetSelect">Apply to:</label>
-                <select id="bulkTargetSelect">
+                <label for="bulkTargetSelect" title="Choose whether to apply actions to selected labels or labels in a specific category">Apply to:</label>
+                <select id="bulkTargetSelect" title="Select target for bulk actions">
                     <option value="selected">Selected Labels</option>
                     <option value="category">Labels in Category</option>
                 </select>
-                <select id="bulkCategoryFilterSelect" style="display:none;"></select>
+                <select id="bulkCategoryFilterSelect" style="display:none;" title="Select category to filter labels"></select>
             </div>
             <div class="bulk-action-row">
-                <input type="checkbox" id="bulkSelectAllCheckbox">
+                <input type="checkbox" id="bulkSelectAllCheckbox" title="Select or deselect all visible labels">
                 <label for="bulkSelectAllCheckbox">Select All Visible Labels</label>
             </div>
         </div>
 
         <div class="bulk-action-group">
             <div class="bulk-action-row">
-                <label for="bulkSeveritySelect">Severity:</label>
-                <select id="bulkSeveritySelect">
+                <label for="bulkSeveritySelect" title="Set severity for selected labels">Severity:</label>
+                <select id="bulkSeveritySelect" title="Bulk change severity">
                     <option value="">(No Change)</option>
                     <option value="inform">inform</option>
-                    <option value="warn">warn</option>
-                    <option value="block">block</option>
+                    <option value="alert">alert</option>
+                    <option value="none">none</option>
                 </select>
             </div>
             <div class="bulk-action-row">
-                <label for="bulkBlursSelect">Blurs:</label>
-                <select id="bulkBlursSelect">
+                <label for="bulkBlursSelect" title="Set blur setting for selected labels">Blurs:</label>
+                <select id="bulkBlursSelect" title="Bulk change blur setting">
                     <option value="">(No Change)</option>
                     <option value="content">content</option>
                     <option value="media">media</option>
@@ -1143,56 +1178,76 @@
                 </select>
             </div>
             <div class="bulk-action-row">
-                <label for="bulkDefaultSettingSelect">Default Setting:</label>
-                <select id="bulkDefaultSettingSelect">
+                <label for="bulkDefaultSettingSelect" title="Set default setting for selected labels">Default Setting:</label>
+                <select id="bulkDefaultSettingSelect" title="Bulk change default setting">
                     <option value="">(No Change)</option>
                     <option value="ignore">ignore</option>
                     <option value="warn">warn</option>
-                    <option value="block">block</option>
+                    <option value="hide">hide</option>
                 </select>
             </div>
-            <button id="bulkApplyChangesBtn" class="full-width-button">Apply Property Changes</button>
+            <button id="bulkApplyChangesBtn" class="full-width-button" title="Apply selected property changes to target labels">Apply Property Changes</button>
         </div>
 
         <div class="bulk-action-group">
-            <button id="bulkEnableBtn" class="full-width-button">Enable Selected</button>
-            <button id="bulkDisableBtn" class="full-width-button">Disable Selected</button>
+            <button id="bulkEnableBtn" class="full-width-button" title="Enable all selected labels">Enable Selected</button>
+            <button id="bulkDisableBtn" class="full-width-button" title="Disable all selected labels">Disable Selected</button>
         </div>
 
         <div class="bulk-action-group">
-            <button id="bulkDeleteBtn" class="full-width-button danger-button">Delete Selected</button>
+            <button id="bulkDeleteBtn" class="full-width-button danger-button" title="Permanently delete all selected labels">Delete Selected</button>
         </div>
-    </div>
 
-    <div id="category-menu">
-        <div class="mobile-menu-header">
-            <h3>Categories</h3>
-            <button id="closeCategoryMenuBtn" class="close-mobile-menu-btn">X</button>
+        <div class="bulk-action-group">
+            <h4>Bulk Translate Locales</h4>
+            <div class="bulk-action-row">
+                <label for="bulkTargetSelectTranslate" title="Choose whether to apply actions to selected labels or labels in a specific category">Apply to:</label>
+                <select id="bulkTargetSelectTranslate" title="Select target for bulk translate actions">
+                    <option value="selected">Selected Labels</option>
+                    <option value="category">Labels in Category</option>
+                </select>
+                <select id="bulkCategoryFilterSelectTranslate" style="display:none;" title="Select category to filter labels for translation"></select>
+            </div>
+            <div class="bulk-action-row">
+                <input type="checkbox" id="bulkSelectAllTranslateCheckbox" title="Select or deselect all visible labels for translation">
+                <label for="bulkSelectAllTranslateCheckbox">Select All Visible Labels</label>
+            </div>
+            <label title="Select one or more languages to translate into">Translate To:</label>
+            <div id="bulkTranslateTargetLangs" title="Target languages for bulk translation">
+                </div>
+            <button id="bulkTranslateBtn" class="full-width-button translate-button" title="Translate names and descriptions for selected labels into chosen languages">Translate Selected Labels ✨</button>
         </div>
-        <h3>Label Categories</h3>
-        <div class="category-input-group">
-            <input type="text" id="newCategoryInput" placeholder="New category name" />
-            <button id="addCategoryBtn">Add</button>
-        </div>
-        <ul id="category-list">
-            </ul>
-    </div>
 
-    <div id="floating-menu">
-        <div class="mobile-menu-header">
-            <h3>Quick Access</h3>
-            <button id="closeRightMenuBtn" class="close-mobile-menu-btn">X</button>
+        <div class="bulk-action-group">
+            <h4>Description Snippets</h4>
+            <label for="newSnippetName">Snippet Name:</label>
+            <input type="text" id="newSnippetName" placeholder="e.g., 'Common Disclaimer'" title="Enter a name for your snippet">
+            <label for="newSnippetContent">Snippet Content:</label>
+            <textarea id="newSnippetContent" placeholder="Enter the prewritten text here..." title="Enter the text content of your snippet"></textarea>
+            <button id="addSnippetBtn" class="full-width-button" title="Add this text as a reusable snippet">Add Snippet</button>
+            <ul id="snippet-list" style="list-style: none; padding: 0; margin-top: 1em;">
+                </ul>
+            <div class="bulk-action-row" style="margin-top: 1em;">
+                <label for="bulkApplySnippetSelect">Apply Snippet:</label>
+                <select id="bulkApplySnippetSelect" title="Select a snippet to apply to descriptions">
+                    <option value="">(Select Snippet)</option>
+                </select>
+            </div>
+            <button id="bulkApplySnippetBtn" class="full-width-button" disabled title="Apply the selected snippet to descriptions of target labels">Bulk Apply Snippet</button>
         </div>
-        <h3>Labels Quick Access</h3>
-        <ul id="label-quick-access-list">
-            </ul>
     </div>
   </div>
 
+  <div id="right-menu-wrapper-mobile" style="display: none;">
+      <div class="mobile-menu-header">
+          <h3>Right Menu</h3>
+          <button id="closeRightMenuBtnMobile" class="close-mobile-menu-btn" title="Close right menu">X</button>
+      </div>
+      </div>
 
-  <button id="mobileLeftMenuToggle" class="mobile-menu-toggle-button">☰</button>
-  <button id="mobileRightMenuToggle" class="mobile-menu-toggle-button">⋮</button>
-  <button id="mobileBulkActionsToggle" class="mobile-menu-toggle-button" style="display:none;"></button>
+
+  <button id="mobileLeftMenuToggle" class="mobile-menu-toggle-button" title="Open main menu">☰</button>
+  <button id="mobileRightMenuToggle" class="mobile-menu-toggle-button" title="Open bulk actions and categories menu">⋮</button>
 
 
   <div id="loadingOverlay" class="loading-overlay" style="display: none;">
@@ -1200,10 +1255,35 @@
     <span>Loading...</span>
   </div>
 
+  <div id="optionsModal" class="custom-modal-overlay" style="display: none;">
+    <div class="custom-modal-content">
+      <h3>App Options</h3>
+      <label for="defaultLocaleLangSelect" style="text-align: left; margin-bottom: 0.5em;">Default Locale Language:</label>
+      <select id="defaultLocaleLangSelect" title="Set the default language for new locales" style="width: 100%; padding: 0.5em; border-radius: var(--border-radius); border: 1px solid var(--input-border); background: var(--block-background); color: var(--text-color);">
+      </select>
+      <button id="closeOptionsModalBtn" class="confirm-btn" style="margin-top: 1em;">Close</button>
+    </div>
+  </div>
+
+  <div id="applySnippetModal" class="custom-modal-overlay" style="display: none;">
+    <div class="custom-modal-content">
+      <h3>Apply Description Snippet</h3>
+      <p>Select a snippet to apply to the description:</p>
+      <select id="snippetSelectForLocale" style="width: 100%; padding: 0.5em; border-radius: var(--border-radius); border: 1px solid var(--input-border); background: var(--block-background); color: var(--text-color);">
+        <option value="">(Select Snippet)</option>
+      </select>
+      <div style="display: flex; justify-content: center; gap: 0.5em;">
+        <button id="applySnippetToLocaleBtn" class="confirm-btn">Apply</button>
+        <button id="cancelApplySnippetToLocaleBtn" class="cancel-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
     // No Firebase SDK imports needed as we are using Local Storage only.
 
-    let dragSrcEl = null;
+    let dragSrcEl = null; // For main label block drag-and-drop
+    let dragSrcQuickAccessEl = null; // For quick access link drag-and-drop
 
     // --- State Management for Undo/Redo and Local Storage ---
     const LOCAL_STORAGE_KEY = 'ozoneLabelMasterData'; // Now stores full session state
@@ -1215,6 +1295,8 @@
 
     let categories = []; // Global array for categories
     let selectedLabelIds = new Set(); // Stores IDs of currently selected labels for bulk actions
+    let defaultLocaleLanguage = ''; // New global variable for default locale language
+    let descriptionSnippets = []; // New global variable for description snippets
 
     // Show/Hide loading overlay
     function showLoadingOverlay(message = 'Loading...') {
@@ -1230,6 +1312,12 @@
 
     // Custom Modal for alerts/confirms
     function showCustomModal(message, type = 'alert', onConfirm = null, customContent = null) {
+      // Remove any existing modal overlays to prevent multiple modals
+      const existingOverlay = document.querySelector('.custom-modal-overlay');
+      if (existingOverlay) {
+        existingOverlay.remove();
+      }
+
       const overlay = document.createElement('div');
       overlay.className = 'custom-modal-overlay';
 
@@ -1267,6 +1355,14 @@
         okBtn.className = 'confirm-btn';
         okBtn.onclick = () => overlay.remove();
         content.appendChild(okBtn);
+      } else if (type === 'custom') { // For custom content, add a close button if onConfirm is null
+        if (!onConfirm) { // If no specific confirm/cancel logic, provide a simple close
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = 'Close';
+            closeBtn.className = 'cancel-btn'; // Use cancel-btn style for close
+            closeBtn.onclick = () => overlay.remove();
+            content.appendChild(closeBtn);
+        }
       }
       // No 'else' for 'custom' type, so no extra buttons are added if customContent is provided.
 
@@ -1279,7 +1375,9 @@
       const currentLabels = getLabelsData();
       const currentSessionState = {
         labels: currentLabels,
-        categories: categories // Save categories as part of the session
+        categories: categories,
+        defaultLocaleLanguage: defaultLocaleLanguage,
+        descriptionSnippets: descriptionSnippets // Save snippets
       };
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentSessionState));
       // console.log("Saved current session state to local storage:", currentSessionState); // Commented for less console noise
@@ -1300,7 +1398,9 @@
           labelValues: currentLabels.map(label => label.identifier), // New structure
           labelValueDefinitions: currentLabels, // New structure
           categories: categories, // Include categories in history snapshot
-          timestamp: new Date().toISOString() // Use ISO string for date
+          timestamp: new Date().toISOString(), // Use ISO string for date
+          defaultLocaleLanguage: defaultLocaleLanguage, // Include default locale language in history snapshot
+          descriptionSnippets: descriptionSnippets // Include snippets in history snapshot
         };
 
         // Update in-memory history for undo/redo
@@ -1355,11 +1455,21 @@
       renderCategoryMenu(); // Re-render category menu
       updateLabelCategoryDropdowns(); // Update dropdowns in existing labels
 
+      // Load Default Locale Language
+      defaultLocaleLanguage = sessionData.defaultLocaleLanguage || '';
+      populateDefaultLocaleLanguageSelect(); // Update the dropdown in the options modal
+
+      // Load Description Snippets
+      descriptionSnippets = sessionData.descriptionSnippets || [];
+      renderSnippetManagementUI(); // Render the snippet list
+      populateBulkApplySnippetSelect(); // Populate the bulk apply snippet dropdown
+
       updateJSONOutput(); // Update JSON output display
       updateFloatingMenu();
       suppressSave = false;
       updateUndoRedoButtons();
       clearSelectedLabels(); // Clear selection after loading state
+      updateLabelNumbers(); // Update numbers after loading state
     }
 
     // Undo the last change
@@ -1461,21 +1571,22 @@
 
       div.innerHTML = `
         <div class="locale-header-row">
-          <button class="collapse-btn">Collapse</button>
+          <button class="collapse-btn" title="Collapse/expand this locale's details">Collapse</button>
           <span class="locale-identifier-display" style="flex:1; user-select:text;"></span>
-          <button class="locale-remove-btn" title="Remove locale">×</button>
+          <button class="locale-remove-btn" title="Remove this locale">×</button>
         </div>
         <div class="locale-content-area">
           <label>Language:
-            <select class="lang">
+            <select class="lang" title="Select the language for this locale">
               ${optionsHtml}
             </select>
           </label>
-          <label>Name: <input type="text" class="name" value="${name}"></label>
-          <label>Description: <textarea class="description">${description}</textarea></label>
+          <label>Name: <input type="text" class="name" value="${name}" title="Enter the name for this locale"></label>
+          <label>Description: <textarea class="description" title="Enter the description for this locale">${description}</textarea></label>
           <div class="llm-buttons">
-            <button class="translate-name-btn">Translate Name ✨</button>
-            <button class="translate-description-btn">Translate Description ✨</button>
+            <button class="translate-name-btn" title="Translate this locale's name using AI">Translate Name ✨</button>
+            <button class="translate-description-btn" title="Translate this locale's description using AI">Translate Description ✨</button>
+            <button class="apply-snippet-btn" title="Apply a prewritten description snippet">Apply Snippet</button>
           </div>
         </div>
       `;
@@ -1500,6 +1611,44 @@
       const langSelect = div.querySelector('.lang');
       const translateNameBtn = div.querySelector('.translate-name-btn');
       const translateDescriptionBtn = div.querySelector('.translate-description-btn');
+      const applySnippetBtn = div.querySelector('.apply-snippet-btn'); // New snippet button
+
+      // Event listener for Apply Snippet button
+      applySnippetBtn.onclick = () => {
+        const snippetSelect = document.getElementById('snippetSelectForLocale');
+        snippetSelect.innerHTML = '<option value="">(Select Snippet)</option>';
+        descriptionSnippets.forEach((snippet, index) => {
+            const option = document.createElement('option');
+            option.value = index; // Use index as value to retrieve snippet
+            option.textContent = snippet.name;
+            snippetSelect.appendChild(option);
+        });
+
+        const applyModal = document.getElementById('applySnippetModal');
+        applyModal.style.display = 'flex';
+
+        const applyBtn = document.getElementById('applySnippetToLocaleBtn');
+        const cancelBtn = document.getElementById('cancelApplySnippetToLocaleBtn');
+
+        // Store a reference to the target textarea
+        applyBtn.dataset.targetTextareaId = descriptionTextarea.id;
+
+        applyBtn.onclick = () => {
+            const selectedIndex = snippetSelect.value;
+            if (selectedIndex !== '') {
+                const snippetText = descriptionSnippets[parseInt(selectedIndex)].content;
+                descriptionTextarea.value = snippetText;
+                saveFullSessionStateToLocalStorage();
+                updateJSONOutput();
+            }
+            applyModal.style.display = 'none';
+        };
+
+        cancelBtn.onclick = () => {
+            applyModal.style.display = 'none';
+        };
+      };
+
 
       // Event listener for Translate Name button
       translateNameBtn.onclick = async () => {
@@ -1518,7 +1667,7 @@
         selectTargetLang.style.marginBottom = '1em';
         selectTargetLang.style.padding = '0.5em';
         selectTargetLang.style.border = '1px solid var(--input-border)';
-        selectTargetLang.style.borderRadius = 'var(--border-radius)';
+        selectTargetLang.style.borderRadius = 'var(--border-radius)'; /* Uses variable */
         selectTargetLang.style.background = 'var(--block-background)';
         selectTargetLang.style.color = 'var(--text-color)';
 
@@ -1531,7 +1680,7 @@
         translatedTextarea.style.marginBottom = '1em';
         translatedTextarea.style.padding = '10px';
         translatedTextarea.style.border = '1px solid var(--input-border)';
-        translatedTextarea.style.borderRadius = 'var(--border-radius)';
+        translatedTextarea.style.borderRadius = 'var(--border-radius)'; /* Uses variable */
         translatedTextarea.style.background = 'var(--output-background)';
         translatedTextarea.style.color = 'var(--text-color)';
         translatedTextarea.style.fontFamily = 'monospace';
@@ -1648,7 +1797,7 @@ Original name:
         selectTargetLang.style.marginBottom = '1em';
         selectTargetLang.style.padding = '0.5em';
         selectTargetLang.style.border = '1px solid var(--input-border)';
-        selectTargetLang.style.borderRadius = 'var(--border-radius)';
+        selectTargetLang.style.borderRadius = 'var(--border-radius)'; /* Uses variable */
         selectTargetLang.style.background = 'var(--block-background)';
         selectTargetLang.style.color = 'var(--text-color)';
 
@@ -1661,7 +1810,7 @@ Original name:
         translatedTextarea.style.marginBottom = '1em';
         translatedTextarea.style.padding = '10px';
         translatedTextarea.style.border = '1px solid var(--input-border)';
-        translatedTextarea.style.borderRadius = 'var(--border-radius)';
+        translatedTextarea.style.borderRadius = 'var(--border-radius)'; /* Uses variable */
         translatedTextarea.style.background = 'var(--output-background)';
         translatedTextarea.style.color = 'var(--text-color)';
         translatedTextarea.style.fontFamily = 'monospace';
@@ -1707,7 +1856,7 @@ Original name:
 
           showLoadingOverlay('Translating description...');
           try {
-            const prompt = `Translate the following content moderation label description into ${targetLanguageName}. Only provide the translated text, no additional commentary.
+            const prompt = `Translate the following content moderation label description into ${targetLangName}. Only provide the translated text, no additional commentary.
 Original description:
 '${currentDescription}'`;
 
@@ -1796,49 +1945,70 @@ Original description:
       const identifierPlaceholder = '(Untitled Label)';
 
       labelDiv.innerHTML = `
-        <div class="label-header" title="Click to expand/collapse">
-          <input type="checkbox" class="bulk-select-checkbox" data-label-id="${uniqueHtmlId}">
-          <button class="collapse-btn">Collapse</button>
-          <span class="label-identifier-display" style="flex:1; user-select:text;">${id || identifierPlaceholder}</span>
-          <div class="category-in-header">
-            <label for="${uniqueHtmlId}-category">Category:</label>
-            <select id="${uniqueHtmlId}-category" class="label-category">
-              <option value="">(No Category)</option>
-            </select>
+        <div class="label-header" title="Click to expand/collapse this label">
+          <div class="label-number-box">
+            <span class="label-number"></span>
+            <input type="checkbox" class="bulk-select-checkbox" data-label-id="${uniqueHtmlId}" title="Select this label for bulk actions">
           </div>
-          <button class="move-up-btn" title="Move label up">▲</button>
-          <button class="move-down-btn" title="Move label down">▼</button>
-          <button class="remove-btn" title="Remove label">×</button>
+          <button class="collapse-btn" title="Collapse/expand this label's details">Collapse</button>
+          <div class="label-identifier-box">
+            <span class="label-identifier-display">${id || identifierPlaceholder}</span>
+          </div>
+          <div class="header-right-group">
+            <div class="enabled-toggle-header">
+              <span>Enabled:</span>
+              <input type="checkbox" class="enabled" ${enabled ? 'checked' : ''} title="Toggle label enabled/disabled state">
+            </div>
+            <div class="category-in-header">
+              <select id="${uniqueHtmlId}-category" class="label-category" title="Assign a category to this label">
+                <option value="">(No Category)</option>
+              </select>
+            </div>
+            <div class="header-action-buttons">
+              <button class="move-up-btn" title="Move label up in the list">▲</button>
+              <button class="move-down-btn" title="Move label down in the list">▼</button>
+              <button class="remove-btn" title="Remove this label permanently">×</button>
+            </div>
+          </div>
         </div>
         <div class="label-content">
-          <label>Enabled: <input type="checkbox" class="enabled" ${enabled ? 'checked' : ''}></label>
-          <label>Identifier: <input type="text" class="identifier" value="${id}"></label>
-          <label>Severity:
-            <select class="severity">
-              <option value="inform" ${severity === 'inform' ? 'selected' : ''}>inform</option>
-              <option value="warn" ${severity === 'warn' ? 'selected' : ''}>warn</option>
-              <option value="block" ${severity === 'block' ? 'selected' : ''}>block</option>
-            </select>
-          </label>
-          <label>Blurs:
-            <select class="blurs">
-              <option value="content" ${blurs === 'content' ? 'selected' : ''}>content</option>
-              <option value="media" ${blurs === 'media' ? 'selected' : ''}>media</option>
-              <option value="none" ${blurs === 'none' ? 'selected' : ''}>none</option>
-            </select>
-          </label>
-          <label>Default Setting:
-            <select class="defaultSetting">
-              <option value="ignore" ${defaultSetting === 'ignore' ? 'selected' : ''}>ignore</option>
-              <option value="warn" ${defaultSetting === 'warn' ? 'selected' : ''}>warn</option>
-              <option value="block" ${defaultSetting === 'block' ? 'selected' : ''}>block</option>
-            </select>
-          </label>
-          <label>Adult Only: <input type="checkbox" class="adultOnly" ${adultOnly ? 'checked' : ''}></label>
+          <div class="input-group-row">
+            <div>
+              <label for="${uniqueHtmlId}-identifier">Identifier:</label>
+              <input type="text" id="${uniqueHtmlId}-identifier" class="identifier" value="${id}" title="Unique identifier for this label">
+            </div>
+            <div>
+              <label for="${uniqueHtmlId}-blurs">Blurs:</label>
+              <select id="${uniqueHtmlId}-blurs" class="blurs" title="Content blurring setting for the label">
+                <option value="content" ${blurs === 'content' ? 'selected' : ''}>content</option>
+                <option value="media" ${blurs === 'media' ? 'selected' : ''}>media</option>
+                <option value="none" ${blurs === 'none' ? 'selected' : ''}>none</option>
+              </select>
+            </div>
+          </div>
+          <div class="input-group-row">
+            <div>
+              <label for="${uniqueHtmlId}-severity">Severity:</label>
+              <select id="${uniqueHtmlId}-severity" class="severity" title="Severity level of the label">
+                <option value="inform" ${severity === 'inform' ? 'selected' : ''}>inform</option>
+                <option value="alert" ${severity === 'alert' ? 'selected' : ''}>alert</option>
+                <option value="none" ${severity === 'none' ? 'selected' : ''}>none</option>
+              </select>
+            </div>
+            <div>
+              <label for="${uniqueHtmlId}-defaultSetting">Default Setting:</label>
+              <select id="${uniqueHtmlId}-defaultSetting" class="defaultSetting" title="Default action when this label is applied">
+                <option value="ignore" ${defaultSetting === 'ignore' ? 'selected' : ''}>ignore</option>
+                <option value="warn" ${defaultSetting === 'warn' ? 'selected' : ''}>warn</option>
+                <option value="hide" ${defaultSetting === 'hide' ? 'selected' : ''}>hide</option>
+              </select>
+            </div>
+          </div>
+          <label>Adult Only: <input type="checkbox" class="adultOnly" ${adultOnly ? 'checked' : ''} title="Mark if this label is for adult content only"></label>
           <div class="locales-container">
             <strong>Locales:</strong>
           </div>
-          <button class="add-locale-btn">+ Add Locale</button>
+          <button class="add-locale-btn" title="Add a new language locale for this label">+ Add Locale</button>
         </div>
       `;
 
@@ -1856,8 +2026,10 @@ Original description:
         labelDiv.remove();
         selectedLabelIds.delete(uniqueHtmlId); // Remove from selection set
         updateBulkSelectAllCheckbox(); // Update "Select All" state
+        updateBulkSelectAllTranslateCheckbox(); // Update "Select All" for translate
         saveFullSessionStateToLocalStorage(); // Save full session state
         updateJSONOutput(); // Update JSON output display
+        updateLabelNumbers(); // Update numbers after removal
       };
 
       // New move buttons
@@ -1866,6 +2038,7 @@ Original description:
 
 
       const identifierInput = labelDiv.querySelector('.identifier');
+      const labelIdentifierDisplay = labelDiv.querySelector('.label-identifier-display'); // Get the span inside the new box
       const categorySelect = labelDiv.querySelector('.label-category'); // New category select
       const severitySelect = labelDiv.querySelector('.severity');
       const blursSelect = labelDiv.querySelector('.blurs');
@@ -1887,6 +2060,7 @@ Original description:
               selectedLabelIds.delete(uniqueHtmlId);
           }
           updateBulkSelectAllCheckbox(); // Update "Select All" state
+          updateBulkSelectAllTranslateCheckbox(); // Update "Select All" for translate
       });
 
       // Use 'change' for select and checkbox, 'input' for text inputs
@@ -1908,7 +2082,7 @@ Original description:
       });
 
       identifierInput.addEventListener('input', () => {
-        labelDiv.querySelector('.label-identifier-display').textContent = identifierInput.value || identifierPlaceholder;
+        labelIdentifierDisplay.textContent = identifierInput.value || identifierPlaceholder; // Update the text in the yellow box
         checkDuplicates();
         saveFullSessionStateToLocalStorage(); // Save full session state
         updateJSONOutput(); // Update JSON output display
@@ -1923,7 +2097,8 @@ Original description:
 
       // Add default locale if none exist
       if (locales.length === 0) {
-        createLocaleBlock(localesContainer); // Create one default locale
+        // Use the global defaultLocaleLanguage for new labels
+        createLocaleBlock(localesContainer, defaultLocaleLanguage);
       } else {
         locales.forEach(loc => {
           createLocaleBlock(localesContainer, loc.lang || '', loc.name || '', loc.description || '');
@@ -1952,6 +2127,7 @@ Original description:
       updateLabelBlockVisualState(labelDiv);
       addDragHandlers(labelDiv);
       updateLabelCategoryDropdowns(); // Update category dropdown for this new label
+      updateLabelNumbers(); // Update numbers after adding a new label
 
       return labelDiv;
     }
@@ -2007,6 +2183,7 @@ Original description:
       }
       saveFullSessionStateToLocalStorage(); // Save full session state
       updateJSONOutput(); // Update JSON output display
+      updateLabelNumbers(); // Update numbers after drag and drop
       return false;
     }
 
@@ -2014,6 +2191,8 @@ Original description:
       this.style.opacity = '1';
       this.classList.remove('is-dragging'); /* Remove class after drag ends */
       document.querySelectorAll('.label-block.over').forEach(el => el.classList.remove('over'));
+      // Re-apply visual state after drag ends
+      updateLabelBlockVisualState(this);
     }
 
     // Extracts current label data from the DOM
@@ -2088,7 +2267,9 @@ Original description:
           labelValues: currentLabels.map(label => label.identifier),
           labelValueDefinitions: currentLabels,
           categories: categories, // Include categories in history snapshot
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          defaultLocaleLanguage: defaultLocaleLanguage, // Include default locale language in history snapshot
+          descriptionSnippets: descriptionSnippets // Include snippets in history snapshot
         });
 
         if (historyIndex < history.length - 1) {
@@ -2133,6 +2314,9 @@ Original description:
           labelDiv.style.display = 'none';
         }
       });
+      // Re-evaluate bulk select all checkboxes when filter changes
+      updateBulkSelectAllCheckbox();
+      updateBulkSelectAllTranslateCheckbox();
     }
 
     // --- New Feature Functions ---
@@ -2167,15 +2351,22 @@ Original description:
         if (response) {
           document.getElementById('labels-container').innerHTML = '';
           categories = []; // Clear categories
+          defaultLocaleLanguage = ''; // Clear default locale language
+          descriptionSnippets = []; // Clear snippets
           createLabelBlock(); // Reset to one default label
           history = []; // Clear in-memory history
           historyIndex = -1; // Reset history index
           saveHistoryToLocalStorage(); // Clear history from local storage
-          loadState(JSON.stringify({ labels: [], categories: [] })); // Load empty state to clear everything
+          loadState(JSON.stringify({ labels: [], categories: [], defaultLocaleLanguage: '', descriptionSnippets: [] })); // Load empty state to clear everything
           updateJSONOutput(); // This will also save current state to localStorage and add to new history
           updateUndoRedoButtons(); // Update button states
           renderCategoryMenu(); // Re-render category menu
           updateLabelCategoryDropdowns(); // Update label dropdowns
+          updateBulkSelectAllCheckbox(); // Update "Select All" state
+          updateBulkSelectAllTranslateCheckbox(); // Update "Select All" for translate
+          updateLabelNumbers(); // Update numbers after reset
+          renderSnippetManagementUI(); // Re-render snippets
+          populateBulkApplySnippetSelect(); // Update bulk apply snippet dropdown
         }
       });
     }
@@ -2187,6 +2378,7 @@ Original description:
         labelDiv.parentNode.insertBefore(labelDiv, previousSibling);
         saveFullSessionStateToLocalStorage(); // Save full session state
         updateJSONOutput(); // Update JSON output display
+        updateLabelNumbers(); // Update numbers after move
       }
     }
 
@@ -2197,6 +2389,7 @@ Original description:
         labelDiv.parentNode.insertBefore(nextSibling, labelDiv);
         saveFullSessionStateToLocalStorage(); // Save full session state
         updateJSONOutput(); // Update JSON output display
+        updateLabelNumbers(); // Update numbers after move
       }
     }
 
@@ -2216,19 +2409,33 @@ Original description:
       });
     }
 
+    // Function to update the sequential numbers of labels
+    function updateLabelNumbers() {
+      document.querySelectorAll('.label-block').forEach((labelDiv, index) => {
+        const numberBox = labelDiv.querySelector('.label-number-box .label-number');
+        if (numberBox) {
+          numberBox.textContent = (index + 1).toString(); // 1-based numbering
+        }
+      });
+    }
+
     // Function to handle pasting JSON text
     function pasteJson() {
       const textarea = document.createElement('textarea');
       textarea.placeholder = 'Paste your JSON here...';
+      textarea.title = 'Paste JSON data into this text area';
+
 
       const loadBtn = document.createElement('button');
       loadBtn.textContent = 'OK';
       loadBtn.className = 'confirm-btn';
       loadBtn.style.marginRight = '0.5em';
+      loadBtn.title = 'Load the pasted JSON data';
 
       const cancelBtn = document.createElement('button');
       cancelBtn.textContent = 'Cancel';
       cancelBtn.className = 'cancel-btn';
+      cancelBtn.title = 'Cancel pasting JSON data';
 
       const wrapper = document.createElement('div');
       wrapper.appendChild(textarea);
@@ -2262,11 +2469,13 @@ Original description:
                       label.adultOnly || false,
                       label.enabled !== undefined ? label.enabled : true,
                       label.locales || []
+                      // Category will default to empty for imported labels
                     );
                   });
                   suppressSave = false;
                   saveFullSessionStateToLocalStorage(); // Save full session state
                   updateJSONOutput(); // Update JSON output display
+                  updateLabelNumbers(); // Update numbers after paste
                   // Close the modal
                   document.querySelector('.custom-modal-overlay').remove();
               }
@@ -2283,9 +2492,10 @@ Original description:
 
     // Function to handle copying JSON to clipboard
     function copyJsonToClipboard() {
+      console.log("copyJsonToClipboard executed."); // Diagnostic log
       const outputText = document.getElementById('output').textContent;
-      if (!outputText) {
-        showCustomModal('Nothing to copy.', 'alert');
+      if (!outputText || outputText.trim() === '{}' || outputText.trim() === '{"labelValues":[],"labelValueDefinitions":[]}') { // Check for empty or default JSON
+        showCustomModal('Nothing to copy. The JSON output is empty or default.', 'alert');
         return;
       }
 
@@ -2320,7 +2530,7 @@ Original description:
       historyList.style.overflowY = 'auto';
       historyList.style.textAlign = 'left';
       historyList.style.border = '1px solid var(--block-border)';
-      historyList.style.borderRadius = 'var(--border-radius)';
+      historyList.style.borderRadius = 'var(--border-radius)'; /* Uses variable */
       historyList.style.padding = '1em';
       historyList.style.marginBottom = '1em';
       historyList.style.background = 'var(--header-background)';
@@ -2340,7 +2550,7 @@ Original description:
             listItem.style.marginBottom = '0.5em';
             listItem.style.padding = '0.5em';
             listItem.style.border = '1px solid var(--input-border)';
-            listItem.style.borderRadius = 'var(--border-radius)';
+            listItem.style.borderRadius = 'var(--border-radius)'; /* Uses variable */
             listItem.style.display = 'flex';
             listItem.style.alignItems = 'center';
             listItem.style.justifyContent = 'space-between';
@@ -2363,11 +2573,12 @@ Original description:
             revertBtn.className = 'confirm-btn'; // Use existing button style
             revertBtn.style.padding = '0.4em 0.8em';
             revertBtn.style.fontSize = '0.9rem';
+            revertBtn.title = `Revert to version ${index + 1}`;
             revertBtn.onclick = () => {
               showCustomModal(`Are you sure you want to revert to Version ${index + 1} (${dateStr})? This will overwrite your current unsaved changes.`, 'confirm', (response) => {
                 if (response) {
                   historyIndex = index; // Set history index to the reverted version
-                  loadState(history[historyIndex]);
+                  loadState(history[index]); // Corrected: use index directly
                   document.querySelector('.custom-modal-overlay').remove(); // Close history modal after revert
                 }
               });
@@ -2386,6 +2597,7 @@ Original description:
       const wrapper = document.createElement('div');
       wrapper.appendChild(historyList);
 
+      // Pass customContent and let showCustomModal add the close button
       showCustomModal('Version History', 'custom', null, wrapper);
     }
 
@@ -2399,7 +2611,8 @@ Original description:
         }
         renderCategoryMenu();
         updateLabelCategoryDropdowns();
-        updateBulkCategoryFilterDropdown(); // Update bulk category filter
+        updateBulkCategoryFilterDropdown(); // Update bulk category filter for general bulk actions
+        updateBulkCategoryFilterTranslateDropdown(); // Update bulk category filter for translate
     }
 
     function saveCategories() {
@@ -2413,8 +2626,8 @@ Original description:
             const listItem = document.createElement('li');
             listItem.className = 'category-list-item';
             listItem.innerHTML = `
-                <span>${cat}</span>
-                <button class="remove-category-btn" data-category="${cat}">X</button>
+                <span title="${cat}">${cat}</span>
+                <button class="remove-category-btn" data-category="${cat}" title="Remove this category">X</button>
             `;
             categoryList.appendChild(listItem);
         });
@@ -2438,6 +2651,7 @@ Original description:
             renderCategoryMenu();
             updateLabelCategoryDropdowns(); // Update all label dropdowns
             updateBulkCategoryFilterDropdown(); // Update bulk category filter
+            updateBulkCategoryFilterTranslateDropdown(); // Update bulk category filter for translate
             saveFullSessionStateToLocalStorage(); // Save full session state after category change
             updateJSONOutput(); // Update JSON output display
         } else if (categories.includes(categoryName)) {
@@ -2460,6 +2674,7 @@ Original description:
                 });
                 updateLabelCategoryDropdowns(); // Update all label dropdowns
                 updateBulkCategoryFilterDropdown(); // Update bulk category filter
+                updateBulkCategoryFilterTranslateDropdown(); // Update bulk category filter for translate
                 saveFullSessionStateToLocalStorage(); // Save full session state after category change
                 updateJSONOutput(); // Update JSON output display
             }
@@ -2492,6 +2707,7 @@ Original description:
             checkbox.checked = false;
         });
         document.getElementById('bulkSelectAllCheckbox').checked = false;
+        document.getElementById('bulkSelectAllTranslateCheckbox').checked = false; // Clear translate checkbox too
     }
 
     function updateBulkSelectAllCheckbox() {
@@ -2587,8 +2803,10 @@ Original description:
                     selectedLabelIds.delete(labelDiv.id); // Ensure removed from selection
                 });
                 updateBulkSelectAllCheckbox(); // Update "Select All" state
+                updateBulkSelectAllTranslateCheckbox(); // Update "Select All" for translate
                 saveFullSessionStateToLocalStorage();
                 updateJSONOutput();
+                updateLabelNumbers(); // Update numbers after bulk delete
                 showCustomModal('Labels deleted.', 'alert');
             }
         });
@@ -2611,65 +2829,486 @@ Original description:
         }
     }
 
+    // --- Bulk Translate Locales Functions ---
 
-    // --- Session File Save/Load ---
-    function saveSessionFile() {
-        const currentLabels = getLabelsData();
-        const sessionData = {
-            labelValues: currentLabels.map(label => label.identifier),
-            labelValueDefinitions: currentLabels, // This includes category
-            categories: categories,
-            timestamp: new Date().toISOString(),
-            version: '0.73' // Version of the session file format
-        };
-        const sessionJson = JSON.stringify(sessionData, null, 2);
-        const blob = new Blob([sessionJson], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `ozone_session_${new Date().toISOString().slice(0,10)}.ozm`; // .ozm extension
-        a.click();
-        URL.revokeObjectURL(url);
-        showCustomModal('Session file downloaded!', 'alert');
+    // Populates the target language checkboxes for bulk translation
+    function populateBulkTranslateLanguageOptions() {
+        const targetLangsDiv = document.getElementById('bulkTranslateTargetLangs');
+        targetLangsDiv.innerHTML = ''; // Clear existing options
+
+        commonLanguages.forEach(langObj => {
+            // Populate target languages checkboxes
+            const checkboxLabel = document.createElement('label');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'target-lang-checkbox';
+            checkbox.value = langObj.code;
+            checkbox.title = `Translate to ${langObj.name}`;
+            checkboxLabel.appendChild(checkbox);
+            checkboxLabel.appendChild(document.createTextNode(langObj.name));
+            targetLangsDiv.appendChild(checkboxLabel);
+        });
     }
 
-    function loadSessionFile() {
-        document.getElementById('sessionFileInput').click();
+    async function translateText(text, sourceLangName, targetLangName) {
+        const prompt = `Translate the following text from ${sourceLangName} into ${targetLangName}. Only provide the translated text, no additional commentary.
+Original text:
+'${text}'`;
+
+        let chatHistory = [];
+        chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+        const payload = { contents: chatHistory };
+        const apiKey = "";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`);
+        }
+
+        const result = await response.json();
+
+        if (result.candidates && result.candidates.length > 0 &&
+            result.candidates[0].content && result.candidates[0].content.parts &&
+            result.candidates[0].content.parts.length > 0) {
+            return result.candidates[0].content.parts[0].text;
+        } else {
+            throw new Error('Unexpected API response structure or no content.');
+        }
     }
 
-    document.getElementById('sessionFileInput').onchange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+    function getTargetLabelDivsForTranslate() {
+        const targetType = document.getElementById('bulkTargetSelectTranslate').value;
+        let targetLabels = [];
 
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            try {
-                const sessionData = JSON.parse(event.target.result);
-                // Check for expected session structure
-                if (sessionData.labelValueDefinitions && Array.isArray(sessionData.labelValueDefinitions) &&
-                    sessionData.categories && Array.isArray(sessionData.categories)) {
-                    showCustomModal('Loading this session will overwrite your current work. Continue?', 'confirm', (response) => {
-                        if (response) {
-                            // Clear history before loading new session
-                            history = [];
-                            historyIndex = -1;
-                            saveHistoryToLocalStorage();
-
-                            loadState(event.target.result); // Load the full session data
-                            showCustomModal('Session loaded successfully!', 'alert');
-                        }
-                    });
-                } else {
-                    showCustomModal('Invalid session file format. Please select a valid Ozone session file (.ozm or .json).', 'alert');
-                }
-            } catch (err) {
-                showCustomModal('Failed to parse session file: ' + err.message, 'alert');
-                console.error("Error loading session file:", err);
+        if (targetType === 'selected') {
+            selectedLabelIds.forEach(id => {
+                const labelDiv = document.getElementById(id);
+                if (labelDiv) targetLabels.push(labelDiv);
+            });
+        } else if (targetType === 'category') {
+            const selectedCategory = document.getElementById('bulkCategoryFilterSelectTranslate').value;
+            if (selectedCategory) {
+                document.querySelectorAll('.label-block').forEach(labelDiv => {
+                    const categorySelect = labelDiv.querySelector('.label-category');
+                    if (categorySelect && categorySelect.value === selectedCategory) {
+                        targetLabels.push(labelDiv);
+                    }
+                });
             }
+        }
+        return targetLabels;
+    }
+
+    function updateBulkSelectAllTranslateCheckbox() {
+        const allVisibleCheckboxes = Array.from(document.querySelectorAll('.label-block:not([style*="display: none"]) .bulk-select-checkbox'));
+        const allChecked = allVisibleCheckboxes.every(cb => cb.checked);
+        const someChecked = allVisibleCheckboxes.some(cb => cb.checked);
+
+        const bulkSelectAllTranslateCheckbox = document.getElementById('bulkSelectAllTranslateCheckbox');
+        bulkSelectAllTranslateCheckbox.checked = allChecked;
+        bulkSelectAllTranslateCheckbox.indeterminate = someChecked && !allChecked;
+    }
+
+    function updateBulkCategoryFilterTranslateDropdown() {
+        const bulkCategoryFilterSelect = document.getElementById('bulkCategoryFilterSelectTranslate');
+        const currentSelectedCategory = bulkCategoryFilterSelect.value; // Preserve selection if possible
+        bulkCategoryFilterSelect.innerHTML = '<option value="">(Select Category)</option>';
+        categories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.textContent = cat;
+            bulkCategoryFilterSelect.appendChild(option);
+        });
+        if (categories.includes(currentSelectedCategory)) {
+            bulkCategoryFilterSelect.value = currentSelectedCategory;
+        } else {
+            bulkCategoryFilterSelect.value = '';
+        }
+    }
+
+
+    async function handleBulkTranslate() {
+        const targetLabelDivs = getTargetLabelDivsForTranslate(); // Use the translate-specific target labels
+        const targetLangCheckboxes = Array.from(document.querySelectorAll('#bulkTranslateTargetLangs .target-lang-checkbox:checked'));
+        const targetLangCodes = targetLangCheckboxes.map(cb => cb.value);
+
+        if (targetLabelDivs.length === 0) {
+            showCustomModal('No labels selected or found for the chosen target for translation.', 'alert');
+            return;
+        }
+        if (targetLangCodes.length === 0) {
+            showCustomModal('Please select at least one target language to translate into.', 'alert');
+            return;
+        }
+
+        showCustomModal(`Translate locales for ${targetLabelDivs.length} labels into ${targetLangCodes.length} target languages? Existing locales in target languages will be overwritten.`, 'confirm', async (response) => {
+            if (!response) return;
+
+            showLoadingOverlay('Translating labels...');
+            let translationsPerformed = 0;
+            let errors = [];
+
+            for (const labelDiv of targetLabelDivs) {
+                const localesContainer = labelDiv.querySelector('.locales-container');
+                const existingLocales = Array.from(localesContainer.querySelectorAll('.locale-block'));
+
+                // Determine source language from the first locale of the current label
+                const firstLocale = existingLocales[0];
+                if (!firstLocale) {
+                    errors.push(`Label "${labelDiv.querySelector('.identifier').value || '(Untitled)'}" has no locales to translate from.`);
+                    continue;
+                }
+                const sourceLangCode = firstLocale.querySelector('.lang').value;
+                const sourceName = firstLocale.querySelector('.name').value.trim();
+                const sourceDescription = firstLocale.querySelector('.description').value.trim();
+
+                if (!sourceLangCode) {
+                    errors.push(`Label "${labelDiv.querySelector('.identifier').value || '(Untitled)'}" has a first locale with no language specified. Skipping.`);
+                    continue;
+                }
+
+                const sourceLangName = commonLanguages.find(l => l.code === sourceLangCode)?.name || sourceLangCode;
+
+                for (const targetCode of targetLangCodes) {
+                    if (targetCode === sourceLangCode) continue; // Skip translating to the same language
+
+                    const targetLangName = commonLanguages.find(l => l.code === targetCode)?.name || targetCode;
+                    let targetLocaleDiv = existingLocales.find(loc => loc.querySelector('.lang').value === targetCode);
+
+                    let translatedName = sourceName;
+                    let translatedDescription = sourceDescription;
+
+                    try {
+                        if (sourceName) {
+                            translatedName = await translateText(sourceName, sourceLangName, targetLangName);
+                        }
+                        if (sourceDescription) {
+                            translatedDescription = await translateText(sourceDescription, sourceLangName, targetLangName);
+                        }
+
+                        if (targetLocaleDiv) {
+                            // Update existing locale
+                            targetLocaleDiv.querySelector('.name').value = translatedName;
+                            targetLocaleDiv.querySelector('.description').value = translatedDescription;
+                            updateLocaleDisplayName(targetLocaleDiv);
+                        } else {
+                            // Create new locale
+                            createLocaleBlock(localesContainer, targetCode, translatedName, translatedDescription);
+                        }
+                        translationsPerformed++;
+                    } catch (error) {
+                        errors.push(`Failed to translate for label "${labelDiv.querySelector('.identifier').value || '(Untitled)'}" to ${targetLangName}: ${error.message}`);
+                        console.error(`Error translating for label ${labelDiv.querySelector('.identifier').value} to ${targetLangName}:`, error);
+                    }
+                }
+            }
+            hideLoadingOverlay();
+            saveFullSessionStateToLocalStorage();
+            updateJSONOutput();
+
+            let resultMessage = `Bulk translation complete. ${translationsPerformed} translations performed.`;
+            if (errors.length > 0) {
+                resultMessage += ` Some labels encountered issues:\n\n${errors.join('\n')}`;
+                showCustomModal(resultMessage, 'alert');
+            } else {
+                showCustomModal(resultMessage, 'alert');
+            }
+        });
+    }
+
+    // --- Description Snippets Functions ---
+    function saveDescriptionSnippets() {
+        localStorage.setItem('ozoneLabelMasterSnippets', JSON.stringify(descriptionSnippets));
+        saveFullSessionStateToLocalStorage(); // Ensure main session state also saves snippets
+    }
+
+    function loadDescriptionSnippets() {
+        const savedSnippets = localStorage.getItem('ozoneLabelMasterSnippets');
+        if (savedSnippets) {
+            descriptionSnippets = JSON.parse(savedSnippets);
+        } else {
+            descriptionSnippets = [];
+        }
+        renderSnippetManagementUI();
+        populateBulkApplySnippetSelect();
+    }
+
+    function renderSnippetManagementUI() {
+        const snippetList = document.getElementById('snippet-list');
+        snippetList.innerHTML = ''; // Clear existing list
+
+        if (descriptionSnippets.length === 0) {
+            const listItem = document.createElement('li');
+            listItem.textContent = 'No snippets saved yet.';
+            listItem.style.fontStyle = 'italic';
+            listItem.style.color = 'var(--gray)';
+            snippetList.appendChild(listItem);
+            document.getElementById('bulkApplySnippetBtn').disabled = true;
+            document.getElementById('bulkApplySnippetSelect').disabled = true;
+            document.getElementById('bulkApplySnippetSelect').innerHTML = '<option value="">(No Snippets)</option>';
+            return;
+        }
+
+        descriptionSnippets.forEach((snippet, index) => {
+            const listItem = document.createElement('li');
+            listItem.style.marginBottom = '0.5em';
+            listItem.style.padding = '0.5em';
+            listItem.style.background = 'var(--light-gray)';
+            listItem.style.borderRadius = 'var(--border-radius)';
+            listItem.style.display = 'flex';
+            listItem.style.justifyContent = 'space-between';
+            listItem.style.alignItems = 'center';
+            listItem.innerHTML = `
+                <span style="flex-grow: 1; font-weight: 500;" title="${snippet.content}">${snippet.name}</span>
+                <div style="display: flex; gap: 0.2em;">
+                    <button class="snippet-action-btn edit-snippet-btn" data-index="${index}" title="Edit this snippet">✏️</button>
+                    <button class="snippet-action-btn delete-snippet-btn" data-index="${index}" title="Delete this snippet">🗑️</button>
+                </div>
+            `;
+            snippetList.appendChild(listItem);
+        });
+
+        // Attach event listeners for edit and delete buttons
+        document.querySelectorAll('.edit-snippet-btn').forEach(button => {
+            button.onclick = (e) => editSnippet(parseInt(e.target.dataset.index));
+        });
+        document.querySelectorAll('.delete-snippet-btn').forEach(button => {
+            button.onclick = (e) => deleteSnippet(parseInt(e.target.dataset.index));
+        });
+
+        document.getElementById('bulkApplySnippetBtn').disabled = false;
+        document.getElementById('bulkApplySnippetSelect').disabled = false;
+        populateBulkApplySnippetSelect();
+    }
+
+    function addSnippet() {
+        const nameInput = document.getElementById('newSnippetName');
+        const contentTextarea = document.getElementById('newSnippetContent');
+        const name = nameInput.value.trim();
+        const content = contentTextarea.value.trim();
+
+        if (!name) {
+            showCustomModal('Please enter a name for the snippet.', 'alert');
+            return;
+        }
+        if (!content) {
+            showCustomModal('Please enter content for the snippet.', 'alert');
+            return;
+        }
+
+        descriptionSnippets.push({ name, content });
+        nameInput.value = '';
+        contentTextarea.value = '';
+        saveDescriptionSnippets();
+        renderSnippetManagementUI();
+        populateBulkApplySnippetSelect();
+        showCustomModal('Snippet added!', 'alert');
+    }
+
+    function editSnippet(index) {
+        const snippet = descriptionSnippets[index];
+        if (!snippet) return;
+
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.value = snippet.name;
+        nameInput.placeholder = 'Snippet Name';
+        nameInput.style.width = '100%';
+        nameInput.style.marginBottom = '1em';
+        nameInput.style.padding = '0.5em';
+        nameInput.style.border = '1px solid var(--input-border)';
+        nameInput.style.borderRadius = 'var(--border-radius)';
+        nameInput.style.background = 'var(--block-background)';
+        nameInput.style.color = 'var(--text-color)';
+
+
+        const contentTextarea = document.createElement('textarea');
+        contentTextarea.value = snippet.content;
+        contentTextarea.placeholder = 'Snippet Content';
+        contentTextarea.style.width = '100%';
+        contentTextarea.style.minHeight = '100px';
+        contentTextarea.style.marginBottom = '1em';
+        contentTextarea.style.padding = '10px';
+        contentTextarea.style.border = '1px solid var(--input-border)';
+        contentTextarea.style.borderRadius = 'var(--border-radius)';
+        contentTextarea.style.background = 'var(--block-background)';
+        contentTextarea.style.color = 'var(--text-color)';
+
+
+        const saveBtn = document.createElement('button');
+        saveBtn.textContent = 'Save Changes';
+        saveBtn.className = 'confirm-btn';
+        saveBtn.style.marginRight = '0.5em';
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.className = 'cancel-btn';
+
+        const wrapper = document.createElement('div');
+        wrapper.appendChild(nameInput);
+        wrapper.appendChild(contentTextarea);
+        wrapper.appendChild(saveBtn);
+        wrapper.appendChild(cancelBtn);
+
+        showCustomModal('Edit Snippet', 'custom', null, wrapper);
+
+        saveBtn.onclick = () => {
+            const newName = nameInput.value.trim();
+            const newContent = contentTextarea.value.trim();
+            if (!newName || !newContent) {
+                showCustomModal('Name and content cannot be empty.', 'alert');
+                return;
+            }
+            descriptionSnippets[index] = { name: newName, content: newContent };
+            saveDescriptionSnippets();
+            renderSnippetManagementUI();
+            populateBulkApplySnippetSelect();
+            document.querySelector('.custom-modal-overlay').remove();
+            showCustomModal('Snippet updated!', 'alert');
         };
-        reader.readAsText(file);
-        e.target.value = ''; // Clear file input
+
+        cancelBtn.onclick = () => {
+            document.querySelector('.custom-modal-overlay').remove();
+        };
+    }
+
+    function deleteSnippet(index) {
+        showCustomModal(`Are you sure you want to delete the snippet "${descriptionSnippets[index].name}"?`, 'confirm', (response) => {
+            if (response) {
+                descriptionSnippets.splice(index, 1);
+                saveDescriptionSnippets();
+                renderSnippetManagementUI();
+                populateBulkApplySnippetSelect();
+                showCustomModal('Snippet deleted!', 'alert');
+            }
+        });
+    }
+
+    function populateBulkApplySnippetSelect() {
+        const select = document.getElementById('bulkApplySnippetSelect');
+        const currentSelectedValue = select.value; // Preserve selection
+        select.innerHTML = '<option value="">(Select Snippet)</option>';
+        descriptionSnippets.forEach((snippet, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.textContent = snippet.name;
+            select.appendChild(option);
+        });
+        // Restore selection if it still exists
+        if (currentSelectedValue !== '' && descriptionSnippets[parseInt(currentSelectedValue)]) {
+            select.value = currentSelectedValue;
+        } else {
+            select.value = '';
+        }
+        document.getElementById('bulkApplySnippetBtn').disabled = (descriptionSnippets.length === 0 || select.value === '');
+    }
+
+    function handleBulkApplySnippet() {
+        const selectedSnippetIndex = document.getElementById('bulkApplySnippetSelect').value;
+        if (selectedSnippetIndex === '') {
+            showCustomModal('Please select a snippet to apply.', 'alert');
+            return;
+        }
+
+        const snippetContent = descriptionSnippets[parseInt(selectedSnippetIndex)].content;
+        const targetLabels = getTargetLabelDivs(); // Re-use existing target label logic
+
+        if (targetLabels.length === 0) {
+            showCustomModal('No labels selected or found for the chosen target.', 'alert');
+            return;
+        }
+
+        showCustomModal(`Apply snippet to descriptions of ${targetLabels.length} labels? This will overwrite existing descriptions in all locales of these labels.`, 'confirm', (response) => {
+            if (response) {
+                targetLabels.forEach(labelDiv => {
+                    labelDiv.querySelectorAll('.locale-block .description').forEach(descTextarea => {
+                        descTextarea.value = snippetContent;
+                    });
+                });
+                saveFullSessionStateToLocalStorage();
+                updateJSONOutput();
+                showCustomModal('Snippet applied to labels.', 'alert');
+            }
+        });
+    }
+
+
+    // Function to save the current session (labels and categories) to a .ozm file
+    function saveSessionFile() {
+      const currentLabels = getLabelsData();
+      const sessionData = {
+        labelValues: currentLabels.map(label => label.identifier),
+        labelValueDefinitions: currentLabels,
+        categories: categories,
+        timestamp: new Date().toISOString(),
+        defaultLocaleLanguage: defaultLocaleLanguage, // Include default locale language
+        descriptionSnippets: descriptionSnippets // Include snippets
+      };
+      const dataStr = JSON.stringify(sessionData, null, 2);
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ozone_labels_session.ozm'; // Use .ozm extension
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showCustomModal('Session saved successfully as ozone_labels_session.ozm!', 'alert');
+    }
+
+    // Function to load a session from a .ozm or .json file
+    function loadSessionFile() {
+      const fileInput = document.getElementById('sessionFileInput');
+      fileInput.click(); // Trigger the hidden file input
+    }
+
+    // Event listener for the hidden session file input
+    document.getElementById('sessionFileInput').onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const loadedData = JSON.parse(event.target.result);
+          showCustomModal('Loading this session will overwrite your current labels and categories. Continue?', 'confirm', (response) => {
+            if (response) {
+              // Load the state from the file
+              loadState(JSON.stringify(loadedData));
+              showCustomModal('Session loaded successfully!', 'alert');
+            }
+          });
+        } catch (err) {
+          showCustomModal('Failed to load session file. Please ensure it is a valid .ozm or .json file.', 'alert');
+          console.error('Error loading session file:', err);
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = ''; // Clear the input so change event fires again for same file
     };
+
+    // Function to populate the default locale language select dropdown
+    function populateDefaultLocaleLanguageSelect() {
+        const select = document.getElementById('defaultLocaleLangSelect');
+        select.innerHTML = '<option value="">(None)</option>'; // Option to not set a default
+        commonLanguages.forEach(langObj => {
+            const option = document.createElement('option');
+            option.value = langObj.code;
+            option.textContent = langObj.name;
+            if (langObj.code === defaultLocaleLanguage) {
+                option.selected = true;
+            }
+            select.appendChild(option);
+        });
+    }
 
 
     // --- Initialization on page load ---
@@ -2707,20 +3346,36 @@ Original description:
         }
 
         loadCategories(); // Load categories on app start
+        populateBulkTranslateLanguageOptions(); // Populate bulk translate options
+        populateDefaultLocaleLanguageSelect(); // Populate default locale language select
+        loadDescriptionSnippets(); // Load description snippets on app start
         updateUndoRedoButtons(); // Initialize button states
+        updateLabelNumbers(); // Initial numbering on app start
       } catch (error) {
         console.error("Error initializing app from Local Storage:", error);
         showCustomModal("Error loading saved data. Starting with a fresh page.", "alert");
         document.getElementById('labels-container').innerHTML = ''; // Clear any partial loads
         categories = []; // Clear categories
+        defaultLocaleLanguage = ''; // Clear default locale language
+        descriptionSnippets = []; // Clear snippets
         createLabelBlock(); // Fallback to a fresh label block on error
         saveFullSessionStateToLocalStorage(); // Save this initial state
         addStateToHistoryForUndoAndRedo(); // Add to history
         updateUndoRedoButtons();
         renderCategoryMenu(); // Render empty categories
         updateLabelCategoryDropdowns();
+        populateBulkTranslateLanguageOptions(); // Ensure options are populated even on error
+        populateDefaultLocaleLanguageSelect(); // Ensure options are populated even on error
+        renderSnippetManagementUI(); // Ensure snippets are rendered
+        populateBulkApplySnippetSelect(); // Ensure bulk apply snippet dropdown is populated
+        updateLabelNumbers(); // Ensure numbers are updated even on error
       } finally {
         hideLoadingOverlay();
+      }
+      // Ensure copy feedback is hidden on load
+      const copyFeedback = document.getElementById('copyFeedback');
+      if (copyFeedback) {
+        copyFeedback.classList.remove('show');
       }
     }
 
@@ -2730,83 +3385,163 @@ Original description:
     // Get references for mobile menus and toggles
     const mobileLeftMenuToggle = document.getElementById('mobileLeftMenuToggle');
     const mobileRightMenuToggle = document.getElementById('mobileRightMenuToggle');
-    const mobileBulkActionsToggle = document.getElementById('mobileBulkActionsToggle'); // New bulk actions toggle
     const leftFloatingMenu = document.getElementById('left-floating-menu');
-    const rightFloatingMenu = document.getElementById('floating-menu'); // Quick Access
-    const categoryMenu = document.getElementById('category-menu'); // Category Menu
-    const bulkActionsMenu = document.getElementById('bulk-actions-menu'); // Bulk Actions Menu
+    const rightMenuWrapperMobile = document.getElementById('right-menu-wrapper-mobile'); // Mobile-specific right menu wrapper
     const closeLeftMenuBtn = document.getElementById('closeLeftMenuBtn');
-    const closeRightMenuBtn = document.getElementById('closeRightMenuBtn'); // Quick Access
-    const closeCategoryMenuBtn = document.getElementById('closeCategoryMenuBtn'); // Category Menu
-    const closeBulkActionsMenuBtn = document.getElementById('closeBulkActionsMenuBtn'); // New bulk actions close button
-    const body = document.body;
+
+    // Desktop close buttons for the right menus (they don't close the entire wrapper)
+    const closeRightMenuBtnDesktop = document.getElementById('closeRightMenuBtnDesktop');
+    const closeCategoryMenuBtnDesktop = document.getElementById('closeCategoryMenuBtnDesktop');
+    const closeBulkActionsMenuBtnDesktop = document.getElementById('closeBulkActionsMenuBtnDesktop');
+
+    // Mobile close button for the right menu wrapper
+    const closeRightMenuBtnMobile = document.getElementById('closeRightMenuBtnMobile');
 
     // Function to open a specific mobile menu
     function openMobileMenu(menuElement) {
       // Close other menus if they're open
-      [leftFloatingMenu, rightFloatingMenu, categoryMenu, bulkActionsMenu].forEach(menu => {
-        if (menu !== menuElement && menu.classList.contains('open')) {
+      [leftFloatingMenu, rightMenuWrapperMobile].forEach(menu => {
+        if (menu.classList.contains('open')) { // Check if 'open' class exists
           closeMobileMenu(menu);
         }
       });
 
       menuElement.classList.add('open');
-      menuElement.style.transform = menuElement.id === 'bulk-actions-menu' ? 'translateX(-50%) translateY(0)' : 'translateY(0)'; // Slide in from bottom
+      menuElement.style.transform = 'translateY(0)'; // Slide in from bottom
     }
 
     // Function to close a specific mobile menu
     function closeMobileMenu(menuElement) {
       menuElement.classList.remove('open');
-      menuElement.style.transform = menuElement.id === 'bulk-actions-menu' ? 'translateX(-50%) translateY(calc(100% + 50px))' : 'translateY(calc(100% + 50px))'; // Slide out to bottom, fully hidden
+      menuElement.style.transform = 'translateY(calc(100% + 50px))'; // Slide out to bottom, fully hidden
     }
 
     // Event listeners for mobile menu toggles
     mobileLeftMenuToggle.addEventListener('click', () => openMobileMenu(leftFloatingMenu));
-    mobileBulkActionsToggle.addEventListener('click', () => openMobileMenu(bulkActionsMenu)); // New toggle for bulk actions
-
-    // The right toggle will now open the category menu first, then quick access
     mobileRightMenuToggle.addEventListener('click', () => {
-        if (!categoryMenu.classList.contains('open') && !rightFloatingMenu.classList.contains('open')) {
-            openMobileMenu(categoryMenu); // Open category menu first
-        } else if (categoryMenu.classList.contains('open')) {
-            closeMobileMenu(categoryMenu);
-            openMobileMenu(rightFloatingMenu); // Then open quick access
-        } else {
-            closeMobileMenu(rightFloatingMenu);
+        // When opening the mobile right menu, populate it with current content
+        const categoryMenuContent = document.getElementById('category-menu').innerHTML;
+        const floatingMenuContent = document.getElementById('floating-menu').innerHTML;
+        const bulkActionsMenuContent = document.getElementById('bulk-actions-menu').innerHTML;
+
+        // Clear and append content to the mobile wrapper
+        rightMenuWrapperMobile.innerHTML = `
+            <div class="mobile-menu-header">
+                <h3>Right Menu</h3>
+                <button id="closeRightMenuBtnMobile" class="close-mobile-menu-btn" title="Close right menu">X</button>
+            </div>
+            <div id="category-menu-mobile">${categoryMenuContent}</div>
+            <div id="floating-menu-mobile">${floatingMenuContent}</div>
+            <div id="bulk-actions-menu-mobile">${bulkActionsMenuContent}</div>
+        `;
+
+        // Re-attach event listeners for buttons inside the dynamically added content
+        rightMenuWrapperMobile.querySelector('#closeRightMenuBtnMobile').onclick = () => closeMobileMenu(rightMenuWrapperMobile);
+        // Re-attach category and bulk action specific listeners if needed (e.g., addCategoryBtn, bulkApplyChangesBtn)
+        // This can be complex if many interactive elements are duplicated.
+        // A simpler approach for mobile is to just show/hide the desktop elements, but that creates layout challenges.
+        // For now, I'll just re-attach the close button. Other interactions should ideally be handled by delegation or re-initialization.
+
+        // Re-attach category menu add button if it's part of the mobile menu
+        const mobileAddCategoryBtn = rightMenuWrapperMobile.querySelector('#category-menu-mobile #addCategoryBtn');
+        if (mobileAddCategoryBtn) {
+            mobileAddCategoryBtn.onclick = addCategory;
+            rightMenuWrapperMobile.querySelector('#category-menu-mobile #newCategoryInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') { addCategory(); }
+            });
         }
+        // Re-attach bulk actions buttons
+        const mobileBulkApplyBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkApplyChangesBtn');
+        if (mobileBulkApplyBtn) mobileBulkApplyBtn.onclick = applyBulkPropertyChanges;
+        const mobileBulkEnableBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkEnableBtn');
+        if (mobileBulkEnableBtn) mobileBulkEnableBtn.onclick = () => bulkEnableDisable(true);
+        const mobileBulkDisableBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkDisableBtn');
+        if (mobileBulkDisableBtn) mobileBulkDisableBtn.onclick = () => bulkEnableDisable(false);
+        const mobileBulkDeleteBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkDeleteBtn');
+        if (mobileBulkDeleteBtn) mobileBulkDeleteBtn.onclick = bulkDelete;
+        const mobileBulkTranslateBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkTranslateBtn');
+        if (mobileBulkTranslateBtn) mobileBulkTranslateBtn.onclick = handleBulkTranslate;
+
+        // Re-attach snippet management buttons
+        const mobileAddSnippetBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #addSnippetBtn');
+        if (mobileAddSnippetBtn) mobileAddSnippetBtn.onclick = addSnippet;
+        const mobileBulkApplySnippetBtn = rightMenuWrapperMobile.querySelector('#bulk-actions-menu-mobile #bulkApplySnippetBtn');
+        if (mobileBulkApplySnippetBtn) mobileBulkApplySnippetBtn.onclick = handleBulkApplySnippet;
+
+        // Re-attach drag handlers for quick access list items in the mobile menu
+        rightMenuWrapperMobile.querySelectorAll('#floating-menu-mobile #label-quick-access-list a').forEach(anchor => {
+            addQuickAccessDragHandlers(anchor);
+        });
+
+
+        // Ensure mobile menu is displayed before opening
+        rightMenuWrapperMobile.style.display = 'flex'; // Ensure it's visible as a flex container
+        openMobileMenu(rightMenuWrapperMobile);
     });
 
 
     // Event listeners for internal close buttons
     closeLeftMenuBtn.addEventListener('click', () => closeMobileMenu(leftFloatingMenu));
-    closeRightMenuBtn.addEventListener('click', () => closeMobileMenu(rightFloatingMenu));
-    closeCategoryMenuBtn.addEventListener('click', () => closeMobileMenu(categoryMenu));
-    closeBulkActionsMenuBtn.addEventListener('click', () => closeMobileMenu(bulkActionsMenu)); // New close button for bulk actions
+    // Desktop close buttons for right menus (they don't close the entire wrapper, just their own header on desktop)
+    // On mobile, these are hidden, and the single mobile close button handles it.
+    if (closeRightMenuBtnDesktop) closeRightMenuBtnDesktop.addEventListener('click', () => {}); // No action needed, just prevents error
+    if (closeCategoryMenuBtnDesktop) closeCategoryMenuBtnDesktop.addEventListener('click', () => {}); // No action needed
+    if (closeBulkActionsMenuBtnDesktop) closeBulkActionsMenuBtnDesktop.addEventListener('click', () => {}); // No action needed
+
+    // Mobile close button for the right menu wrapper
+    // This listener is attached dynamically when the mobile menu is opened.
+    // closeRightMenuBtnMobile.addEventListener('click', () => closeMobileMenu(rightMenuWrapperMobile)); // This will be attached dynamically
 
 
     // Close menu if clicking outside (on the backdrop)
     document.addEventListener('click', (event) => {
       const isClickInsideLeftMenu = leftFloatingMenu.contains(event.target);
-      const isClickInsideRightMenu = rightFloatingMenu.contains(event.target);
-      const isClickInsideCategoryMenu = categoryMenu.contains(event.target);
-      const isClickInsideBulkActionsMenu = bulkActionsMenu.contains(event.target); // New for bulk actions
+      const isClickInsideRightMenuMobile = rightMenuWrapperMobile.contains(event.target); // Check mobile wrapper
       const isClickOnLeftToggle = mobileLeftMenuToggle.contains(event.target);
       const isClickOnRightToggle = mobileRightMenuToggle.contains(event.target);
-      const isClickOnBulkActionsToggle = mobileBulkActionsToggle.contains(event.target); // New for bulk actions
+
+      // Get modal elements, check if they exist before calling .contains()
+      // Retrieve them here to ensure they are available in the DOM
+      const optionsModal = document.getElementById('optionsModal');
+      const applySnippetModal = document.getElementById('applySnippetModal');
+
+      const isClickInsideOptionsModal = optionsModal && optionsModal.contains(event.target);
+      const isClickInsideApplySnippetModal = applySnippetModal && applySnippetModal.contains(event.target);
+
 
       // Only close if a menu is open and the click is outside all menus and their toggles
       if (
         (leftFloatingMenu.classList.contains('open') && !isClickInsideLeftMenu && !isClickOnLeftToggle) ||
-        (rightFloatingMenu.classList.contains('open') && !isClickInsideRightMenu && !isClickOnRightToggle) ||
-        (categoryMenu.classList.contains('open') && !isClickInsideCategoryMenu && !isClickOnRightToggle) ||
-        (bulkActionsMenu.classList.contains('open') && !isClickInsideBulkActionsMenu && !isClickOnBulkActionsToggle) // New condition
+        (rightMenuWrapperMobile.classList.contains('open') && !isClickInsideRightMenuMobile && !isClickOnRightToggle) ||
+        (optionsModal && optionsModal.style.display === 'flex' && !isClickInsideOptionsModal && event.target.id !== 'optionsBtn') ||
+        (applySnippetModal && applySnippetModal.style.display === 'flex' && !isClickInsideApplySnippetModal && !event.target.classList.contains('apply-snippet-btn'))
       ) {
         closeMobileMenu(leftFloatingMenu);
-        closeMobileMenu(rightFloatingMenu);
-        closeMobileMenu(categoryMenu);
-        closeMobileMenu(bulkActionsMenu); // Close bulk actions menu
+        closeMobileMenu(rightMenuWrapperMobile);
+        if (optionsModal) optionsModal.style.display = 'none'; // Close options modal too
+        if (applySnippetModal) applySnippetModal.style.display = 'none'; // Close apply snippet modal too
       }
     });
+
+    // Handle initial display of mobile menu wrapper based on screen size
+    function handleMobileMenuDisplay() {
+      const isMobile = window.matchMedia("(max-width: 992px)").matches;
+      if (isMobile) {
+        document.getElementById('right-side-menus-container').style.display = 'none';
+        // Ensure rightMenuWrapperMobile exists before trying to set its display
+        const rMWM = document.getElementById('right-menu-wrapper-mobile');
+        if (rMWM) rMWM.style.display = 'flex';
+      } else {
+        document.getElementById('right-side-menus-container').style.display = 'flex';
+        // Ensure rightMenuWrapperMobile exists before trying to set its display
+        const rMWM = document.getElementById('right-menu-wrapper-mobile');
+        if (rMWM) rMWM.style.display = 'none';
+      }
+    }
+
+    // Initial check and listen for resize
+    handleMobileMenuDisplay();
+    window.addEventListener('resize', handleMobileMenuDisplay);
 
 
     // --- Event Listeners for Main Buttons ---
@@ -2874,6 +3609,7 @@ Original description:
                   suppressSave = false;
                   saveFullSessionStateToLocalStorage(); // Save full session state
                   updateJSONOutput(); // Update JSON output display
+                  updateLabelNumbers(); // Update numbers after import
                   showCustomModal('Labels imported successfully!', 'alert');
               }
           });
@@ -2923,6 +3659,77 @@ Original description:
       }
     });
 
+    // --- Quick Access Drag-and-Drop Functions ---
+    function addQuickAccessDragHandlers(anchorElement) {
+        anchorElement.setAttribute('draggable', 'true');
+        anchorElement.addEventListener('dragstart', dragStartQuickAccess);
+        anchorElement.addEventListener('dragenter', dragEnterQuickAccess);
+        anchorElement.addEventListener('dragover', dragOverQuickAccess);
+        anchorElement.addEventListener('dragleave', dragLeaveQuickAccess);
+        anchorElement.addEventListener('drop', dropQuickAccess);
+        anchorElement.addEventListener('dragend', dragEndQuickAccess);
+    }
+
+    function dragStartQuickAccess(e) {
+        dragSrcQuickAccessEl = this;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', this.href); // Store the ID of the main label block
+        this.classList.add('is-dragging');
+    }
+
+    function dragEnterQuickAccess(e) {
+        if (this !== dragSrcQuickAccessEl) {
+            this.classList.add('over');
+        }
+    }
+
+    function dragOverQuickAccess(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        return false;
+    }
+
+    function dragLeaveQuickAccess(e) {
+        this.classList.remove('over');
+    }
+
+    function dropQuickAccess(e) {
+        e.stopPropagation();
+        this.classList.remove('over');
+
+        if (dragSrcQuickAccessEl !== this) {
+            const draggedLabelId = dragSrcQuickAccessEl.getAttribute('href').substring(1); // Get main label ID
+            const targetLabelId = this.getAttribute('href').substring(1); // Get main label ID
+
+            const draggedLabelDiv = document.getElementById(draggedLabelId);
+            const targetLabelDiv = document.getElementById(targetLabelId);
+
+            if (draggedLabelDiv && targetLabelDiv) {
+                const labelsContainer = document.getElementById('labels-container');
+                const nodes = Array.from(labelsContainer.children);
+                const srcIndex = nodes.indexOf(draggedLabelDiv);
+                const tgtIndex = nodes.indexOf(targetLabelDiv);
+
+                if (srcIndex < tgtIndex) {
+                    labelsContainer.insertBefore(draggedLabelDiv, targetLabelDiv.nextSibling);
+                } else {
+                    labelsContainer.insertBefore(draggedLabelDiv, targetLabelDiv);
+                }
+                saveFullSessionStateToLocalStorage();
+                updateJSONOutput(); // This will re-render quick access
+                updateLabelNumbers(); // Update numbers after quick access drag and drop
+            }
+        }
+        return false;
+    }
+
+    function dragEndQuickAccess(e) {
+        this.classList.remove('is-dragging');
+        document.querySelectorAll('#floating-menu a.over').forEach(el => el.classList.remove('over'));
+    }
+    // --- End Quick Access Drag-and-Drop Functions ---
+
+
     // Function to update the floating quick access menu
     function updateFloatingMenu() {
       const quickAccessList = document.getElementById('label-quick-access-list');
@@ -2940,6 +3747,7 @@ Original description:
         const anchor = document.createElement('a');
         anchor.href = `#${labelId}`; // Link to the unique HTML ID
         anchor.textContent = labelIdentifier;
+        anchor.title = `Scroll to label: ${labelIdentifier}`;
 
         // Smooth scroll on click
         anchor.onclick = (e) => {
@@ -2949,6 +3757,9 @@ Original description:
 
         listItem.appendChild(anchor);
         quickAccessList.appendChild(listItem);
+
+        // Add drag handlers to the newly created anchor element
+        addQuickAccessDragHandlers(anchor);
       });
     }
 
@@ -2957,15 +3768,19 @@ Original description:
       const currentLabels = getLabelsData();
       const currentSessionState = {
         labelValueDefinitions: currentLabels,
-        categories: categories
+        categories: categories,
+        defaultLocaleLanguage: defaultLocaleLanguage,
+        descriptionSnippets: descriptionSnippets
       };
 
-      const latestSavedState = history.length > 0 ? JSON.parse(history[history.length - 1]) : { labelValueDefinitions: [], categories: [] };
+      const latestSavedState = history.length > 0 ? JSON.parse(history[history.length - 1]) : { labelValueDefinitions: [], categories: [], defaultLocaleLanguage: '', descriptionSnippets: [] };
 
       const currentSessionJson = JSON.stringify(currentSessionState);
       const latestSavedSessionJson = JSON.stringify({
           labelValueDefinitions: latestSavedState.labelValueDefinitions,
-          categories: latestSavedState.categories
+          categories: latestSavedState.categories,
+          defaultLocaleLanguage: latestSavedState.defaultLocaleLanguage,
+          descriptionSnippets: latestSavedState.descriptionSnippets
       });
 
 
@@ -2999,6 +3814,7 @@ Original description:
                 selectedLabelIds.delete(labelId);
             }
         });
+        updateBulkSelectAllTranslateCheckbox(); // Keep translate checkbox in sync
     });
 
     document.getElementById('bulkTargetSelect').addEventListener('change', (e) => {
@@ -3015,6 +3831,60 @@ Original description:
     document.getElementById('bulkEnableBtn').onclick = () => bulkEnableDisable(true);
     document.getElementById('bulkDisableBtn').onclick = () => bulkEnableDisable(false);
     document.getElementById('bulkDeleteBtn').onclick = bulkDelete;
+
+    // Bulk Translate Event Listeners
+    document.getElementById('bulkTranslateBtn').onclick = handleBulkTranslate;
+
+    document.getElementById('bulkTargetSelectTranslate').addEventListener('change', (e) => {
+        const bulkCategoryFilterSelectTranslate = document.getElementById('bulkCategoryFilterSelectTranslate');
+        if (e.target.value === 'category') {
+            bulkCategoryFilterSelectTranslate.style.display = '';
+            updateBulkCategoryFilterTranslateDropdown();
+        } else {
+            bulkCategoryFilterSelectTranslate.style.display = 'none';
+        }
+    });
+
+    document.getElementById('bulkSelectAllTranslateCheckbox').addEventListener('change', (e) => {
+        const isChecked = e.target.checked;
+        document.querySelectorAll('.label-block:not([style*="display: none"]) .bulk-select-checkbox').forEach(checkbox => {
+            checkbox.checked = isChecked;
+            const labelId = checkbox.dataset.labelId;
+            if (isChecked) {
+                selectedLabelIds.add(labelId);
+            } else {
+                selectedLabelIds.delete(labelId);
+            }
+        });
+        updateBulkSelectAllCheckbox(); // Keep general checkbox in sync
+    });
+
+    // Options Modal Event Listeners
+    document.getElementById('optionsBtn').onclick = () => {
+        populateDefaultLocaleLanguageSelect(); // Ensure dropdown is up-to-date
+        document.getElementById('optionsModal').style.display = 'flex';
+    };
+    document.getElementById('closeOptionsModalBtn').onclick = () => {
+        document.getElementById('optionsModal').style.display = 'none';
+    };
+    document.getElementById('defaultLocaleLangSelect').addEventListener('change', (e) => {
+        defaultLocaleLanguage = e.target.value;
+        saveFullSessionStateToLocalStorage(); // Save immediately when changed
+    });
+
+    // Snippet Management Event Listeners
+    document.getElementById('addSnippetBtn').onclick = addSnippet;
+    document.getElementById('newSnippetContent').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) { // Allow Shift+Enter for new line
+            e.preventDefault(); // Prevent default Enter behavior (new line)
+            addSnippet();
+        }
+    });
+    document.getElementById('bulkApplySnippetSelect').addEventListener('change', (e) => {
+        document.getElementById('bulkApplySnippetBtn').disabled = (e.target.value === '');
+    });
+    document.getElementById('bulkApplySnippetBtn').onclick = handleBulkApplySnippet;
+
   </script>
 </body>
 </html>
