@@ -794,328 +794,143 @@
       font-size: 1.5rem;
     }
   }
+  /* New style for the bulk translate button */
+  .translate-button {
+    background: #10b981; /* Green color */
+    color: white;
+  }
 
-  /* Custom Modal for alerts/confirms */
+  .translate-button:hover {
+    background: #059669; /* Darker green on hover */
+  }
+
+  /* Custom Modal Styles */
   .custom-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black backdrop */
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 10000;
+    z-index: 10000; /* Ensure it's above everything else */
   }
 
   .custom-modal-content {
-    background: var(--background);
+    background: var(--block-background);
     padding: 2em;
-    border-radius: var(--border-radius); /* Uses variable */
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    text-align: center;
-    max-width: 400px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    max-width: 500px;
     width: 90%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
     color: var(--text-color);
   }
 
-  .custom-modal-content button {
-    margin: 0.5em;
-    padding: 0.7em 1.5em;
-    border-radius: var(--border-radius); /* Uses variable */
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background 0.2s;
+  .custom-modal-content p {
+    margin: 0;
+    font-size: 1.1rem;
+    line-height: 1.5;
   }
 
-  .custom-modal-content button.confirm-btn {
+  .custom-modal-content button {
+    padding: 0.6em 1.2em;
+    font-size: 1rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .custom-modal-content .confirm-btn {
     background: var(--primary);
     color: white;
   }
 
-  .custom-modal-content button.cancel-btn {
+  .custom-modal-content .confirm-btn:hover {
+    background: #2563eb;
+  }
+
+  .custom-modal-content .cancel-btn {
     background: var(--gray);
     color: white;
-  }
-
-  .custom-modal-content textarea {
-    width: calc(100% - 20px); /* Adjust for padding */
-    min-height: 150px;
-    margin-bottom: 1em;
-    padding: 10px;
-    border: 1px solid var(--input-border);
-    border-radius: var(--border-radius); /* Uses variable */
-    background: var(--block-background);
-    color: var(--text-color);
-    box-sizing: border-box;
-    font-family: 'Courier New', monospace;
-    font-size: 0.9rem;
-  }
-
-  .copy-feedback {
-    display: inline-block;
     margin-left: 0.5em;
-    color: var(--primary);
-    font-weight: bold;
-    opacity: 0;
-    transition: opacity 0.3s ease-out;
   }
 
-  .copy-feedback.show {
-    opacity: 1;
+  .custom-modal-content .cancel-btn:hover {
+    background: #5a6268;
   }
 
-  /* Loading Spinner Styles */
-  .loading-overlay {
+  /* Copy Feedback Toast */
+  #copyFeedback {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 10001; /* Higher than modal overlay */
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #10b981; /* Green background */
     color: white;
-    font-size: 1.2rem;
-    flex-direction: column;
-    gap: 1em;
+    padding: 10px 20px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 10001; /* Above modals */
+    font-size: 0.9rem;
+    white-space: nowrap;
   }
 
-  .spinner {
-    border: 4px solid rgba(255, 255, 255, 0.3);
-    border-top: 4px solid #fff;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
+  #copyFeedback.show {
+    opacity: 1;
+    visibility: visible;
   }
 
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  /* New style for the action button container in the label header */
+  .header-action-buttons {
+    display: flex;
+    gap: 0.2em;
+    align-items: center;
   }
 
-  /* Category dropdown in header */
-  .label-header .category-in-header {
-    margin-left: auto; /* Push to the right, before move buttons */
-    margin-right: 0.5em; /* Small space before move buttons */
+  /* Adjust category select in header */
+  .category-in-header {
+    display: flex; /* Make it a flex container */
+    align-items: center; /* Align items vertically */
+    gap: 0.2em; /* Space between label and select (if label was present) */
+    /* flex-grow: 1; Removed flex-grow here as it's now inside header-right-group */
+    margin-right: 0.5em; /* Small margin from previous element */
+  }
+
+  .category-in-header select {
+    flex-grow: 1; /* Allow the select to grow within its container */
+    max-width: 150px; /* Limit its max width to prevent it from pushing too much */
+  }
+
+  /* New wrapper for elements aligned to the right in the header */
+  .header-right-group {
     display: flex;
     align-items: center;
-    gap: 0.2em;
-    font-weight: normal; /* Override header's bold */
-    color: var(--text-color);
+    gap: 0.5em; /* Space between category and action buttons */
+    margin-left: auto; /* Pushes this whole group to the far right */
   }
 
-  .label-header .category-in-header label {
-    margin: 0;
-    font-size: 0.85rem;
-    white-space: nowrap; /* Prevent text wrapping */
-  }
-
-  .label-header .category-in-header select {
-    width: auto; /* Allow select to size to content */
-    max-width: 100px; /* Limit width */
-    padding: 0.2em 0.4em;
-    font-size: 0.85rem;
-    margin: 0;
-    background-color: var(--block-background); /* Match block background */
-    border: 1px solid var(--input-border);
-    border-radius: var(--border-radius); /* Uses variable */
-    color: var(--text-color);
-  }
-
-  /* Bulk Actions Section Styling */
-  #bulk-actions-menu {
-    background: var(--background);
-    border: 1px solid var(--block-border);
-    border-radius: var(--border-radius); /* Uses variable */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    padding: 1em;
-    margin-bottom: 1em; /* Space between bulk actions and categories */
-    display: flex;
-    flex-direction: column;
-    gap: 0.5em;
-  }
-
-  #bulk-actions-menu h3 {
-    margin-top: 0;
-    color: var(--primary);
-    font-size: 1.2rem;
-    margin-bottom: 0.8em;
-  }
-
-  #bulk-actions-menu .bulk-action-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5em;
-    margin-bottom: 1em;
-    border-bottom: 1px solid var(--block-border);
-    padding-bottom: 1em;
-  }
-
-  #bulk-actions-menu .bulk-action-group:last-child {
-      border-bottom: none;
-      padding-bottom: 0;
-      margin-bottom: 0;
-  }
-
-  #bulk-actions-menu .bulk-action-row {
-      display: flex;
-      align-items: center;
-      gap: 0.5em;
-      flex-wrap: wrap; /* Allow wrapping on small screens */
-  }
-
-  #bulk-actions-menu .bulk-action-row label {
-      margin: 0; /* Override default label margin */
-      flex-shrink: 0;
-  }
-
-  #bulk-actions-menu .bulk-action-row select,
-  #bulk-actions-menu .bulk-action-row input[type="checkbox"] {
-      margin: 0; /* Override default input/select margin */
-  }
-
-  #bulk-actions-menu .bulk-action-row select {
-      flex-grow: 1; /* Allow select to take available space */
-      max-width: 120px; /* Limit width */
-      padding: 0.3em 0.5em;
-      font-size: 0.9rem;
-      border-radius: var(--border-radius); /* Uses variable */
-  }
-
-  #bulk-actions-menu .bulk-action-row button {
-      padding: 0.4em 0.8em;
-      font-size: 0.9rem;
-      flex-shrink: 0;
-  }
-
-  #bulk-actions-menu .bulk-action-row .full-width-button {
-      width: 100%;
-      margin-top: 0.5em;
-  }
-
-  #bulk-actions-menu .bulk-action-row .danger-button {
-      background-color: var(--danger);
-  }
-
-  #bulk-actions-menu .bulk-action-row .danger-button:hover {
-      background-color: #dc2626;
-  }
-
-  /* Checkbox styling for bulk select */
-  .label-header .bulk-select-checkbox {
-    margin-left: 0.5em; /* Space from identifier */
-    margin-right: 0.5em;
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
-  }
-
-  /* Mobile specific adjustments for bulk action menu */
-  @media (max-width: 992px) {
-    /* Left menu on mobile */
-    #left-floating-menu {
-      position: fixed; /* Fixed on mobile */
-      bottom: 0;
-      width: 80%;
-      max-width: 300px;
-      height: auto;
-      max-height: 80vh; /* Re-add max-height for mobile to prevent overflow off screen */
-      overflow-y: auto; /* Re-add overflow for mobile */
-      border-radius: var(--border-radius) var(--border-radius) 0 0;
-      border-bottom: none;
-      transform: translateY(calc(100% + 50px)); /* Start collapsed and fully hidden */
-      display: flex; /* Ensure they are flex containers when active */
-      margin-right: 0; /* Remove desktop margin */
-      pointer-events: none; /* Make menu non-interactive when collapsed */
-      z-index: 9999; /* Ensure they are on top */
-    }
-
-    #left-floating-menu {
-      left: 0;
-    }
-
-    /* Right menu wrapper for mobile */
-    #right-menu-wrapper {
-        position: fixed; /* Fixed on mobile */
-        bottom: 0;
-        right: 0;
-        width: 80%;
-        max-width: 300px;
-        height: auto;
-        max-height: 80vh; /* Max height for the entire wrapper */
-        overflow-y: auto; /* Enable scrolling for the entire wrapper */
-        border-radius: var(--border-radius) var(--border-radius) 0 0;
-        border-bottom: none;
-        transform: translateY(calc(100% + 50px)); /* Hide by default */
-        pointer-events: none; /* Initially non-interactive */
-        z-index: 9998; /* Ensure it's below bulk actions if both open */
-    }
-
-    /* When right menu wrapper is open, stack its children */
-    #right-menu-wrapper.open {
-        transform: translateY(0);
-        pointer-events: auto;
-    }
-
-    /* Individual Right Menu Styles (children of the wrapper) on mobile */
-    #floating-menu, #category-menu, #bulk-actions-menu {
-        border-radius: 0; /* Remove individual border radius */
-        box-shadow: none; /* Remove individual shadows */
-        border: none; /* Remove individual borders */
-        border-bottom: 1px solid var(--block-border); /* Add separator between them */
-    }
-
-    #bulk-actions-menu {
-        border-radius: var(--border-radius) var(--border-radius) 0 0; /* Rounded top only */
-    }
-    #floating-menu {
-        border-bottom: none; /* No border at the very bottom of the last menu */
-        border-radius: 0 0 var(--border-radius) var(--border-radius); /* Rounded bottom only */
-    }
-
-
-    /* Show mobile menu header when menus are open on mobile */
-    #left-floating-menu.open .mobile-menu-header,
-    #right-menu-wrapper.open .mobile-menu-header { /* Only need to check wrapper open state */
-      display: flex; /* Show mobile header on mobile */
-    }
-
-    /* Show the mobile toggle buttons */
-    .mobile-menu-toggle-button {
-      display: flex; /* Show the buttons */
-    }
-
-    /* Adjust main container on mobile */
-    #container {
-      margin-left: auto; /* Center main content */
-      margin-right: auto;
-    }
-
-    /* Removed backdrop and blur styles */
-    body.menu-active::before,
-    body.menu-active #container {
-      /* No styles here, effectively removing the dimming/blurring */
-    }
-  }
-
-  /* Even smaller screens for overall padding adjustment */
-  @media (max-width: 768px) {
-    body {
-      padding: 1em;
-    }
-    #container {
-      padding: 1.5em;
-    }
-    .mobile-menu-toggle-button {
-      width: 45px;
-      height: 45px;
-      font-size: 1.5rem;
-    }
+  /* Style for the label number box */
+  .label-number-box {
+    background: var(--gray); /* Grey background */
+    color: white; /* White text */
+    padding: 0.3em 0.6em;
+    border-radius: var(--border-radius);
+    font-size: 0.9em;
+    font-weight: 600;
+    flex-shrink: 0; /* Prevent shrinking */
+    min-width: 30px; /* Ensure enough width for 2-3 digits */
+    text-align: center;
+    box-sizing: border-box; /* Include padding in width */
+    margin-right: 0.5em; /* Space between number and checkbox */
   }
 </style>
 
@@ -1124,15 +939,15 @@
   <div id="left-floating-menu">
     <div class="mobile-menu-header">
       <h3>Main Menu</h3>
-      <button id="closeLeftMenuBtn" class="close-mobile-menu-btn">X</button>
+      <button id="closeLeftMenuBtn" class="close-mobile-menu-btn" title="Close main menu">X</button>
     </div>
-    <button id="addLabelBtn" class="left-menu-button">+ Add Label</button>
+    <button id="addLabelBtn" class="left-menu-button" title="Add a new blank label block">+ Add Label</button>
     <div class="separator"></div>
-    <button id="collapseAllBtn" class="left-menu-button">Collapse All</button>
-    <button id="expandAllBtn" class="left-menu-button">Expand All</button>
-    <button id="resetClearBtn" class="left-menu-button">Reset / Clear All</button>
+    <button id="collapseAllBtn" class="left-menu-button" title="Collapse all label content areas">Collapse All</button>
+    <button id="expandAllBtn" class="left-menu-button" title="Expand all label content areas">Expand All</button>
+    <button id="resetClearBtn" class="left-menu-button" title="Clear all labels or reset to default">Reset / Clear All</button>
     <div class="separator"></div>
-    <div class="theme-switch-wrapper">
+    <div class="theme-switch-wrapper" title="Toggle between light and dark mode">
       <span class="theme-switch-label-text">Dark Mode</span>
       <label class="theme-switch" for="checkbox">
         <input type="checkbox" id="checkbox" />
@@ -1140,13 +955,13 @@
       </label>
     </div>
     <div class="separator"></div>
-    <button id="versionHistoryBtn" class="left-menu-button">Version History</button>
-    <button id="saveBtn" class="left-menu-button">Save Current Version</button>
-    <button id="undoBtn" class="left-menu-button" disabled>Undo</button>
-    <button id="redoBtn" class="left-menu-button" disabled>Redo</button>
+    <button id="versionHistoryBtn" class="left-menu-button" title="View and revert to previous saved versions">Version History</button>
+    <button id="saveBtn" class="left-menu-button" title="Save the current state as a new version in history">Save Current Version</button>
+    <button id="undoBtn" class="left-menu-button" disabled title="Undo the last change">Undo</button>
+    <button id="redoBtn" class="left-menu-button" disabled title="Redo the last undone change">Redo</button>
     <div class="separator"></div>
-    <button id="saveSessionFileBtn" class="left-menu-button">Save Session File</button>
-    <button id="loadSessionFileBtn" class="left-menu-button">Load Session File</button>
+    <button id="saveSessionFileBtn" class="left-menu-button" title="Download current labels and categories as a session file (.ozm)">Save Session File</button>
+    <button id="loadSessionFileBtn" class="left-menu-button" title="Load labels and categories from a session file (.ozm or .json)">Load Session File</button>
     <input type="file" id="sessionFileInput" accept=".json,.ozm" style="display:none" />
   </div>
 
@@ -1166,42 +981,42 @@
 
     <div id="labels-container"></div>
 
-    <button id="pasteJsonBtn" class="action-button">Paste JSON</button>
-    <button id="copyJsonBtn" class="action-button">Copy JSON</button>
+    <button id="pasteJsonBtn" class="action-button" title="Paste JSON data from clipboard into the editor">Paste JSON</button>
+    <button id="copyJsonBtn" class="action-button" title="Copy the generated JSON to clipboard">Copy JSON</button>
     <span id="copyFeedback" class="copy-feedback">Copied!</span>
-    <button id="importJsonBtn" class="action-button">Import JSON</button>
-    <button id="exportJsonBtn" class="action-button">Export JSON</button>
+    <button id="importJsonBtn" class="action-button" title="Import labels from a JSON file">Import JSON</button>
+    <button id="exportJsonBtn" class="action-button" title="Export current labels to a JSON file">Export JSON</button>
     <input type="file" id="fileInput" accept=".json" style="display:none" />
 
-    <pre id="output"></pre>
+    <pre id="output" title="Generated JSON output of your labels"></pre>
   </div>
 
   <div id="right-menu-wrapper">
     <div id="bulk-actions-menu">
         <div class="mobile-menu-header">
             <h3>Bulk Actions</h3>
-            <button id="closeBulkActionsMenuBtn" class="close-mobile-menu-btn">X</button>
+            <button id="closeBulkActionsMenuBtn" class="close-mobile-menu-btn" title="Close bulk actions menu">X</button>
         </div>
         <h3>Bulk Actions</h3>
         <div class="bulk-action-group">
             <div class="bulk-action-row">
-                <label for="bulkTargetSelect">Apply to:</label>
-                <select id="bulkTargetSelect">
+                <label for="bulkTargetSelect" title="Choose whether to apply actions to selected labels or labels in a specific category">Apply to:</label>
+                <select id="bulkTargetSelect" title="Select target for bulk actions">
                     <option value="selected">Selected Labels</option>
                     <option value="category">Labels in Category</option>
                 </select>
-                <select id="bulkCategoryFilterSelect" style="display:none;"></select>
+                <select id="bulkCategoryFilterSelect" style="display:none;" title="Select category to filter labels"></select>
             </div>
             <div class="bulk-action-row">
-                <input type="checkbox" id="bulkSelectAllCheckbox">
+                <input type="checkbox" id="bulkSelectAllCheckbox" title="Select or deselect all visible labels">
                 <label for="bulkSelectAllCheckbox">Select All Visible Labels</label>
             </div>
         </div>
 
         <div class="bulk-action-group">
             <div class="bulk-action-row">
-                <label for="bulkSeveritySelect">Severity:</label>
-                <select id="bulkSeveritySelect">
+                <label for="bulkSeveritySelect" title="Set severity for selected labels">Severity:</label>
+                <select id="bulkSeveritySelect" title="Bulk change severity">
                     <option value="">(No Change)</option>
                     <option value="inform">inform</option>
                     <option value="alert">alert</option>
@@ -1209,8 +1024,8 @@
                 </select>
             </div>
             <div class="bulk-action-row">
-                <label for="bulkBlursSelect">Blurs:</label>
-                <select id="bulkBlursSelect">
+                <label for="bulkBlursSelect" title="Set blur setting for selected labels">Blurs:</label>
+                <select id="bulkBlursSelect" title="Bulk change blur setting">
                     <option value="">(No Change)</option>
                     <option value="content">content</option>
                     <option value="media">media</option>
@@ -1218,55 +1033,76 @@
                 </select>
             </div>
             <div class="bulk-action-row">
-                <label for="bulkDefaultSettingSelect">Default Setting:</label>
-                <select id="bulkDefaultSettingSelect">
+                <label for="bulkDefaultSettingSelect" title="Set default setting for selected labels">Default Setting:</label>
+                <select id="bulkDefaultSettingSelect" title="Bulk change default setting">
                     <option value="">(No Change)</option>
                     <option value="ignore">ignore</option>
                     <option value="warn">warn</option>
                     <option value="hide">hide</option>
                 </select>
             </div>
-            <button id="bulkApplyChangesBtn" class="full-width-button">Apply Property Changes</button>
+            <button id="bulkApplyChangesBtn" class="full-width-button" title="Apply selected property changes to target labels">Apply Property Changes</button>
         </div>
 
         <div class="bulk-action-group">
-            <button id="bulkEnableBtn" class="full-width-button">Enable Selected</button>
-            <button id="bulkDisableBtn" class="full-width-button">Disable Selected</button>
+            <button id="bulkEnableBtn" class="full-width-button" title="Enable all selected labels">Enable Selected</button>
+            <button id="bulkDisableBtn" class="full-width-button" title="Disable all selected labels">Disable Selected</button>
         </div>
 
         <div class="bulk-action-group">
-            <button id="bulkDeleteBtn" class="full-width-button danger-button">Delete Selected</button>
+            <button id="bulkDeleteBtn" class="full-width-button danger-button" title="Permanently delete all selected labels">Delete Selected</button>
         </div>
+
+        <div class="bulk-action-group">
+            <h4>Bulk Translate Locales</h4>
+            <div class="bulk-action-row">
+                <label for="bulkTargetSelectTranslate" title="Choose whether to apply actions to selected labels or labels in a specific category">Apply to:</label>
+                <select id="bulkTargetSelectTranslate" title="Select target for bulk translate actions">
+                    <option value="selected">Selected Labels</option>
+                    <option value="category">Labels in Category</option>
+                </select>
+                <select id="bulkCategoryFilterSelectTranslate" style="display:none;" title="Select category to filter labels for translation"></select>
+            </div>
+            <div class="bulk-action-row">
+                <input type="checkbox" id="bulkSelectAllTranslateCheckbox" title="Select or deselect all visible labels for translation">
+                <label for="bulkSelectAllTranslateCheckbox">Select All Visible Labels</label>
+            </div>
+            <label title="Select one or more languages to translate into">Translate To:</label>
+            <div id="bulkTranslateTargetLangs" title="Target languages for bulk translation">
+                </div>
+            <button id="bulkTranslateBtn" class="full-width-button translate-button" title="Translate names and descriptions for selected labels into chosen languages">Translate Selected Labels ✨</button>
+        </div>
+
     </div>
 
     <div id="category-menu">
         <div class="mobile-menu-header">
             <h3>Categories</h3>
-            <button id="closeCategoryMenuBtn" class="close-mobile-menu-btn">X</button>
+            <button id="closeCategoryMenuBtn" class="close-mobile-menu-btn" title="Close categories menu">X</button>
         </div>
         <h3>Label Categories</h3>
         <div class="category-input-group">
-            <input type="text" id="newCategoryInput" placeholder="New category name" />
-            <button id="addCategoryBtn">Add</button>
+            <input type="text" id="newCategoryInput" placeholder="New category name" title="Enter a new category name" />
+            <button id="addCategoryBtn" title="Add the new category">Add</button>
         </div>
-        <ul id="category-list">
+        <ul id="category-list" title="List of existing categories">
             </ul>
     </div>
 
     <div id="floating-menu">
         <div class="mobile-menu-header">
             <h3>Quick Access</h3>
-            <button id="closeRightMenuBtn" class="close-mobile-menu-btn">X</button>
+            <button id="closeRightMenuBtn" class="close-mobile-menu-btn" title="Close quick access menu">X</button>
         </div>
         <h3>Labels Quick Access</h3>
-        <ul id="label-quick-access-list">
+        <ul id="label-quick-access-list" title="Quick access links to label blocks">
             </ul>
     </div>
   </div>
 
 
-  <button id="mobileLeftMenuToggle" class="mobile-menu-toggle-button">☰</button>
-  <button id="mobileRightMenuToggle" class="mobile-menu-toggle-button">⋮</button>
+  <button id="mobileLeftMenuToggle" class="mobile-menu-toggle-button" title="Open main menu">☰</button>
+  <button id="mobileRightMenuToggle" class="mobile-menu-toggle-button" title="Open bulk actions and categories menu">⋮</button>
   <button id="mobileBulkActionsToggle" class="mobile-menu-toggle-button" style="display:none;"></button>
 
 
@@ -1305,6 +1141,12 @@
 
     // Custom Modal for alerts/confirms
     function showCustomModal(message, type = 'alert', onConfirm = null, customContent = null) {
+      // Remove any existing modal overlays to prevent multiple modals
+      const existingOverlay = document.querySelector('.custom-modal-overlay');
+      if (existingOverlay) {
+        existingOverlay.remove();
+      }
+
       const overlay = document.createElement('div');
       overlay.className = 'custom-modal-overlay';
 
@@ -1435,6 +1277,7 @@
       suppressSave = false;
       updateUndoRedoButtons();
       clearSelectedLabels(); // Clear selection after loading state
+      updateLabelNumbers(); // Update numbers after loading state
     }
 
     // Undo the last change
@@ -1536,21 +1379,21 @@
 
       div.innerHTML = `
         <div class="locale-header-row">
-          <button class="collapse-btn">Collapse</button>
+          <button class="collapse-btn" title="Collapse/expand this locale's details">Collapse</button>
           <span class="locale-identifier-display" style="flex:1; user-select:text;"></span>
-          <button class="locale-remove-btn" title="Remove locale">×</button>
+          <button class="locale-remove-btn" title="Remove this locale">×</button>
         </div>
         <div class="locale-content-area">
           <label>Language:
-            <select class="lang">
+            <select class="lang" title="Select the language for this locale">
               ${optionsHtml}
             </select>
           </label>
-          <label>Name: <input type="text" class="name" value="${name}"></label>
-          <label>Description: <textarea class="description">${description}</textarea></label>
+          <label>Name: <input type="text" class="name" value="${name}" title="Enter the name for this locale"></label>
+          <label>Description: <textarea class="description" title="Enter the description for this locale">${description}</textarea></label>
           <div class="llm-buttons">
-            <button class="translate-name-btn">Translate Name ✨</button>
-            <button class="translate-description-btn">Translate Description ✨</button>
+            <button class="translate-name-btn" title="Translate this locale's name using AI">Translate Name ✨</button>
+            <button class="translate-description-btn" title="Translate this locale's description using AI">Translate Description ✨</button>
           </div>
         </div>
       `;
@@ -1782,7 +1625,7 @@ Original name:
 
           showLoadingOverlay('Translating description...');
           try {
-            const prompt = `Translate the following content moderation label description into ${targetLanguageName}. Only provide the translated text, no additional commentary.
+            const prompt = `Translate the following content moderation label description into ${targetLangName}. Only provide the translated text, no additional commentary.
 Original description:
 '${currentDescription}'`;
 
@@ -1871,51 +1714,53 @@ Original description:
       const identifierPlaceholder = '(Untitled Label)';
 
       labelDiv.innerHTML = `
-        <div class="label-header" title="Click to expand/collapse">
-          <input type="checkbox" class="bulk-select-checkbox" data-label-id="${uniqueHtmlId}">
-          <button class="collapse-btn">Collapse</button>
+        <div class="label-header" title="Click to expand/collapse this label">
+          <div class="label-number-box"></div> <input type="checkbox" class="bulk-select-checkbox" data-label-id="${uniqueHtmlId}" title="Select this label for bulk actions">
+          <button class="collapse-btn" title="Collapse/expand this label's details">Collapse</button>
           <div class="label-identifier-box">
             <span class="label-identifier-display">${id || identifierPlaceholder}</span>
           </div>
-          <div class="category-in-header">
-            <label for="${uniqueHtmlId}-category">Category:</label>
-            <select id="${uniqueHtmlId}-category" class="label-category">
-              <option value="">(No Category)</option>
-            </select>
+          <div class="header-right-group"> <div class="category-in-header">
+              <select id="${uniqueHtmlId}-category" class="label-category" title="Assign a category to this label">
+                <option value="">(No Category)</option>
+              </select>
+            </div>
+            <div class="header-action-buttons">
+              <button class="move-up-btn" title="Move label up in the list">▲</button>
+              <button class="move-down-btn" title="Move label down in the list">▼</button>
+              <button class="remove-btn" title="Remove this label permanently">×</button>
+            </div>
           </div>
-          <button class="move-up-btn" title="Move label up">▲</button>
-          <button class="move-down-btn" title="Move label down">▼</button>
-          <button class="remove-btn" title="Remove label">×</button>
         </div>
         <div class="label-content">
-          <label>Enabled: <input type="checkbox" class="enabled" ${enabled ? 'checked' : ''}></label>
-          <label>Identifier: <input type="text" class="identifier" value="${id}"></label>
+          <label>Enabled: <input type="checkbox" class="enabled" ${enabled ? 'checked' : ''} title="Toggle label enabled/disabled state"></label>
+          <label>Identifier: <input type="text" class="identifier" value="${id}" title="Unique identifier for this label"></label>
           <label>Severity:
-            <select class="severity">
+            <select class="severity" title="Severity level of the label">
               <option value="inform" ${severity === 'inform' ? 'selected' : ''}>inform</option>
               <option value="alert" ${severity === 'alert' ? 'selected' : ''}>alert</option>
               <option value="none" ${severity === 'none' ? 'selected' : ''}>none</option>
             </select>
           </label>
           <label>Blurs:
-            <select class="blurs">
+            <select class="blurs" title="Content blurring setting for the label">
               <option value="content" ${blurs === 'content' ? 'selected' : ''}>content</option>
               <option value="media" ${blurs === 'media' ? 'selected' : ''}>media</option>
               <option value="none" ${blurs === 'none' ? 'selected' : ''}>none</option>
             </select>
           </label>
           <label>Default Setting:
-            <select class="defaultSetting">
+            <select class="defaultSetting" title="Default action when this label is applied">
               <option value="ignore" ${defaultSetting === 'ignore' ? 'selected' : ''}>ignore</option>
               <option value="warn" ${defaultSetting === 'warn' ? 'selected' : ''}>warn</option>
               <option value="hide" ${defaultSetting === 'hide' ? 'selected' : ''}>hide</option>
             </select>
           </label>
-          <label>Adult Only: <input type="checkbox" class="adultOnly" ${adultOnly ? 'checked' : ''}></label>
+          <label>Adult Only: <input type="checkbox" class="adultOnly" ${adultOnly ? 'checked' : ''} title="Mark if this label is for adult content only"></label>
           <div class="locales-container">
             <strong>Locales:</strong>
           </div>
-          <button class="add-locale-btn">+ Add Locale</button>
+          <button class="add-locale-btn" title="Add a new language locale for this label">+ Add Locale</button>
         </div>
       `;
 
@@ -1933,8 +1778,10 @@ Original description:
         labelDiv.remove();
         selectedLabelIds.delete(uniqueHtmlId); // Remove from selection set
         updateBulkSelectAllCheckbox(); // Update "Select All" state
+        updateBulkSelectAllTranslateCheckbox(); // Update "Select All" for translate
         saveFullSessionStateToLocalStorage(); // Save full session state
         updateJSONOutput(); // Update JSON output display
+        updateLabelNumbers(); // Update numbers after removal
       };
 
       // New move buttons
@@ -1965,6 +1812,7 @@ Original description:
               selectedLabelIds.delete(uniqueHtmlId);
           }
           updateBulkSelectAllCheckbox(); // Update "Select All" state
+          updateBulkSelectAllTranslateCheckbox(); // Update "Select All" for translate
       });
 
       // Use 'change' for select and checkbox, 'input' for text inputs
@@ -2030,6 +1878,7 @@ Original description:
       updateLabelBlockVisualState(labelDiv);
       addDragHandlers(labelDiv);
       updateLabelCategoryDropdowns(); // Update category dropdown for this new label
+      updateLabelNumbers(); // Update numbers after adding a new label
 
       return labelDiv;
     }
@@ -2085,6 +1934,7 @@ Original description:
       }
       saveFullSessionStateToLocalStorage(); // Save full session state
       updateJSONOutput(); // Update JSON output display
+      updateLabelNumbers(); // Update numbers after drag and drop
       return false;
     }
 
@@ -2211,6 +2061,9 @@ Original description:
           labelDiv.style.display = 'none';
         }
       });
+      // Re-evaluate bulk select all checkboxes when filter changes
+      updateBulkSelectAllCheckbox();
+      updateBulkSelectAllTranslateCheckbox();
     }
 
     // --- New Feature Functions ---
@@ -2254,6 +2107,9 @@ Original description:
           updateUndoRedoButtons(); // Update button states
           renderCategoryMenu(); // Re-render category menu
           updateLabelCategoryDropdowns(); // Update label dropdowns
+          updateBulkSelectAllCheckbox(); // Update "Select All" state
+          updateBulkSelectAllTranslateCheckbox(); // Update "Select All" for translate
+          updateLabelNumbers(); // Update numbers after reset
         }
       });
     }
@@ -2265,6 +2121,7 @@ Original description:
         labelDiv.parentNode.insertBefore(labelDiv, previousSibling);
         saveFullSessionStateToLocalStorage(); // Save full session state
         updateJSONOutput(); // Update JSON output display
+        updateLabelNumbers(); // Update numbers after move
       }
     }
 
@@ -2275,6 +2132,7 @@ Original description:
         labelDiv.parentNode.insertBefore(nextSibling, labelDiv);
         saveFullSessionStateToLocalStorage(); // Save full session state
         updateJSONOutput(); // Update JSON output display
+        updateLabelNumbers(); // Update numbers after move
       }
     }
 
@@ -2294,19 +2152,33 @@ Original description:
       });
     }
 
+    // Function to update the sequential numbers of labels
+    function updateLabelNumbers() {
+      document.querySelectorAll('.label-block').forEach((labelDiv, index) => {
+        const numberBox = labelDiv.querySelector('.label-number-box');
+        if (numberBox) {
+          numberBox.textContent = (index + 1).toString(); // 1-based numbering
+        }
+      });
+    }
+
     // Function to handle pasting JSON text
     function pasteJson() {
       const textarea = document.createElement('textarea');
       textarea.placeholder = 'Paste your JSON here...';
+      textarea.title = 'Paste JSON data into this text area';
+
 
       const loadBtn = document.createElement('button');
       loadBtn.textContent = 'OK';
       loadBtn.className = 'confirm-btn';
       loadBtn.style.marginRight = '0.5em';
+      loadBtn.title = 'Load the pasted JSON data';
 
       const cancelBtn = document.createElement('button');
       cancelBtn.textContent = 'Cancel';
       cancelBtn.className = 'cancel-btn';
+      cancelBtn.title = 'Cancel pasting JSON data';
 
       const wrapper = document.createElement('div');
       wrapper.appendChild(textarea);
@@ -2345,6 +2217,7 @@ Original description:
                   suppressSave = false;
                   saveFullSessionStateToLocalStorage(); // Save full session state
                   updateJSONOutput(); // Update JSON output display
+                  updateLabelNumbers(); // Update numbers after paste
                   // Close the modal
                   document.querySelector('.custom-modal-overlay').remove();
               }
@@ -2361,9 +2234,10 @@ Original description:
 
     // Function to handle copying JSON to clipboard
     function copyJsonToClipboard() {
+      console.log("copyJsonToClipboard executed."); // Diagnostic log
       const outputText = document.getElementById('output').textContent;
-      if (!outputText) {
-        showCustomModal('Nothing to copy.', 'alert');
+      if (!outputText || outputText.trim() === '{}' || outputText.trim() === '{"labelValues":[],"labelValueDefinitions":[]}') { // Check for empty or default JSON
+        showCustomModal('Nothing to copy. The JSON output is empty or default.', 'alert');
         return;
       }
 
@@ -2441,11 +2315,12 @@ Original description:
             revertBtn.className = 'confirm-btn'; // Use existing button style
             revertBtn.style.padding = '0.4em 0.8em';
             revertBtn.style.fontSize = '0.9rem';
+            revertBtn.title = `Revert to version ${index + 1}`;
             revertBtn.onclick = () => {
               showCustomModal(`Are you sure you want to revert to Version ${index + 1} (${dateStr})? This will overwrite your current unsaved changes.`, 'confirm', (response) => {
                 if (response) {
                   historyIndex = index; // Set history index to the reverted version
-                  loadState(history[history[index]]);
+                  loadState(history[index]); // Corrected: use index directly
                   document.querySelector('.custom-modal-overlay').remove(); // Close history modal after revert
                 }
               });
@@ -2477,7 +2352,8 @@ Original description:
         }
         renderCategoryMenu();
         updateLabelCategoryDropdowns();
-        updateBulkCategoryFilterDropdown(); // Update bulk category filter
+        updateBulkCategoryFilterDropdown(); // Update bulk category filter for general bulk actions
+        updateBulkCategoryFilterTranslateDropdown(); // Update bulk category filter for translate
     }
 
     function saveCategories() {
@@ -2491,8 +2367,8 @@ Original description:
             const listItem = document.createElement('li');
             listItem.className = 'category-list-item';
             listItem.innerHTML = `
-                <span>${cat}</span>
-                <button class="remove-category-btn" data-category="${cat}">X</button>
+                <span title="${cat}">${cat}</span>
+                <button class="remove-category-btn" data-category="${cat}" title="Remove this category">X</button>
             `;
             categoryList.appendChild(listItem);
         });
@@ -2516,6 +2392,7 @@ Original description:
             renderCategoryMenu();
             updateLabelCategoryDropdowns(); // Update all label dropdowns
             updateBulkCategoryFilterDropdown(); // Update bulk category filter
+            updateBulkCategoryFilterTranslateDropdown(); // Update bulk category filter for translate
             saveFullSessionStateToLocalStorage(); // Save full session state after category change
             updateJSONOutput(); // Update JSON output display
         } else if (categories.includes(categoryName)) {
@@ -2538,6 +2415,7 @@ Original description:
                 });
                 updateLabelCategoryDropdowns(); // Update all label dropdowns
                 updateBulkCategoryFilterDropdown(); // Update bulk category filter
+                updateBulkCategoryFilterTranslateDropdown(); // Update bulk category filter for translate
                 saveFullSessionStateToLocalStorage(); // Save full session state after category change
                 updateJSONOutput(); // Update JSON output display
             }
@@ -2570,6 +2448,7 @@ Original description:
             checkbox.checked = false;
         });
         document.getElementById('bulkSelectAllCheckbox').checked = false;
+        document.getElementById('bulkSelectAllTranslateCheckbox').checked = false; // Clear translate checkbox too
     }
 
     function updateBulkSelectAllCheckbox() {
@@ -2665,8 +2544,10 @@ Original description:
                     selectedLabelIds.delete(labelDiv.id); // Ensure removed from selection
                 });
                 updateBulkSelectAllCheckbox(); // Update "Select All" state
+                updateBulkSelectAllTranslateCheckbox(); // Update "Select All" for translate
                 saveFullSessionStateToLocalStorage();
                 updateJSONOutput();
+                updateLabelNumbers(); // Update numbers after bulk delete
                 showCustomModal('Labels deleted.', 'alert');
             }
         });
@@ -2689,67 +2570,251 @@ Original description:
         }
     }
 
-    // --- Auto-Sort Functions ---
-    // Removed sortLabels function as sorting buttons are removed.
+    // --- Bulk Translate Locales Functions ---
 
+    // Populates the target language checkboxes for bulk translation
+    function populateBulkTranslateLanguageOptions() {
+        const targetLangsDiv = document.getElementById('bulkTranslateTargetLangs');
+        targetLangsDiv.innerHTML = ''; // Clear existing options
 
-    // --- Session File Save/Load ---
-    function saveSessionFile() {
-        const currentLabels = getLabelsData();
-        const sessionData = {
-            labelValues: currentLabels.map(label => label.identifier),
-            labelValueDefinitions: currentLabels, // This includes category
-            categories: categories,
-            timestamp: new Date().toISOString(),
-            version: '0.73' // Version of the session file format
-        };
-        const sessionJson = JSON.stringify(sessionData, null, 2);
-        const blob = new Blob([sessionJson], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `ozone_session_${new Date().toISOString().slice(0,10)}.ozm`; // .ozm extension
-        a.click();
-        URL.revokeObjectURL(url);
-        showCustomModal('Session file downloaded!', 'alert');
+        commonLanguages.forEach(langObj => {
+            // Populate target languages checkboxes
+            const checkboxLabel = document.createElement('label');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'target-lang-checkbox';
+            checkbox.value = langObj.code;
+            checkbox.title = `Translate to ${langObj.name}`;
+            checkboxLabel.appendChild(checkbox);
+            checkboxLabel.appendChild(document.createTextNode(langObj.name));
+            targetLangsDiv.appendChild(checkboxLabel);
+        });
     }
 
-    function loadSessionFile() {
-        document.getElementById('sessionFileInput').click();
+    async function translateText(text, sourceLangName, targetLangName) {
+        const prompt = `Translate the following text from ${sourceLangName} into ${targetLangName}. Only provide the translated text, no additional commentary.
+Original text:
+'${text}'`;
+
+        let chatHistory = [];
+        chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+        const payload = { contents: chatHistory };
+        const apiKey = "";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`);
+        }
+
+        const result = await response.json();
+
+        if (result.candidates && result.candidates.length > 0 &&
+            result.candidates[0].content && result.candidates[0].content.parts &&
+            result.candidates[0].content.parts.length > 0) {
+            return result.candidates[0].content.parts[0].text;
+        } else {
+            throw new Error('Unexpected API response structure or no content.');
+        }
     }
 
-    document.getElementById('sessionFileInput').onchange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+    function getTargetLabelDivsForTranslate() {
+        const targetType = document.getElementById('bulkTargetSelectTranslate').value;
+        let targetLabels = [];
 
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            try {
-                const sessionData = JSON.parse(event.target.result);
-                // Check for expected session structure
-                if (sessionData.labelValueDefinitions && Array.isArray(sessionData.labelValueDefinitions) &&
-                    sessionData.categories && Array.isArray(sessionData.categories)) {
-                    showCustomModal('Loading this session will overwrite your current work. Continue?', 'confirm', (response) => {
-                        if (response) {
-                            // Clear history before loading new session
-                            history = [];
-                            historyIndex = -1;
-                            saveHistoryToLocalStorage();
-
-                            loadState(event.target.result); // Load the full session data
-                            showCustomModal('Session loaded successfully!', 'alert');
-                        }
-                    });
-                } else {
-                    showCustomModal('Invalid session file format. Please select a valid Ozone session file (.ozm or .json).', 'alert');
-                }
-            } catch (err) {
-                showCustomModal('Failed to parse session file: ' + err.message, 'alert');
-                console.error("Error loading session file:", err);
+        if (targetType === 'selected') {
+            selectedLabelIds.forEach(id => {
+                const labelDiv = document.getElementById(id);
+                if (labelDiv) targetLabels.push(labelDiv);
+            });
+        } else if (targetType === 'category') {
+            const selectedCategory = document.getElementById('bulkCategoryFilterSelectTranslate').value;
+            if (selectedCategory) {
+                document.querySelectorAll('.label-block').forEach(labelDiv => {
+                    const categorySelect = labelDiv.querySelector('.label-category');
+                    if (categorySelect && categorySelect.value === selectedCategory) {
+                        targetLabels.push(labelDiv);
+                    }
+                });
             }
-        };
-        reader.readAsText(file);
-        e.target.value = ''; // Clear file input
+        }
+        return targetLabels;
+    }
+
+    function updateBulkSelectAllTranslateCheckbox() {
+        const allVisibleCheckboxes = Array.from(document.querySelectorAll('.label-block:not([style*="display: none"]) .bulk-select-checkbox'));
+        const allChecked = allVisibleCheckboxes.every(cb => cb.checked);
+        const someChecked = allVisibleCheckboxes.some(cb => cb.checked);
+
+        const bulkSelectAllTranslateCheckbox = document.getElementById('bulkSelectAllTranslateCheckbox');
+        bulkSelectAllTranslateCheckbox.checked = allChecked;
+        bulkSelectAllTranslateCheckbox.indeterminate = someChecked && !allChecked;
+    }
+
+    function updateBulkCategoryFilterTranslateDropdown() {
+        const bulkCategoryFilterSelect = document.getElementById('bulkCategoryFilterSelectTranslate');
+        const currentSelectedCategory = bulkCategoryFilterSelect.value; // Preserve selection if possible
+        bulkCategoryFilterSelect.innerHTML = '<option value="">(Select Category)</option>';
+        categories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.textContent = cat;
+            bulkCategoryFilterSelect.appendChild(option);
+        });
+        if (categories.includes(currentSelectedCategory)) {
+            bulkCategoryFilterSelect.value = currentSelectedCategory;
+        } else {
+            bulkCategoryFilterSelect.value = '';
+        }
+    }
+
+
+    async function handleBulkTranslate() {
+        const targetLabelDivs = getTargetLabelDivsForTranslate(); // Use the translate-specific target labels
+        const targetLangCheckboxes = Array.from(document.querySelectorAll('#bulkTranslateTargetLangs .target-lang-checkbox:checked'));
+        const targetLangCodes = targetLangCheckboxes.map(cb => cb.value);
+
+        if (targetLabelDivs.length === 0) {
+            showCustomModal('No labels selected or found for the chosen target for translation.', 'alert');
+            return;
+        }
+        if (targetLangCodes.length === 0) {
+            showCustomModal('Please select at least one target language to translate into.', 'alert');
+            return;
+        }
+
+        showCustomModal(`Translate locales for ${targetLabelDivs.length} labels into ${targetLangCodes.length} target languages? Existing locales in target languages will be overwritten.`, 'confirm', async (response) => {
+            if (!response) return;
+
+            showLoadingOverlay('Translating labels...');
+            let translationsPerformed = 0;
+            let errors = [];
+
+            for (const labelDiv of targetLabelDivs) {
+                const localesContainer = labelDiv.querySelector('.locales-container');
+                const existingLocales = Array.from(localesContainer.querySelectorAll('.locale-block'));
+
+                // Determine source language from the first locale of the current label
+                const firstLocale = existingLocales[0];
+                if (!firstLocale) {
+                    errors.push(`Label "${labelDiv.querySelector('.identifier').value || '(Untitled)'}" has no locales to translate from.`);
+                    continue;
+                }
+                const sourceLangCode = firstLocale.querySelector('.lang').value;
+                const sourceName = firstLocale.querySelector('.name').value.trim();
+                const sourceDescription = firstLocale.querySelector('.description').value.trim();
+
+                if (!sourceLangCode) {
+                    errors.push(`Label "${labelDiv.querySelector('.identifier').value || '(Untitled)'}" has a first locale with no language specified. Skipping.`);
+                    continue;
+                }
+
+                const sourceLangName = commonLanguages.find(l => l.code === sourceLangCode)?.name || sourceLangCode;
+
+                for (const targetCode of targetLangCodes) {
+                    if (targetCode === sourceLangCode) continue; // Skip translating to the same language
+
+                    const targetLangName = commonLanguages.find(l => l.code === targetCode)?.name || targetCode;
+                    let targetLocaleDiv = existingLocales.find(loc => loc.querySelector('.lang').value === targetCode);
+
+                    let translatedName = sourceName;
+                    let translatedDescription = sourceDescription;
+
+                    try {
+                        if (sourceName) {
+                            translatedName = await translateText(sourceName, sourceLangName, targetLangName);
+                        }
+                        if (sourceDescription) {
+                            translatedDescription = await translateText(sourceDescription, sourceLangName, targetLangName);
+                        }
+
+                        if (targetLocaleDiv) {
+                            // Update existing locale
+                            targetLocaleDiv.querySelector('.name').value = translatedName;
+                            targetLocaleDiv.querySelector('.description').value = translatedDescription;
+                            updateLocaleDisplayName(targetLocaleDiv);
+                        } else {
+                            // Create new locale
+                            createLocaleBlock(localesContainer, targetCode, translatedName, translatedDescription);
+                        }
+                        translationsPerformed++;
+                    } catch (error) {
+                        errors.push(`Failed to translate for label "${labelDiv.querySelector('.identifier').value || '(Untitled)'}" to ${targetLangName}: ${error.message}`);
+                        console.error(`Error translating for label ${labelDiv.querySelector('.identifier').value} to ${targetLangName}:`, error);
+                    }
+                }
+            }
+            hideLoadingOverlay();
+            saveFullSessionStateToLocalStorage();
+            updateJSONOutput();
+
+            let resultMessage = `Bulk translation complete. ${translationsPerformed} translations performed.`;
+            if (errors.length > 0) {
+                resultMessage += ` Some labels encountered issues:\n\n${errors.join('\n')}`;
+                showCustomModal(resultMessage, 'alert');
+            } else {
+                showCustomModal(resultMessage, 'alert');
+            }
+        });
+    }
+
+    // Function to save the current session (labels and categories) to a .ozm file
+    function saveSessionFile() {
+      const currentLabels = getLabelsData();
+      const sessionData = {
+        labelValues: currentLabels.map(label => label.identifier),
+        labelValueDefinitions: currentLabels,
+        categories: categories,
+        timestamp: new Date().toISOString()
+      };
+      const dataStr = JSON.stringify(sessionData, null, 2);
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ozone_labels_session.ozm'; // Use .ozm extension
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showCustomModal('Session saved successfully as ozone_labels_session.ozm!', 'alert');
+    }
+
+    // Function to load a session from a .ozm or .json file
+    function loadSessionFile() {
+      const fileInput = document.getElementById('sessionFileInput');
+      fileInput.click(); // Trigger the hidden file input
+    }
+
+    // Event listener for the hidden session file input
+    document.getElementById('sessionFileInput').onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const loadedData = JSON.parse(event.target.result);
+          showCustomModal('Loading this session will overwrite your current labels and categories. Continue?', 'confirm', (response) => {
+            if (response) {
+              // Load the state from the file
+              loadState(JSON.stringify(loadedData));
+              showCustomModal('Session loaded successfully!', 'alert');
+            }
+          });
+        } catch (err) {
+          showCustomModal('Failed to load session file. Please ensure it is a valid .ozm or .json file.', 'alert');
+          console.error('Error loading session file:', err);
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = ''; // Clear the input so change event fires again for same file
     };
 
 
@@ -2788,7 +2853,9 @@ Original description:
         }
 
         loadCategories(); // Load categories on app start
+        populateBulkTranslateLanguageOptions(); // Populate bulk translate options
         updateUndoRedoButtons(); // Initialize button states
+        updateLabelNumbers(); // Initial numbering on app start
       } catch (error) {
         console.error("Error initializing app from Local Storage:", error);
         showCustomModal("Error loading saved data. Starting with a fresh page.", "alert");
@@ -2800,8 +2867,15 @@ Original description:
         updateUndoRedoButtons();
         renderCategoryMenu(); // Render empty categories
         updateLabelCategoryDropdowns();
+        populateBulkTranslateLanguageOptions(); // Ensure options are populated even on error
+        updateLabelNumbers(); // Ensure numbers are updated even on error
       } finally {
         hideLoadingOverlay();
+      }
+      // Ensure copy feedback is hidden on load
+      const copyFeedback = document.getElementById('copyFeedback');
+      if (copyFeedback) {
+        copyFeedback.classList.remove('show');
       }
     }
 
@@ -2938,6 +3012,7 @@ Original description:
                   suppressSave = false;
                   saveFullSessionStateToLocalStorage(); // Save full session state
                   updateJSONOutput(); // Update JSON output display
+                  updateLabelNumbers(); // Update numbers after import
                   showCustomModal('Labels imported successfully!', 'alert');
               }
           });
@@ -2957,10 +3032,6 @@ Original description:
     document.getElementById('resetClearBtn').onclick = resetClearLabels;
     document.getElementById('versionHistoryBtn').onclick = showVersionHistory;
     document.getElementById('saveBtn').onclick = addVersionToHistory;
-
-    // Removed sorting button event listeners
-    // document.getElementById('sortByIdentifierBtn').onclick = () => sortLabels('identifier');
-    // document.getElementById('sortBySeverityBtn').onclick = () => sortLabels('severity');
 
     // New session save/load buttons
     document.getElementById('saveSessionFileBtn').onclick = saveSessionFile;
@@ -3008,6 +3079,7 @@ Original description:
         const anchor = document.createElement('a');
         anchor.href = `#${labelId}`; // Link to the unique HTML ID
         anchor.textContent = labelIdentifier;
+        anchor.title = `Scroll to label: ${labelIdentifier}`;
 
         // Smooth scroll on click
         anchor.onclick = (e) => {
@@ -3067,6 +3139,7 @@ Original description:
                 selectedLabelIds.delete(labelId);
             }
         });
+        updateBulkSelectAllTranslateCheckbox(); // Keep translate checkbox in sync
     });
 
     document.getElementById('bulkTargetSelect').addEventListener('change', (e) => {
@@ -3083,6 +3156,33 @@ Original description:
     document.getElementById('bulkEnableBtn').onclick = () => bulkEnableDisable(true);
     document.getElementById('bulkDisableBtn').onclick = () => bulkEnableDisable(false);
     document.getElementById('bulkDeleteBtn').onclick = bulkDelete;
+
+    // Bulk Translate Event Listeners
+    document.getElementById('bulkTranslateBtn').onclick = handleBulkTranslate;
+
+    document.getElementById('bulkTargetSelectTranslate').addEventListener('change', (e) => {
+        const bulkCategoryFilterSelectTranslate = document.getElementById('bulkCategoryFilterSelectTranslate');
+        if (e.target.value === 'category') {
+            bulkCategoryFilterSelectTranslate.style.display = '';
+            updateBulkCategoryFilterTranslateDropdown();
+        } else {
+            bulkCategoryFilterSelectTranslate.style.display = 'none';
+        }
+    });
+
+    document.getElementById('bulkSelectAllTranslateCheckbox').addEventListener('change', (e) => {
+        const isChecked = e.target.checked;
+        document.querySelectorAll('.label-block:not([style*="display: none"]) .bulk-select-checkbox').forEach(checkbox => {
+            checkbox.checked = isChecked;
+            const labelId = checkbox.dataset.labelId;
+            if (isChecked) {
+                selectedLabelIds.add(labelId);
+            } else {
+                selectedLabelIds.delete(labelId);
+            }
+        });
+        updateBulkSelectAllCheckbox(); // Keep general checkbox in sync
+    });
   </script>
 </body>
 </html>
