@@ -700,7 +700,7 @@
 
   /* Adjust gap for specific elements within menus if needed */
   #category-menu .category-input-group {
-    margin-bottom: 0.5em;
+    margin-bottom: 1em;
   }
   #category-menu ul {
     margin-top: 0;
@@ -1499,8 +1499,6 @@
             <div class="snippet-actions" style="justify-content: flex-start;">
                 <button id="addSnippetBtn" class="action-button" style="background: var(--primary); color: white;" title="Add this text as a reusable snippet">Add Snippet</button>
             </div>
-            <ul id="snippet-list" style="list-style: none; padding: 0; margin-top: 1em;">
-            </ul>
             <div class="bulk-action-row" style="margin-top: 1em; display: flex; align-items: center; gap: 0.5em;">
                 <label for="bulkApplySnippetSelect" style="margin-top: 0;">Apply Snippet:</label>
                 <select id="bulkApplySnippetSelect" style="flex-grow: 1;" title="Select a snippet to apply to descriptions">
@@ -1783,7 +1781,7 @@
 
       // Load Description Snippets
       descriptionSnippets = sessionData.descriptionSnippets || [];
-      renderSnippetManagementUI(); // Render the snippet list
+      // No longer rendering snippet list in main UI, just populate dropdown
       populateBulkApplySnippetSelect(); // Populate the bulk apply snippet dropdown
 
       updateJSONOutput(); // Update JSON output display
@@ -2435,6 +2433,7 @@ Original description:
               selectedLabelIds.delete(uniqueHtmlId);
           }
           updateFloatingMenu(); // Update quick access checkboxes
+          populateBulkApplySnippetSelect(); // Update button disabled state
       });
 
       // Use 'change' for select and checkbox, 'input' for text inputs
@@ -2780,6 +2779,7 @@ Original description:
             if (mainLabelCheckbox) {
                 mainLabelCheckbox.checked = event.target.checked;
             }
+            populateBulkApplySnippetSelect(); // Update button disabled state
         });
 
         // Add drag handlers for quick access list items
@@ -3049,6 +3049,7 @@ Original description:
         checkbox.checked = false;
       });
       updateFloatingMenu(); // Re-render quick access to reflect cleared checkboxes
+      populateBulkApplySnippetSelect(); // Update button disabled state
     }
 
     function deleteSelectedLabels() {
@@ -3102,62 +3103,7 @@ Original description:
     }
 
     // --- Description Snippet Management ---
-    function renderSnippetManagementUI() {
-        const snippetListUl = document.getElementById('snippet-list');
-        snippetListUl.innerHTML = '';
-
-        if (descriptionSnippets.length === 0) {
-            snippetListUl.innerHTML = '<li style="color: var(--gray); font-size: 0.9em;">No snippets added yet.</li>';
-        }
-
-        descriptionSnippets.forEach((snippet, index) => {
-            const listItem = document.createElement('li');
-            listItem.style.display = 'flex';
-            listItem.style.justifyContent = 'space-between';
-            listItem.style.alignItems = 'center';
-            listItem.style.padding = '0.3em 0.5em';
-            listItem.style.background = 'var(--light-gray)';
-            listItem.style.borderRadius = 'var(--border-radius)';
-            listItem.style.marginBottom = '0.5em';
-            listItem.innerHTML = `
-                <span style="flex-grow: 1; font-weight: 500; color: var(--text-color);">${snippet.name}</span>
-                <div style="display: flex; gap: 0.2em;">
-                    <button class="snippet-action-btn edit-snippet-btn" data-index="${index}" title="Edit this snippet">✏️</button>
-                    <button class="snippet-action-btn delete-snippet-btn" data-index="${index}" title="Delete this snippet">🗑️</button>
-                </div>
-            `;
-            snippetListUl.appendChild(listItem);
-        });
-
-        // Attach event listeners for edit/delete buttons
-        snippetListUl.querySelectorAll('.edit-snippet-btn').forEach(button => {
-            button.onclick = (event) => {
-                const index = parseInt(event.target.dataset.index);
-                const snippet = descriptionSnippets[index];
-                document.getElementById('newSnippetName').value = snippet.name;
-                document.getElementById('newSnippetContent').value = snippet.content;
-                // Temporarily store index for update operation
-                document.getElementById('addSnippetBtn').dataset.editIndex = index;
-                document.getElementById('addSnippetBtn').textContent = 'Update Snippet';
-                document.getElementById('addSnippetBtn').style.background = '#f59e0b'; // Amber color for update
-            };
-        });
-
-        snippetListUl.querySelectorAll('.delete-snippet-btn').forEach(button => {
-            button.onclick = (event) => {
-                const index = parseInt(event.target.dataset.index);
-                showCustomModal(`Are you sure you want to delete the snippet "${descriptionSnippets[index].name}"?`, 'confirm', (response) => {
-                    if (response) {
-                        descriptionSnippets.splice(index, 1);
-                        renderSnippetManagementUI();
-                        populateBulkApplySnippetSelect();
-                        saveFullSessionStateToLocalStorage();
-                        updateJSONOutput();
-                    }
-                });
-            };
-        });
-    }
+    // Removed renderSnippetManagementUI as the list is now in the modal
 
     function addOrUpdateSnippet() {
         const nameInput = document.getElementById('newSnippetName');
@@ -3190,10 +3136,11 @@ Original description:
 
         nameInput.value = '';
         contentInput.value = '';
-        renderSnippetManagementUI();
+        // No longer calling renderSnippetManagementUI here
         populateBulkApplySnippetSelect();
         saveFullSessionStateToLocalStorage();
         updateJSONOutput();
+        showCustomModal('Snippet saved successfully!', 'alert');
     }
 
     function populateBulkApplySnippetSelect() {
@@ -3201,10 +3148,11 @@ Original description:
         select.innerHTML = '<option value="">(Select Snippet)</option>';
         descriptionSnippets.forEach((snippet, index) => {
             const option = document.createElement('option');
-            option.value = index;
+            option.value = index; // This is good, it's the numerical index
             option.textContent = snippet.name;
             select.appendChild(option);
         });
+        // The button is disabled if no labels are selected OR no snippet is chosen
         document.getElementById('bulkApplySnippetBtn').disabled = selectedLabelIds.size === 0 || select.value === '';
     }
 
@@ -3260,21 +3208,47 @@ Original description:
             listItem.innerHTML = `
                 <div class="snippet-item-header">
                     <span>${snippet.name}</span>
-                    <button class="snippet-action-btn delete-snippet-from-modal-btn" data-index="${index}" title="Delete this snippet">🗑️</button>
+                    <div style="display: flex; gap: 0.5em;"> <button class="snippet-action-btn edit-snippet-from-modal-btn" data-index="${index}" title="Edit this snippet">✏️</button>
+                        <button class="snippet-action-btn delete-snippet-from-modal-btn" data-index="${index}" title="Delete this snippet">🗑️</button>
+                    </div>
                 </div>
                 <div class="snippet-item-content">${snippet.content}</div>
             `;
             viewSnippetsList.appendChild(listItem);
         });
 
-        // Attach event listeners for delete buttons within the modal
+        // Attach event listeners for edit/delete buttons
+        viewSnippetsList.querySelectorAll('.edit-snippet-from-modal-btn').forEach(button => {
+            button.onclick = (event) => {
+                const index = parseInt(event.target.dataset.index);
+                const snippet = descriptionSnippets[index];
+                document.getElementById('newSnippetName').value = snippet.name;
+                document.getElementById('newSnippetContent').value = snippet.content;
+                
+                const addSnippetBtn = document.getElementById('addSnippetBtn');
+                addSnippetBtn.dataset.editIndex = index; // Store index for update
+                addSnippetBtn.textContent = 'Update Snippet';
+                addSnippetBtn.style.background = '#f59e0b'; // Amber color
+                
+                document.getElementById('viewSnippetsModal').style.display = 'none'; // Close modal
+            };
+        });
+
         viewSnippetsList.querySelectorAll('.delete-snippet-from-modal-btn').forEach(button => {
             button.onclick = (event) => {
                 const index = parseInt(event.target.dataset.index);
                 showCustomModal(`Are you sure you want to delete the snippet "${descriptionSnippets[index].name}"?`, 'confirm', (response) => {
                     if (response) {
+                        const addBtn = document.getElementById('addSnippetBtn');
+                        // If the deleted snippet was the one being edited, reset the form
+                        if (addBtn.dataset.editIndex && parseInt(addBtn.dataset.editIndex) === index) {
+                            delete addBtn.dataset.editIndex;
+                            addBtn.textContent = 'Add Snippet';
+                            addBtn.style.background = 'var(--primary)';
+                            document.getElementById('newSnippetName').value = '';
+                            document.getElementById('newSnippetContent').value = '';
+                        }
                         descriptionSnippets.splice(index, 1);
-                        renderSnippetManagementUI(); // Update main snippet list
                         populateBulkApplySnippetSelect(); // Update bulk apply dropdown
                         populateViewSnippetsModal(); // Re-populate the modal
                         saveFullSessionStateToLocalStorage();
@@ -3555,7 +3529,7 @@ Original description:
                 // If descriptionSnippets are present, update them
                 if (parsedData.descriptionSnippets && Array.isArray(parsedData.descriptionSnippets)) {
                     descriptionSnippets = parsedData.descriptionSnippets;
-                    renderSnippetManagementUI();
+                    // No longer calling renderSnippetManagementUI here
                     populateBulkApplySnippetSelect();
                 }
 
@@ -3631,7 +3605,7 @@ Original description:
               // If descriptionSnippets are present, update them
               if (parsedData.descriptionSnippets && Array.isArray(parsedData.descriptionSnippets)) {
                   descriptionSnippets = parsedData.descriptionSnippets;
-                  renderSnippetManagementUI();
+                  // No longer calling renderSnippetManagementUI here
                   populateBulkApplySnippetSelect();
               }
 
@@ -3691,7 +3665,7 @@ Original description:
             updateJSONOutput(); // Update JSON output and history
             renderCategoryMenu(); // Re-render category menu
             updateLabelCategoryDropdowns(); // Update label dropdowns
-            renderSnippetManagementUI(); // Re-render snippets
+            // No longer calling renderSnippetManagementUI here
             populateBulkApplySnippetSelect(); // Update bulk apply snippet dropdown
             showCustomModal('All labels cleared and reset to default!', 'alert');
           }
@@ -3797,7 +3771,6 @@ Original description:
               populateViewSnippetsModal();
               document.getElementById('viewSnippetsModal').style.display = 'flex';
           };
-          // Note: snippet list item event listeners are re-attached by renderSnippetManagementUI()
       }
 
 
@@ -4017,7 +3990,7 @@ Original description:
 
       // Initial renders
       renderCategoryMenu();
-      renderSnippetManagementUI();
+      // No longer calling renderSnippetManagementUI here
       populateBulkApplySnippetSelect();
       updateLabelNumbers(); // Ensure initial numbering is correct
       updateMoveButtons(); // Ensure initial button states are correct
