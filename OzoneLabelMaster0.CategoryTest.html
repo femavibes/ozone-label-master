@@ -384,6 +384,27 @@
     /* No specific styles needed here, just acts as a container */
   }
 
+  /* Locale input row: Name and Language side-by-side */
+  .locale-input-row {
+    display: flex;
+    gap: 1em; /* Space between name and language inputs */
+    margin-top: 1em;
+  }
+  .locale-input-row > div {
+    flex: 1; /* Both name and language take equal space */
+    display: flex;
+    flex-direction: column;
+  }
+  .locale-input-row label {
+    margin-top: 0;
+    margin-bottom: 0.25em;
+  }
+  .locale-input-row input,
+  .locale-input-row select {
+    margin-top: 0;
+  }
+
+
   /* New flex container for buttons within locale block */
   .locale-action-row {
     display: flex;
@@ -759,7 +780,10 @@
     color: var(--label-box-text);
     padding: 0.5em 0.8em;
     border-radius: var(--border-radius);
-    display: block;
+    display: flex; /* Make it a flex container */
+    align-items: center; /* Vertically center text */
+    justify-content: center; /* Horizontally center text */
+    height: 30px; /* Match the height of the label-number-box */
     text-align: center;
     font-weight: 600;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -795,6 +819,7 @@
     font-weight: 600;
     flex-shrink: 0;
     min-width: 30px;
+    height: 30px; /* Fixed height for consistency */
     text-align: center;
     box-sizing: border-box;
     display: flex;
@@ -889,7 +914,15 @@
   /* Bulk Actions Menu Specifics */
   #bulk-actions-menu {
     width: 420px; /* Increased width by 20% from 350px */
-    height: 100%; /* Take full height of its parent #right-side-menus-container */
+    /* Removed height: 100% to allow it to shrink if content is short */
+    display: flex; /* Ensure it's a flex container */
+    flex-direction: column; /* Stack children vertically */
+    gap: 0.5em; /* Default gap for children */
+    flex-shrink: 0;
+    min-height: 0; /* Crucial for flex items with overflow */
+    /* Add max-height and overflow-y for scrolling if content is too long */
+    max-height: calc(100vh - 4em); /* Max height of its parent container */
+    overflow-y: auto; /* Enable scrolling for the menu itself */
   }
 
   #bulk-actions-menu .bulk-action-group {
@@ -1245,7 +1278,8 @@
 
   .snippet-management-section .snippet-actions {
       display: flex;
-      justify-content: flex-start; /* Push button to the left */
+      justify-content: space-between; /* Pushes buttons to ends */
+      align-items: center;
       margin-top: 0.5em;
   }
 
@@ -1475,6 +1509,7 @@
     font-weight: 600;
     flex-shrink: 0;
     min-width: 30px;
+    height: 30px; /* Fixed height for consistency */
     text-align: center;
     box-sizing: border-box;
     display: flex;
@@ -1519,7 +1554,7 @@
       </a>
       <div class="header-text-group">
         <h1>OZONE LABEL MASTER</h1>
-        <p>version 1.01</p>
+        <p>version 1.02</p>
       </div>
     </header>
 
@@ -1546,10 +1581,10 @@
                 <button id="closeCategoryMenuBtnDesktop" class="close-mobile-menu-btn" title="Close categories menu">X</button>
             </div>
             <div class="menu-header-with-count">
-                <h3>Label Categories</h3>
                 <div class="menu-header-count-box">
                     <span id="categoryCount">0</span>
                 </div>
+                <h3>Label Categories</h3>
             </div>
             <div class="category-input-group">
                 <input type="text" id="newCategoryInput" placeholder="New category name" title="Enter a new category name" />
@@ -1568,10 +1603,10 @@
                 <button id="closeRightMenuBtnDesktop" class="close-mobile-menu-btn" title="Close quick access menu">X</button>
             </div>
             <div class="menu-header-with-count">
-                <h3>Labels Quick Access</h3>
                 <div class="menu-header-count-box">
                     <span id="labelTotalCount">0</span>
                 </div>
+                <h3>Labels Quick Access</h3>
             </div>
             <div class="scrollable-content">
                 <ul id="label-quick-access-list" title="Quick access links to label blocks">
@@ -1588,122 +1623,124 @@
         </div>
         <h3>Bulk Actions</h3>
 
-        <div class="label-block" style="margin-bottom: 1em;">
-            <div class="label-header" style="cursor: default;">
-                <div class="label-number-box">
-                    <span id="bulkSelectedCount" class="label-number">0</span>
-                </div>
-                <div class="label-identifier-box">
-                    <span class="label-identifier-display">Bulk Edit Label Settings</span>
-                </div>
-                <div class="header-right-group">
-                    <div class="enabled-toggle-header">
-                        <span>Enabled:</span>
-                        <input type="checkbox" id="bulkEnabledControl" checked title="Toggle label enabled/disabled state">
+        <div class="scrollable-content"> <!-- NEW: Wrap all bulk action groups in a scrollable content div -->
+            <div class="label-block" style="margin-bottom: 1em;">
+                <div class="label-header" style="cursor: default;">
+                    <div class="label-number-box">
+                        <span id="bulkSelectedCount" class="label-number">0</span>
                     </div>
-                </div>
-            </div>
-            <div class="label-content">
-                <div class="input-group-row">
-                    <div>
-                        <label for="bulkPlaceholderIdentifier">Identifier:</label>
-                        <input type="text" id="bulkPlaceholderIdentifier" value="(Placeholder)" disabled title="This field is a placeholder for bulk actions">
+                    <div class="label-identifier-box">
+                        <span class="label-identifier-display">Bulk Edit Label Settings</span>
                     </div>
-                    <div>
-                        <label for="bulkBlursControl">Blurs:</label>
-                        <select id="bulkBlursControl" title="Set blur setting for selected labels">
-                            <option value="">(No Change)</option>
-                            <option value="content">content</option>
-                            <option value="media">media</option>
-                            <option value="none">none</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="input-group-row">
-                    <div>
-                        <label for="bulkSeverityControl">Severity:</label>
-                        <select id="bulkSeverityControl" title="Set severity for selected labels">
-                            <option value="">(No Change)</option>
-                            <option value="inform">inform</option>
-                            <option value="alert">alert</option>
-                            <option value="none">none</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="bulkDefaultSettingControl">Default Setting:</label>
-                        <select id="bulkDefaultSettingControl" title="Set default setting for selected labels">
-                            <option value="">(No Change)</option>
-                            <option value="ignore">ignore</option>
-                            <option value="warn">warn</option>
-                            <option value="hide">hide</option>
-                        </select>
-                    </div>
-                </div>
-                <label style="margin-top: 1em;">Adult Only: <input type="checkbox" id="bulkAdultOnlyControl" title="Mark if this label is for adult content only"></label>
-                <div style="display: flex; justify-content: space-between; gap: 0.5em; margin-top: 1em;">
-                    <button id="bulkApplyPropertiesBtn" class="action-button" style="flex-grow: 1;" title="Apply selected property changes to target labels">Apply Selected Properties</button>
-                    <button id="setDefaultLabelPropertiesBtn" class="action-button blue-button" style="flex-shrink: 0;" title="Set current Blurs, Severity, and Default Setting as defaults for new labels">Set Default</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- NEW: Post Preview Section -->
-        <div class="bulk-action-group">
-            <h3>Post Preview</h3>
-            <div id="blueskyPostPreview" class="social-post-card">
-                <div class="post-header">
-                    <a href="https://bsky.app/profile/did:plc:lptjvw6ut224kwrj7ub3sqbe" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.8em;">
-                        <img src="https://raw.githubusercontent.com/femavibes/ozone-label-master/refs/heads/main/femamonster.jpg" alt="User Avatar" class="post-avatar">
-                        <div class="post-user-info">
-                            <span class="post-username">fema 🚲</span>
-                            <span class="post-handle">@fema.monster</span>
+                    <div class="header-right-group">
+                        <div class="enabled-toggle-header">
+                            <span>Enabled:</span>
+                            <input type="checkbox" id="bulkEnabledControl" checked title="Toggle label enabled/disabled state">
                         </div>
-                    </a>
+                    </div>
                 </div>
-                <div class="post-content">
-                    <div class="post-text">This is an example of a social media post, demonstrating how content might appear before moderation. Use the above bulk actions menu to see how these settings will affect a post on Bluesky.</div>
-                    <img src="https://placehold.co/400x200/9CA3AF/ffffff?text=Placeholder+Image" alt="Post Image" class="post-image">
-                </div>
-                <div class="post-actions">
-                    <div class="post-action-item">
-                        <span class="icon">💬</span>
-                        <span>0</span>
+                <div class="label-content">
+                    <div class="input-group-row">
+                        <div>
+                            <label for="bulkPlaceholderIdentifier">Identifier:</label>
+                            <input type="text" id="bulkPlaceholderIdentifier" value="(Placeholder)" disabled title="This field is a placeholder for bulk actions">
+                        </div>
+                        <div>
+                            <label for="bulkBlursControl">Blurs:</label>
+                            <select id="bulkBlursControl" title="Set blur setting for selected labels">
+                                <option value="">(No Change)</option>
+                                <option value="content">content</option>
+                                <option value="media">media</option>
+                                <option value="none">none</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="post-action-item">
-                        <span class="icon">🔁</span>
-                        <span>12</span>
+                    <div class="input-group-row">
+                        <div>
+                            <label for="bulkSeverityControl">Severity:</label>
+                            <select id="bulkSeverityControl" title="Set severity for selected labels">
+                                <option value="">(No Change)</option>
+                                <option value="inform">inform</option>
+                                <option value="alert">alert</option>
+                                <option value="none">none</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="bulkDefaultSettingControl">Default Setting:</label>
+                            <select id="bulkDefaultSettingControl" title="Set default setting for selected labels">
+                                <option value="">(No Change)</option>
+                                <option value="ignore">ignore</option>
+                                <option value="warn">warn</option>
+                                <option value="hide">hide</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="post-action-item">
-                        <span class="icon">❤️</span>
-                        <span>345</span>
-                    </div>
-                    <div class="post-action-item">
-                        <span class="icon">…</span>
+                    <label style="margin-top: 1em;">Adult Only: <input type="checkbox" id="bulkAdultOnlyControl" title="Mark if this label is for adult content only"></label>
+                    <div style="display: flex; justify-content: space-between; gap: 0.5em; margin-top: 1em;">
+                        <button id="bulkApplyPropertiesBtn" class="action-button" style="flex-grow: 1;" title="Apply selected property changes to target labels">Apply Selected Properties</button>
+                        <button id="setDefaultLabelPropertiesBtn" class="action-button blue-button" style="flex-shrink: 0;" title="Set current Blurs, Severity, and Default Setting as defaults for new labels">Set Default</button>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="bulk-action-group snippet-management-section">
-            <h3>Description Snippets</h3>
-            <div class="snippet-input-group">
-                <label for="newSnippetName">Snippet Name:</label>
-                <input type="text" id="newSnippetName" placeholder="e.g., 'Common Disclaimer'" title="Enter a name for your snippet">
-                <label for="newSnippetContent">Snippet Content:</label>
-                <textarea id="newSnippetContent" placeholder="Enter the prewritten text here..." title="Enter the text content of your snippet"></textarea>
+            <!-- NEW: Post Preview Section -->
+            <div class="bulk-action-group">
+                <h3>Post Preview</h3>
+                <div id="blueskyPostPreview" class="social-post-card">
+                    <div class="post-header">
+                        <a href="https://bsky.app/profile/did:plc:lptjvw6ut224kwrj7ub3sqbe" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.8em;">
+                            <img src="https://raw.githubusercontent.com/femavibes/ozone-label-master/refs/heads/main/femamonster.jpg" alt="User Avatar" class="post-avatar">
+                            <div class="post-user-info">
+                                <span class="post-username">fema 🚲</span>
+                                <span class="post-handle">@fema.monster</span>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="post-content">
+                        <div class="post-text">This is an example of a social media post, demonstrating how content might appear before moderation. Use the above bulk actions menu to see how these settings will affect a post on Bluesky.</div>
+                        <img src="https://placehold.co/400x200/9CA3AF/ffffff?text=Placeholder+Image" alt="Post Image" class="post-image">
+                    </div>
+                    <div class="post-actions">
+                        <div class="post-action-item">
+                            <span class="icon">💬</span>
+                            <span>0</span>
+                        </div>
+                        <div class="post-action-item">
+                            <span class="icon">🔁</span>
+                            <span>12</span>
+                        </div>
+                        <div class="post-action-item">
+                            <span class="icon">❤️</span>
+                            <span>345</span>
+                        </div>
+                        <div class="post-action-item">
+                            <span class="icon">…</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="snippet-actions" style="justify-content: flex-start;">
-                <button id="addSnippetBtn" class="action-button" style="background: var(--primary); color: white;" title="Add this text as a reusable snippet">Add Snippet</button>
+
+            <div class="bulk-action-group snippet-management-section">
+                <h3>Description Snippets</h3>
+                <div class="snippet-input-group">
+                    <label for="newSnippetName">Snippet Name:</label>
+                    <input type="text" id="newSnippetName" placeholder="e.g., 'Common Disclaimer'" title="Enter a name for your snippet">
+                    <label for="newSnippetContent">Snippet Content:</label>
+                    <textarea id="newSnippetContent" placeholder="Enter the prewritten text here..." title="Enter the text content of your snippet"></textarea>
+                </div>
+                <div class="snippet-actions">
+                    <button id="addSnippetBtn" class="action-button" style="background: var(--primary); color: white;" title="Add this text as a reusable snippet">Add Snippet</button>
+                    <button id="viewSnippetsBtn" class="action-button blue-button" title="View, edit, or delete existing snippets">View Snippets</button>
+                </div>
+                <div class="bulk-action-row" style="margin-top: 1em; display: flex; align-items: center; gap: 0.5em;">
+                    <label for="bulkApplySnippetSelect" style="margin-top: 0;">Apply Snippet:</label>
+                    <select id="bulkApplySnippetSelect" style="flex-grow: 1;" title="Select a snippet to apply to descriptions">
+                        <option value="">(Select Snippet)</option>
+                    </select>
+                    <button id="bulkApplySnippetBtn" class="action-button" disabled title="Apply the selected snippet to descriptions of target labels">Apply</button>
+                </div>
             </div>
-            <div class="bulk-action-row" style="margin-top: 1em; display: flex; align-items: center; gap: 0.5em;">
-                <label for="bulkApplySnippetSelect" style="margin-top: 0;">Apply Snippet:</label>
-                <select id="bulkApplySnippetSelect" style="flex-grow: 1;" title="Select a snippet to apply to descriptions">
-                    <option value="">(Select Snippet)</option>
-                </select>
-                <button id="bulkApplySnippetBtn" class="action-button" disabled title="Apply the selected snippet to descriptions of target labels">Apply</button>
-            </div>
-            <button id="viewSnippetsBtn" class="action-button blue-button" style="width: 100%; margin-top: 0.5em;" title="View, edit, or delete existing snippets">View Snippets</button>
-        </div>
+        </div> <!-- End of scrollable-content -->
     </div>
   </div>
 
@@ -2188,7 +2225,7 @@
           <button class="locale-remove-btn" title="Remove this locale">×</button>
         </div>
         <div class="locale-content-area">
-          <div class="input-group-row">
+          <div class="locale-input-row"> <!-- NEW: Flex container for Name and Language -->
             <div>
               <label>Name:</label>
               <input type="text" class="name" value="${name}" title="Enter the name for this locale">
@@ -3567,7 +3604,7 @@ Original description:
                 const addSnippetBtn = document.getElementById('addSnippetBtn');
                 addSnippetBtn.dataset.editIndex = index; // Store index for update
                 addSnippetBtn.textContent = 'Update Snippet';
-                addBtn.style.background = '#f59e0b'; // Amber color
+                addSnippetBtn.style.background = '#f59e0b'; // Amber color
                 
                 document.getElementById('viewSnippetsModal').style.display = 'none'; // Close modal
             };
