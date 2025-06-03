@@ -793,6 +793,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     flex-grow: 1;
+    box-sizing: border-box; /* Include padding in height calculation */
   }
   #floating-menu a:hover {
     background: var(--primary);
@@ -1265,11 +1266,12 @@
   .snippet-management-section .snippet-input-group {
       display: flex;
       flex-direction: column;
-      gap: 0.5em;
+      /* Reduced gap to tighten spacing */
+      gap: 0.25em; /* Reduced from 0.5em */
   }
   /* Adjust label margin within snippet-input-group to bring closer to title */
   .snippet-management-section .snippet-input-group label {
-      margin-top: 0.5em; /* Reduced margin */
+      margin-top: 0.25em; /* Reduced from 0.5em */
   }
   .snippet-management-section .snippet-input-group label:first-child {
       margin-top: 0; /* No top margin for the very first label */
@@ -1488,16 +1490,17 @@
   /* New styles for count boxes in menu headers */
   .menu-header-with-count {
       display: flex;
-      align-items: center;
+      align-items: center; /* Vertically align items */
       gap: 0.5em;
       margin-bottom: 0.8em; /* Match existing h3 margin-bottom */
   }
 
   .menu-header-with-count h3 {
-      margin: 0; /* Remove default h3 margin */
+      margin: 0; /* Remove default h3 margin to allow centering */
       color: var(--primary);
       font-size: 1.2rem;
       flex-shrink: 0;
+      line-height: 30px; /* Match height of counter box for vertical centering */
   }
 
   .menu-header-count-box {
@@ -1515,6 +1518,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    /* Removed gap: 0.3em; if it's just a number, no internal gap needed */
   }
 
 
@@ -1554,7 +1558,7 @@
       </a>
       <div class="header-text-group">
         <h1>OZONE LABEL MASTER</h1>
-        <p>version 1.02</p>
+        <p>version 1.03</p>
       </div>
     </header>
 
@@ -3725,7 +3729,7 @@ Original name:
                     const descriptionPrompt = `Translate the following content moderation label description into ${targetLangName}. Only provide the translated text, no additional commentary.
 Original description:
 '${sourceDescription}'`;
-                    const translatedDescription = await callGeminiAPI(descriptionPrompt);
+                    const translatedDescription = await callGeminiAPI(prompt);
                     descriptionTextarea.value = translatedDescription;
                 }
                 translationsPerformed++;
