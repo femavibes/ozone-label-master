@@ -22,7 +22,7 @@
     --label-box-background: hsl(180, 70%, 90%); /* Light teal for the identifier box */
     --label-box-text: hsl(180, 100%, 20%); /* Darker teal for contrast */
     /* Pride Mode Background (Default to transparent for non-pride mode) */
-    --pride-background: transparent;
+    --pride-background-image: none; /* Default to no image */
   }
 
   /* Dark Mode Overrides */
@@ -43,23 +43,17 @@
     --label-box-text: hsl(180, 70%, 90%); /* Lighter text for contrast */
   }
 
-  /* Pride Mode Overrides (only background) */
+  /* Pride Mode Overrides (only background image) */
   body.pride-mode {
-      --pride-background: linear-gradient(to bottom,
-          #E40303, /* Red */
-          #FF8C00, /* Orange */
-          #FFED00, /* Yellow */
-          #008026, /* Green */
-          #004DFF, /* Blue */
-          #750787  /* Violet */
-      );
+      --pride-background-image: url('https://raw.githubusercontent.com/femavibes/ozone-label-master/refs/heads/main/flag-36423_1920.png');
   }
 
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: var(--light-gray); /* Default background */
-    background-image: var(--pride-background); /* Apply pride background if enabled */
+    background-image: var(--pride-background-image); /* Apply pride background if enabled */
     background-size: cover; /* Cover the entire background */
+    background-position: center; /* Center the image */
     background-attachment: fixed; /* Keep background fixed when scrolling */
     color: var(--text-color); /* Use variable */
     margin: 0;
@@ -371,7 +365,7 @@
     border-radius: var(--border-radius);
     cursor: pointer;
     font-size: 0.875rem;
-    transition: background 0.3s ease;
+    transition: background 0.2s;
     flex-shrink: 0;
   }
 
@@ -1525,7 +1519,7 @@
       </a>
       <div class="header-text-group">
         <h1>OZONE LABEL MASTER</h1>
-        <p>version 0.99</p>
+        <p>version 1.0</p>
       </div>
     </header>
 
@@ -1646,7 +1640,10 @@
                     </div>
                 </div>
                 <label style="margin-top: 1em;">Adult Only: <input type="checkbox" id="bulkAdultOnlyControl" title="Mark if this label is for adult content only"></label>
-                <button id="bulkApplyPropertiesBtn" class="action-button full-width-button" style="margin-top: 1em;" title="Apply selected property changes to target labels">Apply Selected Properties</button>
+                <div style="display: flex; justify-content: space-between; gap: 0.5em; margin-top: 1em;">
+                    <button id="bulkApplyPropertiesBtn" class="action-button" style="flex-grow: 1;" title="Apply selected property changes to target labels">Apply Selected Properties</button>
+                    <button id="setDefaultLabelPropertiesBtn" class="action-button blue-button" style="flex-shrink: 0;" title="Set current Blurs, Severity, and Default Setting as defaults for new labels">Set Default</button>
+                </div>
             </div>
         </div>
 
@@ -1844,6 +1841,15 @@
     let pendingTranslationAction = null; // NEW: Stores the function to call after API key is provided
     let isPrideMode = false; // NEW: Global variable for Pride Mode
 
+    // NEW: Default settings for new labels
+    let defaultNewLabelSettings = {
+        blurs: 'content',
+        severity: 'inform',
+        defaultSetting: 'ignore',
+        adultOnly: false,
+        enabled: true
+    };
+
     // --- IMPORTANT: Clear selectedLabelIds at the very start of script execution ---
     // This ensures a clean slate for selected IDs on every page load.
     selectedLabelIds.clear();
@@ -1929,7 +1935,8 @@
         defaultLocaleLanguage: defaultLocaleLanguage,
         descriptionSnippets: descriptionSnippets,
         geminiApiKey: geminiApiKey, // NEW: Save Gemini API Key
-        isPrideMode: isPrideMode // NEW: Save Pride Mode state
+        isPrideMode: isPrideMode, // NEW: Save Pride Mode state
+        defaultNewLabelSettings: defaultNewLabelSettings // NEW: Save default new label settings
       };
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentSessionState));
       // console.log("Saved current session state to local storage:", currentSessionState); // Commented for less console noise
@@ -1954,7 +1961,8 @@
           defaultLocaleLanguage: defaultLocaleLanguage, // Include default locale language in history snapshot
           descriptionSnippets: descriptionSnippets,
           geminiApiKey: geminiApiKey, // NEW: Include Gemini API Key in history snapshot
-          isPrideMode: isPrideMode // NEW: Include Pride Mode state in history snapshot
+          isPrideMode: isPrideMode, // NEW: Include Pride Mode state in history snapshot
+          defaultNewLabelSettings: defaultNewLabelSettings // NEW: Include default new label settings
         };
 
         // Update in-memory history for undo/redo
@@ -2042,6 +2050,15 @@
           prideModeCheckbox.checked = isPrideMode;
           applyPrideMode(isPrideMode);
       }
+
+      // NEW: Load default new label settings
+      defaultNewLabelSettings = sessionData.defaultNewLabelSettings || {
+          blurs: 'content',
+          severity: 'inform',
+          defaultSetting: 'ignore',
+          adultOnly: false,
+          enabled: true
+      };
 
 
       updateJSONOutput(); // Update JSON output display
@@ -2510,7 +2527,7 @@ Original description:
     }
 
     // Function to create a new label block
-    function createLabelBlock(id = '', severity = 'inform', blurs = 'content', defaultSetting = 'ignore', adultOnly = false, enabled = true, locales = [], category = '', isFirstLabel = false, htmlId = `label-${crypto.randomUUID()}`) { // Added htmlId parameter
+    function createLabelBlock(id = '', severity = '', blurs = '', defaultSetting = '', adultOnly = false, enabled = true, locales = [], category = '', isFirstLabel = false, htmlId = `label-${crypto.randomUUID()}`) { // Added htmlId parameter
       console.log(`createLabelBlock called for ID: "${id}" (HTML ID: ${htmlId}). Current label blocks BEFORE append:`, document.querySelectorAll('.label-block').length);
 
       const container = document.getElementById('labels-container');
@@ -2526,6 +2543,14 @@ Original description:
       // Define the user-friendly placeholder
       const identifierPlaceholder = '(Untitled Label)';
 
+      // Use defaultNewLabelSettings if no explicit values are provided (i.e., for new labels)
+      const finalSeverity = severity || defaultNewLabelSettings.severity;
+      const finalBlurs = blurs || defaultNewLabelSettings.blurs;
+      const finalDefaultSetting = defaultSetting || defaultNewLabelSettings.defaultSetting;
+      const finalAdultOnly = adultOnly !== undefined ? adultOnly : defaultNewLabelSettings.adultOnly;
+      const finalEnabled = enabled !== undefined ? enabled : defaultNewLabelSettings.enabled;
+
+
       labelDiv.innerHTML = `
         <div class="label-header" title="Click to expand/collapse this label">
           <div class="label-number-box">
@@ -2539,7 +2564,7 @@ Original description:
           <div class="header-right-group">
             <div class="enabled-toggle-header">
               <span>Enabled:</span>
-              <input type="checkbox" class="enabled" ${enabled ? 'checked' : ''} title="Toggle label enabled/disabled state">
+              <input type="checkbox" class="enabled" ${finalEnabled ? 'checked' : ''} title="Toggle label enabled/disabled state">
             </div>
             <div class="category-in-header">
               <select id="${labelDiv.id}-category" class="label-category" title="Assign a category to this label">
@@ -2562,9 +2587,9 @@ Original description:
             <div>
               <label for="${labelDiv.id}-blurs">Blurs:</label>
               <select id="${labelDiv.id}-blurs" class="blurs" title="Content blurring setting for the label">
-                <option value="content" ${blurs === 'content' ? 'selected' : ''}>content</option>
-                <option value="media" ${blurs === 'media' ? 'selected' : ''}>media</option>
-                <option value="none" ${blurs === 'none' ? 'selected' : ''}>none</option>
+                <option value="content" ${finalBlurs === 'content' ? 'selected' : ''}>content</option>
+                <option value="media" ${finalBlurs === 'media' ? 'selected' : ''}>media</option>
+                <option value="none" ${finalBlurs === 'none' ? 'selected' : ''}>none</option>
               </select>
             </div>
           </div>
@@ -2572,21 +2597,21 @@ Original description:
             <div>
               <label for="${labelDiv.id}-severity">Severity:</label>
               <select id="${labelDiv.id}-severity" class="severity" title="Severity level of the label">
-                <option value="inform" ${severity === 'inform' ? 'selected' : ''}>inform</option>
-                <option value="alert" ${severity === 'alert' ? 'selected' : ''}>alert</option>
-                <option value="none" ${severity === 'none' ? 'selected' : ''}>none</option>
+                <option value="inform" ${finalSeverity === 'inform' ? 'selected' : ''}>inform</option>
+                <option value="alert" ${finalSeverity === 'alert' ? 'selected' : ''}>alert</option>
+                <option value="none" ${finalSeverity === 'none' ? 'selected' : ''}>none</option>
               </select>
             </div>
             <div>
               <label for="${labelDiv.id}-defaultSetting">Default Setting:</label>
               <select id="${labelDiv.id}-defaultSetting" class="defaultSetting" title="Default action when this label is applied">
-                <option value="ignore" ${defaultSetting === 'ignore' ? 'selected' : ''}>ignore</option>
-                <option value="warn" ${defaultSetting === 'warn' ? 'selected' : ''}>warn</option>
-                <option value="hide" ${defaultSetting === 'hide' ? 'selected' : ''}>hide</option>
+                <option value="ignore" ${finalDefaultSetting === 'ignore' ? 'selected' : ''}>ignore</option>
+                <option value="warn" ${finalDefaultSetting === 'warn' ? 'selected' : ''}>warn</option>
+                <option value="hide" ${finalDefaultSetting === 'hide' ? 'selected' : ''}>hide</option>
               </select>
             </div>
           </div>
-          <label>Adult Only: <input type="checkbox" class="adultOnly" ${adultOnly ? 'checked' : ''} title="Mark if this label is for adult content only"></label>
+          <label>Adult Only: <input type="checkbox" class="adultOnly" ${finalAdultOnly ? 'checked' : ''} title="Mark if this label is for adult content only"></label>
           <div class="locales-container">
             <strong>Locales:</strong>
           </div>
@@ -2900,7 +2925,8 @@ Original description:
           defaultLocaleLanguage: defaultLocaleLanguage,
           descriptionSnippets: descriptionSnippets,
           geminiApiKey: geminiApiKey, // NEW: Include Gemini API Key
-          isPrideMode: isPrideMode // NEW: Include Pride Mode state
+          isPrideMode: isPrideMode, // NEW: Include Pride Mode state
+          defaultNewLabelSettings: defaultNewLabelSettings // NEW: Include default new label settings
         });
 
         if (historyIndex < history.length - 1) {
@@ -3322,6 +3348,29 @@ Original description:
         }
       });
     }
+
+    // NEW: Set Default Label Properties
+    function setDefaultLabelProperties() {
+        const bulkBlursControl = document.getElementById('bulkBlursControl');
+        const bulkSeverityControl = document.getElementById('bulkSeverityControl');
+        const bulkDefaultSettingControl = document.getElementById('bulkDefaultSettingControl');
+        const bulkAdultOnlyControl = document.getElementById('bulkAdultOnlyControl');
+        const bulkEnabledControl = document.getElementById('bulkEnabledControl');
+
+        showCustomModal('Are you sure you want to set these values as defaults for new labels?', 'confirm', (response) => {
+            if (response) {
+                defaultNewLabelSettings.blurs = bulkBlursControl.value || 'content'; // Default if "(No Change)" is selected
+                defaultNewLabelSettings.severity = bulkSeverityControl.value || 'inform';
+                defaultNewLabelSettings.defaultSetting = bulkDefaultSettingControl.value || 'ignore';
+                defaultNewLabelSettings.adultOnly = bulkAdultOnlyControl.checked;
+                defaultNewLabelSettings.enabled = bulkEnabledControl.checked;
+
+                saveFullSessionStateToLocalStorage();
+                showCustomModal('New label defaults set successfully!', 'alert');
+            }
+        });
+    }
+
 
     function clearSelectedLabels() {
       selectedLabelIds.clear();
@@ -3778,7 +3827,18 @@ Original description:
           loadState(JSON.stringify(sessionDataToLoad));
       } else {
           console.log("DOMContentLoaded: No valid saved state with labels found. Creating default example label.");
-          createLabelBlock('example_label', 'inform', 'content', 'ignore', false, true, [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}], '', true); // Pass true for isFirstLabel
+          // Use defaultNewLabelSettings for the initial example label if it's a fresh start
+          createLabelBlock(
+              'example_label',
+              defaultNewLabelSettings.severity,
+              defaultNewLabelSettings.blurs,
+              defaultNewLabelSettings.defaultSetting,
+              defaultNewLabelSettings.adultOnly,
+              defaultNewLabelSettings.enabled,
+              [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}],
+              '',
+              true
+          );
           console.log("DOMContentLoaded: Default example label created. Current label blocks:", document.querySelectorAll('.label-block').length);
           geminiApiKey = '';
           const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
@@ -3813,7 +3873,18 @@ Original description:
 
       // Attach event listeners to buttons
       document.getElementById('addLabelBtn').onclick = () => {
-        createLabelBlock('', 'inform', 'content', 'ignore', false, true, [], '', false); // New labels are not the first
+        // When adding a new label, use the current defaultNewLabelSettings
+        createLabelBlock(
+            '',
+            defaultNewLabelSettings.severity,
+            defaultNewLabelSettings.blurs,
+            defaultNewLabelSettings.defaultSetting,
+            defaultNewLabelSettings.adultOnly,
+            defaultNewLabelSettings.enabled,
+            [],
+            '',
+            false
+        );
         saveFullSessionStateToLocalStorage(); // Save full session state
         updateJSONOutput(); // Update JSON output display
       };
@@ -3925,6 +3996,11 @@ Original description:
                     }
                 }
 
+                // NEW: If defaultNewLabelSettings is present, update it
+                if (parsedData.defaultNewLabelSettings !== undefined) {
+                    defaultNewLabelSettings = parsedData.defaultNewLabelSettings;
+                }
+
 
                 saveFullSessionStateToLocalStorage(); // Save the new state
                 updateJSONOutput(); // Update output and history
@@ -4031,6 +4107,12 @@ Original description:
                   }
               }
 
+              // NEW: If defaultNewLabelSettings is present, update it
+              if (parsedData.defaultNewLabelSettings !== undefined) {
+                  defaultNewLabelSettings = parsedData.defaultNewLabelSettings;
+              }
+
+
               saveFullSessionStateToLocalStorage(); // Save the new state
               updateJSONOutput(); // Update output and history
               showCustomModal('JSON imported successfully!', 'alert');
@@ -4089,8 +4171,27 @@ Original description:
             defaultLocaleLanguage = 'en'; // Reset default locale
             geminiApiKey = ''; // NEW: Clear API key on reset
             isPrideMode = false; // NEW: Clear Pride Mode on reset
+            // Reset default new label settings to initial values
+            defaultNewLabelSettings = {
+                blurs: 'content',
+                severity: 'inform',
+                defaultSetting: 'ignore',
+                adultOnly: false,
+                enabled: true
+            };
             
-            createLabelBlock('example_label', 'inform', 'content', 'ignore', false, true, [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}], '', true); // Pass true for isFirstLabel
+            // Recreate the example label using the reset default settings
+            createLabelBlock(
+                'example_label',
+                defaultNewLabelSettings.severity,
+                defaultNewLabelSettings.blurs,
+                defaultNewLabelSettings.defaultSetting,
+                defaultNewLabelSettings.adultOnly,
+                defaultNewLabelSettings.enabled,
+                [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}],
+                '',
+                true
+            ); // Pass true for isFirstLabel
             saveFullSessionStateToLocalStorage(); // Save the cleared state
             updateJSONOutput(); // Update JSON output and history
             renderCategoryMenu(); // Re-render category menu
@@ -4212,6 +4313,7 @@ Original description:
 
           // Bulk Actions Menu
           bulkActionsMenuMobile.querySelector('#bulkApplyPropertiesBtn').onclick = applyBulkProperties;
+          bulkActionsMenuMobile.querySelector('#setDefaultLabelPropertiesBtn').onclick = setDefaultLabelProperties; // Attach to mobile version
           bulkActionsMenuMobile.querySelector('#addSnippetBtn').onclick = addOrUpdateSnippet;
           bulkActionsMenuMobile.querySelector('#bulkApplySnippetBtn').onclick = bulkApplySnippet;
           bulkActionsMenuMobile.querySelector('#bulkApplySnippetSelect').addEventListener('change', () => { // Corrected listener
@@ -4334,6 +4436,7 @@ Original description:
 
       // Bulk Actions
       document.getElementById('bulkApplyPropertiesBtn').onclick = applyBulkProperties;
+      document.getElementById('setDefaultLabelPropertiesBtn').onclick = setDefaultLabelProperties; // Attach desktop Set Default button
       document.getElementById('deleteSelectedLabelsBtn').onclick = deleteSelectedLabels;
       document.getElementById('deleteSelectedCategoriesBtn').onclick = deleteSelectedCategories;
 
@@ -4397,7 +4500,8 @@ Original description:
               defaultLocaleLanguage: defaultLocaleLanguage,
               descriptionSnippets: descriptionSnippets,
               geminiApiKey: geminiApiKey, // NEW: Save Gemini API Key
-              isPrideMode: isPrideMode // NEW: Save Pride Mode state
+              isPrideMode: isPrideMode, // NEW: Save Pride Mode state
+              defaultNewLabelSettings: defaultNewLabelSettings // NEW: Save default new label settings
           };
           const blob = new Blob([JSON.stringify(currentSessionState, null, 2)], { type: 'application/json' });
           const url = URL.createObjectURL(blob);
