@@ -1407,6 +1407,33 @@
       line-height: 250px; /* Vertically center placeholder text */
   }
 
+  .social-post-card .post-actions {
+      display: flex;
+      justify-content: space-around; /* Evenly space items */
+      align-items: center;
+      margin-top: 1em;
+      padding-top: 0.8em;
+      border-top: 1px solid var(--block-border);
+  }
+
+  .social-post-card .post-action-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4em;
+      color: var(--gray);
+      font-size: 0.9em;
+      cursor: pointer;
+      transition: color 0.2s ease;
+  }
+
+  .social-post-card .post-action-item:hover {
+      color: var(--primary);
+  }
+
+  .social-post-card .post-action-item .icon {
+      font-size: 1.2em; /* Larger icon size */
+  }
+
 </style>
 
 </head>
@@ -1562,15 +1589,34 @@
             <h3>Post Preview</h3>
             <div id="blueskyPostPreview" class="social-post-card">
                 <div class="post-header">
-                    <img src="https://raw.githubusercontent.com/femavibes/ozone-label-master/refs/heads/main/femamonster.jpg" alt="User Avatar" class="post-avatar">
-                    <div class="post-user-info">
-                        <span class="post-username">Example User</span>
-                        <span class="post-handle">@fema.monster</span>
-                    </div>
+                    <a href="https://bsky.app/profile/did:plc:lptjvw6ut224kwrj7ub3sqbe" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.8em;">
+                        <img src="https://raw.githubusercontent.com/femavibes/ozone-label-master/refs/heads/main/femamonster.jpg" alt="User Avatar" class="post-avatar">
+                        <div class="post-user-info">
+                            <span class="post-username">fema 🚲</span>
+                            <span class="post-handle">@fema.monster</span>
+                        </div>
+                    </a>
                 </div>
                 <div class="post-content">
-                    <div class="post-text">This is an example of a social media post, demonstrating how content might appear before moderation. It's a sunny day, perfect for trying out new tools and exploring creative possibilities online!</div>
+                    <div class="post-text">This is an example of a social media post, demonstrating how content might appear before moderation. It's a sunny day, perfect for trying out new tools and exploring creative possibilities online! This text is static.</div>
                     <img src="https://placehold.co/400x200/9CA3AF/ffffff?text=Placeholder+Image" alt="Post Image" class="post-image">
+                </div>
+                <div class="post-actions">
+                    <div class="post-action-item">
+                        <span class="icon">💬</span>
+                        <span>0</span>
+                    </div>
+                    <div class="post-action-item">
+                        <span class="icon">🔁</span>
+                        <span>12</span>
+                    </div>
+                    <div class="post-action-item">
+                        <span class="icon">❤️</span>
+                        <span>345</span>
+                    </div>
+                    <div class="post-action-item">
+                        <span class="icon">…</span>
+                    </div>
                 </div>
             </div>
         </div>
