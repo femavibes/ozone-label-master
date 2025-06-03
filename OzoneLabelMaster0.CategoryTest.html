@@ -1519,7 +1519,7 @@
       </a>
       <div class="header-text-group">
         <h1>OZONE LABEL MASTER</h1>
-        <p>version 1.0</p>
+        <p>version 1.01</p>
       </div>
     </header>
 
@@ -1747,6 +1747,10 @@
           <div class="slider round"></div>
         </label>
       </div>
+      <!-- NEW: Bug Reports Link -->
+      <p style="text-align: left; margin-top: 1em; font-size: 0.95em;">
+        Report bugs to <a href="https://bsky.app/profile/did:plc:lptjvw6ut224kwrj7ub3sqbe" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: underline;">@fema.monster</a> on Bluesky.
+      </p>
       <button id="closeOptionsModalBtn" class="confirm-btn" style="margin-top: 1em;">Close</button>
     </div>
   </div>
@@ -2184,12 +2188,18 @@
           <button class="locale-remove-btn" title="Remove this locale">×</button>
         </div>
         <div class="locale-content-area">
-          <label>Language:
-            <select class="lang" title="Select the language for this locale">
-              ${optionsHtml}
-            </select>
-          </label>
-          <label>Name: <input type="text" class="name" value="${name}" title="Enter the name for this locale"></label>
+          <div class="input-group-row">
+            <div>
+              <label>Name:</label>
+              <input type="text" class="name" value="${name}" title="Enter the name for this locale">
+            </div>
+            <div>
+              <label>Language:</label>
+              <select class="lang" title="Select the language for this locale">
+                ${optionsHtml}
+              </select>
+            </div>
+          </div>
           <label>Description: <textarea class="description" title="Enter the description for this locale">${description}</textarea></label>
           <div class="locale-action-row"> <!-- New flex container for buttons -->
             <div class="llm-buttons">
@@ -3163,29 +3173,11 @@ Original description:
             <input type="checkbox" class="category-select-checkbox" data-category-name="${categoryName}" ${selectedCategoryNames.has(categoryName) ? 'checked' : ''} title="Select this category">
           </div>
           <span>${categoryName}</span>
-          <button class="remove-category-btn" data-category-name="${categoryName}" title="Remove this category">×</button>
+          <!-- Removed: <button class="remove-category-btn" data-category-name="${categoryName}" title="Remove this category">×</button> -->
         `;
         categoryList.appendChild(listItem);
 
-        listItem.querySelector('.remove-category-btn').onclick = (event) => {
-          const nameToRemove = event.target.dataset.categoryName;
-          showCustomModal(`Are you sure you want to delete the category "${nameToRemove}"? Labels assigned to this category will become uncategorized.`, 'confirm', (response) => {
-            if (response) {
-              categories = categories.filter(cat => cat !== nameToRemove);
-              selectedCategoryNames.delete(nameToRemove); // Remove from selection
-              // Unassign this category from all labels
-              document.querySelectorAll('.label-category').forEach(select => {
-                if (select.value === nameToRemove) {
-                  select.value = ''; // Set to no category
-                }
-              });
-              renderCategoryMenu(); // Re-render to update the list
-              saveFullSessionStateToLocalStorage();
-              updateJSONOutput(); // Trigger JSON update and history save
-              updateTotalCategoryCount(); // NEW: Update total category count
-            }
-          });
-        };
+        // Removed the onclick for individual category remove button
 
         listItem.querySelector('.category-select-checkbox').addEventListener('change', (event) => {
             const categoryName = event.target.dataset.categoryName;
@@ -3359,9 +3351,11 @@ Original description:
 
         showCustomModal('Are you sure you want to set these values as defaults for new labels?', 'confirm', (response) => {
             if (response) {
-                defaultNewLabelSettings.blurs = bulkBlursControl.value || 'content'; // Default if "(No Change)" is selected
-                defaultNewLabelSettings.severity = bulkSeverityControl.value || 'inform';
-                defaultNewLabelSettings.defaultSetting = bulkDefaultSettingControl.value || 'ignore';
+                // Only update if a specific value is selected, otherwise keep current default.
+                // This allows leaving "(No Change)" in the bulk select to not affect the default.
+                defaultNewLabelSettings.blurs = bulkBlursControl.value || defaultNewLabelSettings.blurs;
+                defaultNewLabelSettings.severity = bulkSeverityControl.value || defaultNewLabelSettings.severity;
+                defaultNewLabelSettings.defaultSetting = bulkDefaultSettingControl.value || defaultNewLabelSettings.defaultSetting;
                 defaultNewLabelSettings.adultOnly = bulkAdultOnlyControl.checked;
                 defaultNewLabelSettings.enabled = bulkEnabledControl.checked;
 
@@ -3573,7 +3567,7 @@ Original description:
                 const addSnippetBtn = document.getElementById('addSnippetBtn');
                 addSnippetBtn.dataset.editIndex = index; // Store index for update
                 addSnippetBtn.textContent = 'Update Snippet';
-                addSnippetBtn.style.background = '#f59e0b'; // Amber color
+                addBtn.style.background = '#f59e0b'; // Amber color
                 
                 document.getElementById('viewSnippetsModal').style.display = 'none'; // Close modal
             };
@@ -3769,9 +3763,12 @@ Original description:
 
     // NEW: Function to update the total label count in the Labels Quick Access menu
     function updateTotalLabelCount() {
+        // Count only the labels that have an identifier input (i.e., are fully formed)
+        const totalLabels = document.querySelectorAll('.label-block .identifier').length;
         const labelTotalCountSpan = document.getElementById('labelTotalCount');
         if (labelTotalCountSpan) {
-            labelTotalCountSpan.textContent = document.querySelectorAll('.label-block').length;
+            labelTotalCountSpan.textContent = totalLabels;
+            console.log("updateTotalLabelCount: Total labels counted:", totalLabels);
         }
     }
 
