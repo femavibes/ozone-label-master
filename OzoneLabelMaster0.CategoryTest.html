@@ -1476,7 +1476,7 @@
       </a>
       <div class="header-text-group">
         <h1>OZONE LABEL MASTER</h1>
-        <p>version 0.83</p>
+        <p>version 0.92</p>
       </div>
     </header>
 
@@ -3801,13 +3801,14 @@ Original description:
             categories = []; // Clear categories too
             descriptionSnippets = []; // Clear snippets
             defaultLocaleLanguage = 'en'; // Reset default locale
+            selectedLabelIds.clear(); // Clear selected labels set
             createLabelBlock('example_label', 'inform', 'content', 'ignore', false, true, [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}], '', true); // Pass true for isFirstLabel
             saveFullSessionStateToLocalStorage(); // Save the cleared state
             updateJSONOutput(); // Update JSON output and history
             renderCategoryMenu(); // Re-render category menu
             updateLabelCategoryDropdowns(); // Update label dropdowns
-            // No longer calling renderSnippetManagementUI here
             populateBulkApplySnippetSelect(); // Update bulk apply snippet dropdown
+            updateFloatingMenu(); // Rebuild floating menu to reflect cleared selection
             showCustomModal('All labels cleared and reset to default!', 'alert');
           }
         });
