@@ -1632,16 +1632,13 @@
             <h3>Bulk Actions</h3>
             <button id="closeBulkActionsMenuBtnDesktop" class="close-mobile-menu-btn" title="Close bulk actions menu">X</button>
         </div>
-        <div class="menu-header-with-count">
-            <div class="menu-header-count-box">
-                <span id="bulkSelectedCount" class="label-number">0</span>
-            </div>
-            <h3 style="padding-bottom: 2px;">Bulk Actions</h3>
-        </div>
+        <!-- Removed menu-header-with-count for Bulk Actions heading -->
+        <h3 style="padding-bottom: 2px;">Bulk Actions</h3>
 
         <div class="scrollable-content">
             <div class="label-block" style="margin-bottom: 1em;">
                 <div class="label-header" style="cursor: default;">
+                    <!-- Moved the correct count box here -->
                     <div class="label-number-box">
                         <span id="bulkSelectedCount" class="label-number">0</span>
                     </div>
@@ -2127,8 +2124,8 @@
       updateLabelNumbers(); // Update numbers after loading state
       console.log("selectedLabelIds after loadState:", selectedLabelIds);
       recalculateSelectedLabels(); // Recalculate selected labels and update counts/checkboxes
-      updateTotalLabelCount(); // NEW: Update total label count after loading state
-      updateTotalCategoryCount(); // NEW: Update total category count after loading state
+      updateTotalLabelCount(); // NEW: Update total label count
+      updateTotalCategoryCount(); // NEW: Update total category count
     }
 
     // Undo the last change
@@ -3223,7 +3220,7 @@ Original description:
       categories.forEach((categoryName, index) => {
         const listItem = document.createElement('li');
         listItem.className = 'category-list-item';
-        listItem.setAttribute('draggable', 'true'); // Make categories draggable
+        listItem.setAttribute('draggable', 'true'); // Make list items draggable
         listItem.dataset.categoryName = categoryName; // Store category name for drag/drop
         listItem.dataset.index = index; // Store index for drag/drop
 
@@ -3811,6 +3808,7 @@ Original description:
 
     // NEW: Function to update the count of selected labels in the bulk actions menu
     function updateBulkActionsLabelCount() {
+        // Now targets the span inside the label-block's header
         const bulkSelectedCountSpan = document.getElementById('bulkSelectedCount');
         if (bulkSelectedCountSpan) {
             bulkSelectedCountSpan.textContent = selectedLabelIds.size;
