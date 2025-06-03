@@ -1349,7 +1349,7 @@
   .social-post-card .post-avatar {
       width: 48px;
       height: 48px;
-      border-radius: 50%;
+      border-radius: 50%; /* Make it round */
       background-color: var(--primary); /* Blue background for placeholder */
       color: white;
       display: flex;
@@ -1381,18 +1381,16 @@
       margin-left: calc(48px + 0.8em); /* Align with text next to avatar */
   }
 
-  .social-post-card .post-text-input {
+  .social-post-card .post-text { /* Changed from textarea to div */
       width: 100%;
-      border: 1px solid var(--input-border);
-      border-radius: var(--border-radius);
       padding: 0.75em;
       font-size: 1em;
       background: var(--block-background);
       color: var(--text-color);
-      resize: vertical;
-      min-height: 80px;
       box-sizing: border-box;
       margin-bottom: 1em; /* Space between text and image */
+      white-space: pre-wrap; /* Preserve whitespace and wrap text */
+      word-wrap: break-word; /* Break long words */
   }
 
   .social-post-card .post-image {
@@ -1564,20 +1562,16 @@
             <h3>Post Preview</h3>
             <div id="blueskyPostPreview" class="social-post-card">
                 <div class="post-header">
-                    <img src="https://placehold.co/48x48/60A5FA/ffffff?text=U" alt="User Avatar" class="post-avatar">
+                    <img src="https://raw.githubusercontent.com/femavibes/ozone-label-master/refs/heads/main/femamonster.jpg" alt="User Avatar" class="post-avatar">
                     <div class="post-user-info">
                         <span class="post-username">Example User</span>
-                        <span class="post-handle">@example.bsky.social</span>
+                        <span class="post-handle">@fema.monster</span>
                     </div>
                 </div>
                 <div class="post-content">
-                    <textarea id="postPreviewTextarea" placeholder="Type your post here..." rows="4" class="post-text-input" title="Type your post content here"></textarea>
+                    <div class="post-text">This is an example of a social media post, demonstrating how content might appear before moderation. It's a sunny day, perfect for trying out new tools and exploring creative possibilities online!</div>
                     <img src="https://placehold.co/400x200/9CA3AF/ffffff?text=Placeholder+Image" alt="Post Image" class="post-image">
                 </div>
-            </div>
-            <button id="analyzePostBtn" class="action-button blue-button" style="width: 100%; margin-top: 0.5em;" title="Analyze the pasted content for moderation labels">Analyze Post (Coming Soon)</button>
-            <div id="postPreviewResults" style="margin-top: 1em; padding: 0.8em; background: var(--output-background); border: 1px solid var(--output-border); border-radius: var(--border-radius); min-height: 50px; color: var(--text-color); font-size: 0.9em;">
-                Results will appear here.
             </div>
         </div>
 
@@ -2222,7 +2216,7 @@ Original name:
         const selectTargetLang = document.createElement('select');
         selectTargetLang.innerHTML = '<option value="">Select Target Language</option>';
         commonLanguages.forEach(langObj => {
-          selectTargetLang.innerHTML += `<option value="${langObj.code}">${langObj.name}</option>`;
+          selectTargetLang.innerHTML += `<option value="${langObj.code}" ${langObj.code === langSelect.value ? 'disabled' : ''}>${langObj.name}</option>`; // Disable source language
         });
         selectTargetLang.style.width = '100%';
         selectTargetLang.style.marginBottom = '1em';
@@ -3238,6 +3232,7 @@ Original description:
 
     function populateBulkApplySnippetSelect() {
         const select = document.getElementById('bulkApplySnippetSelect');
+        const currentSelectedValue = select.value; // Store current value
         select.innerHTML = '<option value="">(Select Snippet)</option>';
         descriptionSnippets.forEach((snippet, index) => {
             const option = document.createElement('option');
@@ -3245,6 +3240,7 @@ Original description:
             option.textContent = snippet.name;
             select.appendChild(option);
         });
+        select.value = currentSelectedValue; // Restore current value
         // The button is disabled if no labels are selected OR no snippet is chosen
         document.getElementById('bulkApplySnippetBtn').disabled = selectedLabelIds.size === 0 || select.value === '';
     }
@@ -3881,7 +3877,7 @@ Original description:
 
       mobileRightMenuToggle.onclick = () => {
         rightMenuWrapperMobile.classList.toggle('open');
-        document.body.classList.toggle('menu-active');
+        document.body.classList.remove('menu-active');
       };
 
       closeRightMenuBtnMobile.onclick = () => {
