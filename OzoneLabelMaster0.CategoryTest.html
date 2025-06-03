@@ -1476,7 +1476,7 @@
       </a>
       <div class="header-text-group">
         <h1>OZONE LABEL MASTER</h1>
-        <p>version 0.93</p>
+        <p>version 0.94</p>
       </div>
     </header>
 
@@ -1591,6 +1591,7 @@
             </div>
         </div>
 
+        <!-- NEW: Post Preview Section -->
         <div class="bulk-action-group">
             <h3>Post Preview</h3>
             <div id="blueskyPostPreview" class="social-post-card">
@@ -1673,6 +1674,8 @@
       <label for="defaultLocaleLangSelect" style="text-align: left; margin-bottom: 0.5em;">Default Locale Language:</label>
       <select id="defaultLocaleLangSelect" title="Set the default language for new locales" style="width: 100%; padding: 0.5em; border-radius: var(--border-radius); border: 1px solid var(--input-border); background: var(--block-background); color: var(--text-color);">
       </select>
+      <label for="geminiApiKeyInput" style="text-align: left; margin-top: 1em; margin-bottom: 0.5em;">Gemini API Key:</label>
+      <input type="text" id="geminiApiKeyInput" placeholder="Paste your Gemini API Key here" title="Enter your Gemini API Key for AI features" style="width: 100%; padding: 0.5em; border-radius: var(--border-radius); border: 1px solid var(--input-border); background: var(--block-background); color: var(--text-color);">
       <div class="theme-switch-wrapper" title="Toggle between light and dark mode">
         <span class="theme-switch-label-text">Dark Mode</span>
         <label class="theme-switch" for="checkbox">
@@ -1728,9 +1731,25 @@
       <h3>All Description Snippets</h3>
       <div style="max-height: 300px; overflow-y: auto; text-align: left; padding-right: 10px;">
         <ul id="view-snippets-list" style="list-style: none; padding: 0; margin: 0;">
-          </ul>
+          <!-- Snippets will be dynamically loaded here -->
+        </ul>
       </div>
       <button id="closeViewSnippetsModalBtn" class="confirm-btn" style="margin-top: 1em;">Close</button>
+    </div>
+  </div>
+
+  <!-- New API Key Prompt Modal -->
+  <div id="apiKeyPromptModal" class="custom-modal-overlay" style="display: none;">
+    <div class="custom-modal-content">
+      <h3>Gemini API Key Required</h3>
+      <p>To use AI translation features, please provide your Gemini API Key.</p>
+      <p>You can get one from: <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: underline;">aistudio.google.com/app/apikey</a></p>
+      <p>Paste your key below:</p>
+      <input type="text" id="apiKeyPromptInput" placeholder="Paste your API Key here" title="Enter your Gemini API Key" style="width: 100%; padding: 0.5em; border-radius: var(--border-radius); border: 1px solid var(--input-border); background: var(--block-background); color: var(--text-color);">
+      <div style="display: flex; justify-content: center; gap: 0.5em;">
+        <button id="saveApiKeyPromptBtn" class="confirm-btn">Save Key & Continue</button>
+        <button id="cancelApiKeyPromptBtn" class="cancel-btn">Cancel</button>
+      </div>
     </div>
   </div>
 
@@ -1754,6 +1773,8 @@
     let selectedCategoryNames = new Set(); // Stores names of currently selected categories for bulk actions
     let defaultLocaleLanguage = ''; // New global variable for default locale language
     let descriptionSnippets = []; // New global variable for description snippets
+    let geminiApiKey = ''; // NEW: Global variable for Gemini API Key
+    let pendingTranslationAction = null; // NEW: Stores the function to call after API key is provided
 
     // --- IMPORTANT: Clear selectedLabelIds at the very start of script execution ---
     // This ensures a clean slate for selected IDs on every page load.
@@ -1776,8 +1797,8 @@
     // Custom Modal for alerts/confirms
     function showCustomModal(message, type = 'alert', onConfirm = null, customContent = null) {
       // Remove any existing modal overlays to prevent multiple modals
-      // IMPORTANT: Exclude the static optionsModal from this removal
-      document.querySelectorAll('.custom-modal-overlay:not(#optionsModal):not(#pasteJsonModal):not(#applySnippetModal):not(#bulkTranslateModal):not(#viewSnippetsModal)').forEach(el => el.remove());
+      // IMPORTANT: Exclude the static optionsModal, pasteJsonModal, applySnippetModal, bulkTranslateModal, viewSnippetsModal, and apiKeyPromptModal from this removal
+      document.querySelectorAll('.custom-modal-overlay:not(#optionsModal):not(#pasteJsonModal):not(#applySnippetModal):not(#bulkTranslateModal):not(#viewSnippetsModal):not(#apiKeyPromptModal)').forEach(el => el.remove());
 
       const overlay = document.createElement('div');
       overlay.className = 'custom-modal-overlay';
@@ -1838,7 +1859,8 @@
         labels: currentLabels,
         categories: categories,
         defaultLocaleLanguage: defaultLocaleLanguage,
-        descriptionSnippets: descriptionSnippets
+        descriptionSnippets: descriptionSnippets,
+        geminiApiKey: geminiApiKey // NEW: Save Gemini API Key
       };
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentSessionState));
       // console.log("Saved current session state to local storage:", currentSessionState); // Commented for less console noise
@@ -1861,7 +1883,8 @@
           categories: categories, // Include categories in history snapshot
           timestamp: new Date().toISOString(), // Use ISO string for date
           defaultLocaleLanguage: defaultLocaleLanguage, // Include default locale language in history snapshot
-          descriptionSnippets: descriptionSnippets
+          descriptionSnippets: descriptionSnippets,
+          geminiApiKey: geminiApiKey // NEW: Include Gemini API Key in history snapshot
         };
 
         // Update in-memory history for undo/redo
@@ -1934,6 +1957,14 @@
       descriptionSnippets = sessionData.descriptionSnippets || [];
       // No longer rendering snippet list in main UI, just populate dropdown
       populateBulkApplySnippetSelect(); // Populate the bulk apply snippet dropdown
+
+      // NEW: Load Gemini API Key
+      geminiApiKey = sessionData.geminiApiKey || '';
+      const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
+      if (geminiApiKeyInput) {
+          geminiApiKeyInput.value = geminiApiKey;
+      }
+
 
       updateJSONOutput(); // Update JSON output display
       updateFloatingMenu();
@@ -2062,12 +2093,14 @@
           </label>
           <label>Name: <input type="text" class="name" value="${name}" title="Enter the name for this locale"></label>
           <label>Description: <textarea class="description" title="Enter the description for this locale">${description}</textarea></label>
-          <div class="locale-action-row"> <div class="llm-buttons">
+          <div class="locale-action-row"> <!-- New flex container for buttons -->
+            <div class="llm-buttons">
               <button class="translate-name-btn" title="Translate this locale's name using AI">Translate Name ✨</button>
               <button class="translate-description-btn" title="Translate this locale's description using AI">Translate Description ✨</button>
               ${isFirstLocale ? `<button class="translate-multiple-btn translate-button" title="Translate name and description to multiple languages">Bulk Translate ✨</button>` : ''}
             </div>
-            <div class="snippet-action-group"> <button class="apply-snippet-btn blue-button" title="Apply a prewritten description snippet">Apply Snippet</button>
+            <div class="snippet-action-group"> <!-- New container for snippet button -->
+                <button class="apply-snippet-btn blue-button" title="Apply a prewritten description snippet">Apply Snippet</button>
             </div>
           </div>
         </div>
@@ -2138,8 +2171,8 @@
       };
 
 
-      // Event listener for Translate Name button
-      translateNameBtn.onclick = async () => {
+      // Refactored single translation functions
+      const performSingleTranslateName = async (nameInput, descriptionTextarea, langSelect) => {
         const currentName = nameInput.value.trim();
         if (!currentName) {
           showCustomModal('Please enter a name to translate.', 'alert');
@@ -2218,35 +2251,9 @@
 Original name:
 '${currentName}'`;
 
-            let chatHistory = [];
-            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-            const payload = { contents: chatHistory };
-            const apiKey = ""; // If you want to use models other than gemini-2.0-flash or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-            const response = await fetch(apiUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                const errorBody = await response.text();
-                throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`);
-            }
-
-            const result = await response.json();
-
-            if (result.candidates && result.candidates.length > 0 &&
-                result.candidates[0].content && result.candidates[0].content.parts &&
-                result.candidates[0].content.parts.length > 0) {
-              const translatedText = result.candidates[0].content.parts[0].text;
-              translatedTextarea.value = translatedText;
-              applyBtn.disabled = false;
-            } else {
-              showCustomModal('Failed to translate name. Unexpected API response structure.', 'alert');
-              console.error('Gemini API response structure unexpected:', result);
-            }
+            const translatedText = await callGeminiAPI(prompt);
+            translatedTextarea.value = translatedText;
+            applyBtn.disabled = false;
           } catch (error) {
             console.error('Error translating name:', error);
             showCustomModal('Error translating name: ' + error.message, 'alert');
@@ -2267,9 +2274,7 @@ Original name:
         };
       };
 
-
-      // Event listener for Translate Description button
-      translateDescriptionBtn.onclick = async () => {
+      const performSingleTranslateDescription = async (nameInput, descriptionTextarea, langSelect) => {
         const currentDescription = descriptionTextarea.value.trim();
         if (!currentDescription) {
           showCustomModal('Please enter a description to translate.', 'alert');
@@ -2348,35 +2353,9 @@ Original name:
 Original description:
 '${currentDescription}'`;
 
-            let chatHistory = [];
-            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
-            const payload = { contents: chatHistory };
-            const apiKey = ""; // If you want to use models other than gemini-2.0-flash or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-            const response = await fetch(apiUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                const errorBody = await response.text();
-                throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`);
-            }
-
-            const result = await response.json();
-
-            if (result.candidates && result.candidates.length > 0 &&
-                result.candidates[0].content && result.candidates[0].content.parts &&
-                result.candidates[0].content.parts.length > 0) {
-              const translatedText = result.candidates[0].content.parts[0].text;
-              translatedTextarea.value = translatedText;
-              applyBtn.disabled = false;
-            } else {
-              showCustomModal('Failed to translate description. Unexpected API response structure.', 'alert');
-              console.error('Gemini API response structure unexpected:', result);
-            }
+            const translatedText = await callGeminiAPI(prompt);
+            translatedTextarea.value = translatedText;
+            applyBtn.disabled = false;
           } catch (error) {
             console.error('Error translating description:', error);
             showCustomModal('Error translating description: ' + error.message, 'alert');
@@ -2397,31 +2376,32 @@ Original description:
         };
       };
 
+      // New: Event listener for Translate Name button
+      translateNameBtn.onclick = () => {
+        checkApiKeyAndProceed(performSingleTranslateName, nameInput, descriptionTextarea, langSelect);
+      };
+
+      // New: Event listener for Translate Description button
+      translateDescriptionBtn.onclick = () => {
+        checkApiKeyAndProceed(performSingleTranslateDescription, nameInput, descriptionTextarea, langSelect);
+      };
+
       // New: Event listener for Translate Multiple button
       if (translateMultipleBtn) { // Only attach if the button exists (i.e., isFirstLocale is true)
         translateMultipleBtn.onclick = () => {
             const sourceLangCode = langSelect.value;
             const sourceName = nameInput.value.trim();
             const sourceDescription = descriptionTextarea.value.trim();
+            const targetLabelId = div.closest('.label-block').id;
 
-            if (!sourceLangCode) {
-                showCustomModal('Please select a source language for this locale before translating to multiple languages.', 'alert');
-                return;
-            }
-            if (!sourceName && !sourceDescription) {
-                showCustomModal('Please enter a name or description in this locale to translate.', 'alert');
-                return;
-            }
-
-            // Populate modal checkboxes and show modal
-            populateBulkTranslateLanguageOptionsModal(sourceLangCode); // Pass source language to disable it
+            // Open the bulk translate modal first
+            populateBulkTranslateLanguageOptionsModal(sourceLangCode);
             document.getElementById('bulkTranslateModal').style.display = 'flex';
 
-            // Store current locale data in modal for use by startBulkTranslateBtn
-            document.getElementById('startBulkTranslateBtn').dataset.sourceLangCode = sourceLangCode;
-            document.getElementById('startBulkTranslateBtn').dataset.sourceName = sourceName;
-            document.getElementById('startBulkTranslateBtn').dataset.sourceDescription = sourceDescription;
-            document.getElementById('startBulkTranslateBtn').dataset.labelId = div.closest('.label-block').id;
+            // Set up the start button for the bulk translate modal
+            document.getElementById('startBulkTranslateBtn').onclick = () => {
+                performBulkTranslate(sourceLangCode, sourceName, sourceDescription, targetLabelId);
+            };
         };
       }
 
@@ -2814,7 +2794,8 @@ Original description:
           labelValueDefinitions: currentLabels,
           categories: categories,
           defaultLocaleLanguage: defaultLocaleLanguage,
-          descriptionSnippets: descriptionSnippets
+          descriptionSnippets: descriptionSnippets,
+          geminiApiKey: geminiApiKey // NEW: Include Gemini API Key
         });
 
         if (historyIndex < history.length - 1) {
@@ -3381,7 +3362,8 @@ Original description:
             listItem.innerHTML = `
                 <div class="snippet-item-header">
                     <span>${snippet.name}</span>
-                    <div style="display: flex; gap: 0.5em;"> <button class="snippet-action-btn edit-snippet-from-modal-btn" data-index="${index}" title="Edit this snippet">✏️</button>
+                    <div style="display: flex; gap: 0.5em;"> <!-- Group edit and delete -->
+                        <button class="snippet-action-btn edit-snippet-from-modal-btn" data-index="${index}" title="Edit this snippet">✏️</button>
                         <button class="snippet-action-btn delete-snippet-from-modal-btn" data-index="${index}" title="Delete this snippet">🗑️</button>
                     </div>
                 </div>
@@ -3452,12 +3434,7 @@ Original description:
         });
     }
 
-    async function startBulkTranslate() {
-        const sourceLangCode = document.getElementById('startBulkTranslateBtn').dataset.sourceLangCode;
-        const sourceName = document.getElementById('startBulkTranslateBtn').dataset.sourceName;
-        const sourceDescription = document.getElementById('startBulkTranslateBtn').dataset.sourceDescription;
-        const targetLabelId = document.getElementById('startBulkTranslateBtn').dataset.labelId;
-
+    async function performBulkTranslate(sourceLangCode, sourceName, sourceDescription, targetLabelId) {
         const selectedTargetLangs = [];
         document.querySelectorAll('#bulkTranslateTargetLangsModal input[type="checkbox"]:checked').forEach(checkbox => {
             selectedTargetLangs.push({
@@ -3549,11 +3526,15 @@ Original description:
     }
 
     async function callGeminiAPI(prompt) {
+        if (!geminiApiKey) {
+            throw new Error("Gemini API Key is not set. Please provide it in the Options menu.");
+        }
+
         let chatHistory = [];
         chatHistory.push({ role: "user", parts: [{ text: prompt }] });
         const payload = { contents: chatHistory };
-        const apiKey = ""; // If you want to use models other than gemini-2.0-flash or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+        // Use the global geminiApiKey here
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`;
 
         const response = await fetch(apiUrl, {
             method: 'POST',
@@ -3574,6 +3555,17 @@ Original description:
             return result.candidates[0].content.parts[0].text;
         } else {
             throw new Error('Unexpected API response structure or no content.');
+        }
+    }
+
+    // NEW: Function to check for API key and proceed with translation or prompt user
+    function checkApiKeyAndProceed(actionFunction, ...args) {
+        if (geminiApiKey) {
+            actionFunction(...args);
+        } else {
+            pendingTranslationAction = () => actionFunction(...args);
+            document.getElementById('apiKeyPromptModal').style.display = 'flex';
+            document.getElementById('apiKeyPromptInput').value = ''; // Clear input on show
         }
     }
 
@@ -3601,6 +3593,12 @@ Original description:
       } else {
         // Initial state if no valid saved data or corrupted data was found
         createLabelBlock('example_label', 'inform', 'content', 'ignore', false, true, [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}], '', true);
+        // Initialize API key to empty if no saved state
+        geminiApiKey = '';
+        const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
+        if (geminiApiKeyInput) {
+            geminiApiKeyInput.value = geminiApiKey;
+        }
         updateJSONOutput(); // This will save the initial state and add to history
       }
 
@@ -3714,6 +3712,15 @@ Original description:
                     populateBulkApplySnippetSelect();
                 }
 
+                // NEW: If geminiApiKey is present, update it
+                if (parsedData.geminiApiKey !== undefined) {
+                    geminiApiKey = parsedData.geminiApiKey;
+                    const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
+                    if (geminiApiKeyInput) {
+                        geminiApiKeyInput.value = geminiApiKey;
+                    }
+                }
+
 
                 saveFullSessionStateToLocalStorage(); // Save the new state
                 updateJSONOutput(); // Update output and history
@@ -3798,6 +3805,15 @@ Original description:
                   populateBulkApplySnippetSelect();
               }
 
+              // NEW: If geminiApiKey is present, update it
+              if (parsedData.geminiApiKey !== undefined) {
+                  geminiApiKey = parsedData.geminiApiKey;
+                  const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
+                  if (geminiApiKeyInput) {
+                      geminiApiKeyInput.value = geminiApiKey;
+                  }
+              }
+
               saveFullSessionStateToLocalStorage(); // Save the new state
               updateJSONOutput(); // Update output and history
               showCustomModal('JSON imported successfully!', 'alert');
@@ -3851,6 +3867,7 @@ Original description:
             categories = []; // Clear categories too
             descriptionSnippets = []; // Clear snippets
             defaultLocaleLanguage = 'en'; // Reset default locale
+            geminiApiKey = ''; // NEW: Clear API key on reset
             
             createLabelBlock('example_label', 'inform', 'content', 'ignore', false, true, [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}], '', true); // Pass true for isFirstLabel
             saveFullSessionStateToLocalStorage(); // Save the cleared state
@@ -3861,6 +3878,11 @@ Original description:
             updateFloatingMenu(); // Rebuild floating menu to reflect cleared selection
             updateLabelNumbers(); // Re-numbers
             updateMoveButtons(); // Updates move buttons
+            // Update API key input field in options modal
+            const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
+            if (geminiApiKeyInput) {
+                geminiApiKeyInput.value = geminiApiKey;
+            }
             showCustomModal('All labels cleared and reset to default!', 'alert');
           }
         });
@@ -4047,6 +4069,16 @@ Original description:
           saveFullSessionStateToLocalStorage();
       });
 
+      // NEW: Gemini API Key Input in Options Modal
+      const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
+      if (geminiApiKeyInput) {
+          geminiApiKeyInput.addEventListener('input', () => {
+              geminiApiKey = geminiApiKeyInput.value.trim();
+              saveFullSessionStateToLocalStorage(); // Save key as it's typed
+          });
+      }
+
+
       // Bulk Actions
       document.getElementById('bulkApplyPropertiesBtn').onclick = applyBulkProperties;
       document.getElementById('deleteSelectedLabelsBtn').onclick = deleteSelectedLabels;
@@ -4067,9 +4099,40 @@ Original description:
       };
 
       // Bulk Translate Modal buttons
-      document.getElementById('startBulkTranslateBtn').onclick = startBulkTranslate;
+      // The `startBulkTranslate` function is defined below, so it needs to be attached after its definition.
+      // We will attach it directly within the `translateMultipleBtn.onclick` handler in `createLocaleBlock`
+      // where `performBulkTranslate` is called, and here we will only attach the cancel button.
       document.getElementById('cancelBulkTranslateBtn').onclick = () => {
           document.getElementById('bulkTranslateModal').style.display = 'none';
+      };
+
+      // NEW: API Key Prompt Modal Buttons
+      const apiKeyPromptModal = document.getElementById('apiKeyPromptModal');
+      const apiKeyPromptInput = document.getElementById('apiKeyPromptInput');
+      const saveApiKeyPromptBtn = document.getElementById('saveApiKeyPromptBtn');
+      const cancelApiKeyPromptBtn = document.getElementById('cancelApiKeyPromptBtn');
+
+      saveApiKeyPromptBtn.onclick = () => {
+          const key = apiKeyPromptInput.value.trim();
+          if (key) {
+              geminiApiKey = key;
+              if (geminiApiKeyInput) { // Update the input in the options modal
+                  geminiApiKeyInput.value = geminiApiKey;
+              }
+              saveFullSessionStateToLocalStorage();
+              apiKeyPromptModal.style.display = 'none';
+              if (pendingTranslationAction) {
+                  pendingTranslationAction(); // Re-trigger the original translation
+                  pendingTranslationAction = null;
+              }
+          } else {
+              showCustomModal('Please enter a valid API key.', 'alert');
+          }
+      };
+
+      cancelApiKeyPromptBtn.onclick = () => {
+          apiKeyPromptModal.style.display = 'none';
+          pendingTranslationAction = null; // Clear pending action
       };
 
 
@@ -4079,7 +4142,8 @@ Original description:
               labels: getLabelsData(),
               categories: categories,
               defaultLocaleLanguage: defaultLocaleLanguage,
-              descriptionSnippets: descriptionSnippets
+              descriptionSnippets: descriptionSnippets,
+              geminiApiKey: geminiApiKey // NEW: Save Gemini API Key
           };
           const blob = new Blob([JSON.stringify(currentSessionState, null, 2)], { type: 'application/json' });
           const url = URL.createObjectURL(blob);
