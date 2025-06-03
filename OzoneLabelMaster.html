@@ -914,9 +914,8 @@
 
   /* Bulk Actions Menu Specifics */
   #bulk-actions-menu {
-    /* width: 420px; /* Removed fixed width */
-    flex: 1; /* Allow it to grow and shrink horizontally */
-    min-width: 300px; /* Set a minimum width to prevent collapse */
+    width: 420px; /* Increased width by 20% from 350px */
+    /* Removed height: 100% to allow it to shrink if content is short */
     display: flex; /* Ensure it's a flex container */
     flex-direction: column; /* Stack children vertically */
     gap: 0.5em; /* Default gap for children */
@@ -1283,7 +1282,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 0.25em; /* Reduced from 0.5em */
+      margin-top: 0; /* Reduced from 0.5em */
   }
 
   .snippet-management-section .snippet-actions button {
@@ -1559,7 +1558,7 @@
       </a>
       <div class="header-text-group">
         <h1>OZONE LABEL MASTER</h1>
-        <p>version 1.06</p>
+        <p>version 1.05</p>
       </div>
     </header>
 
@@ -1681,7 +1680,7 @@
                         </div>
                     </div>
                     <label style="margin-top: 1em;">Adult Only: <input type="checkbox" id="bulkAdultOnlyControl" title="Mark if this label is for adult content only"></label>
-                    <div style="display: flex; justify-content: space-between; gap: 0.5em; margin-top: 0.5em;"> <!-- Reduced margin-top -->
+                    <div style="display: flex; justify-content: space-between; gap: 0.5em; margin-top: 1em;">
                         <button id="bulkApplyPropertiesBtn" class="action-button" style="flex-grow: 1;" title="Apply selected property changes to target labels">Apply Selected Properties</button>
                         <button id="setDefaultLabelPropertiesBtn" class="action-button blue-button" style="flex-shrink: 0;" title="Set current Blurs, Severity, and Default Setting as defaults for new labels">Set Default</button>
                     </div>
@@ -1726,18 +1725,18 @@
             </div>
 
             <div class="bulk-action-group snippet-management-section">
-                <h3 style="margin-bottom: 0.25em;">Description Snippets</h3> <!-- Reduced margin-bottom -->
+                <h3>Description Snippets</h3>
                 <div class="snippet-input-group">
                     <label for="newSnippetName">Snippet Name:</label>
                     <input type="text" id="newSnippetName" placeholder="e.g., 'Common Disclaimer'" title="Enter a name for your snippet">
                     <label for="newSnippetContent">Snippet Content:</label>
-                    <textarea id="newSnippetContent" placeholder="Enter the prewritten text here..." style="margin-bottom: 0;" title="Enter the text content of your snippet"></textarea> <!-- Reduced margin-bottom -->
+                    <textarea id="newSnippetContent" placeholder="Enter the prewritten text here..." title="Enter the text content of your snippet"></textarea>
                 </div>
-                <div class="snippet-actions" style="margin-top: 0.25em;"> <!-- Reduced margin-top -->
+                <div class="snippet-actions">
                     <button id="addSnippetBtn" class="action-button" style="background: var(--primary); color: white;" title="Add this text as a reusable snippet">Add Snippet</button>
                     <button id="viewSnippetsBtn" class="action-button blue-button" title="View, edit, or delete existing snippets">View Snippets</button>
                 </div>
-                <div class="bulk-action-row" style="margin-top: 0.5em; display: flex; align-items: center; gap: 0.5em;">
+                <div class="bulk-action-row" style="margin-top: 0.25em; display: flex; align-items: center; gap: 0.5em;">
                     <label for="bulkApplySnippetSelect" style="margin-top: 0;">Apply Snippet:</label>
                     <select id="bulkApplySnippetSelect" style="flex-grow: 1;" title="Select a snippet to apply to descriptions">
                         <option value="">(Select Snippet)</option>
@@ -3710,7 +3709,7 @@ Original description:
                     const namePrompt = `Translate the following content moderation label name into ${targetLangName}. Only provide the translated text, no additional commentary.
 Original name:
 '${sourceName}'`;
-                    const translatedName = await callGeminiAPI(prompt);
+                    const translatedName = await callGeminiAPI(namePrompt);
                     nameInput.value = translatedName;
                 }
 
@@ -3720,7 +3719,7 @@ Original name:
                     const descriptionPrompt = `Translate the following content moderation label description into ${targetLangName}. Only provide the translated text, no additional commentary.
 Original description:
 '${sourceDescription}'`;
-                    const translatedDescription = await callGeminiAPI(prompt);
+                    const translatedDescription = await callGeminiAPI(descriptionPrompt);
                     descriptionTextarea.value = translatedDescription;
                 }
                 translationsPerformed++;
@@ -3834,34 +3833,26 @@ Original description:
             }
         });
 
-        // 2. Determine which categories are selected
-        const currentlySelectedCategories = new Set();
-        document.querySelectorAll('.category-select-checkbox').forEach(checkbox => {
-            if (checkbox.checked) {
-                currentlySelectedCategories.add(checkbox.dataset.categoryName);
-            }
-        });
-        selectedCategoryNames = currentlySelectedCategories; // Update global set
-
-
-        // 3. Populate newSelectedLabelIds based on individual and category selections
+        // 2. Add labels from selected categories
+        const categorySelected = new Set();
         allLabelDivs.forEach(labelDiv => {
             const categorySelect = labelDiv.querySelector('.label-category');
-            const labelCategory = categorySelect ? categorySelect.value : '';
+            if (categorySelect && selectedCategoryNames.has(categorySelect.value)) {
+                categorySelected.add(labelDiv.id);
+            }
+        });
 
-            // A label is selected if:
-            // a) it was individually selected, OR
-            // b) its category is selected AND it's not individually deselected (if that were an option)
-            // The current logic allows individual deselection to override category selection.
-            if (individuallySelected.has(labelDiv.id) || currentlySelectedCategories.has(labelCategory)) {
+        // 3. Combine both sets into the final selectedLabelIds
+        // A label is selected if it's individually selected OR its category is selected
+        allLabelDivs.forEach(labelDiv => {
+            if (individuallySelected.has(labelDiv.id) || categorySelected.has(labelDiv.id)) {
                 newSelectedLabelIds.add(labelDiv.id);
             }
         });
 
-        // 4. Update the global selectedLabelIds
-        selectedLabelIds = newSelectedLabelIds;
+        selectedLabelIds = newSelectedLabelIds; // Update the global set
 
-        // 5. Update all UI checkboxes to reflect the new state of selectedLabelIds
+        // 4. Update all UI checkboxes to reflect the new state of selectedLabelIds
         document.querySelectorAll('.label-block .bulk-select-checkbox').forEach(checkbox => {
             checkbox.checked = selectedLabelIds.has(checkbox.dataset.labelId);
         });
@@ -3869,14 +3860,13 @@ Original description:
             checkbox.checked = selectedLabelIds.has(checkbox.dataset.labelId);
         });
 
-        // 6. Update the category checkboxes in the category menu (already done by renderCategoryMenu)
-        // This ensures the category checkbox reflects the `selectedCategoryNames` set.
+        // 5. Update the category checkboxes in the category menu
         document.querySelectorAll('.category-select-checkbox').forEach(checkbox => {
             checkbox.checked = selectedCategoryNames.has(checkbox.dataset.categoryName);
         });
 
 
-        // 7. Update the bulk actions counter
+        // 6. Update the bulk actions counter
         updateBulkActionsLabelCount();
         populateBulkApplySnippetSelect(); // Update button disabled state
     }
