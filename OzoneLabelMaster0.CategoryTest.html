@@ -1508,7 +1508,7 @@
       </a>
       <div class="header-text-group">
         <h1>OZONE LABEL MASTER</h1>
-        <p>version 0.95</p>
+        <p>version 0.96</p>
       </div>
     </header>
 
@@ -2061,7 +2061,7 @@
       { code: 'it', name: 'Italian' },
       { code: 'ko', name: 'Korean' },
       { code: 'nl', name: 'Dutch' },
-      { code: 'sv', name: 'Swedish' },
+      { code: 'sv', 'name': 'Swedish' },
       { code: 'pl', 'name': 'Polish' },
       { code: 'tr', 'name': 'Turkish' },
       { code: 'vi', 'name': 'Vietnamese' },
@@ -3668,22 +3668,26 @@ Original description:
       // Load saved state from local storage or initialize default
       const savedState = localStorage.getItem(LOCAL_STORAGE_KEY);
       let parsedState = null;
+      let hasLabelsInSavedState = false;
+
       if (savedState) {
         try {
           parsedState = JSON.parse(savedState);
+          // Check if parsedState contains any labels
+          const labelsInParsedState = parsedState.labelValueDefinitions || parsedState.labels;
+          if (labelsInParsedState && Array.isArray(labelsInParsedState) && labelsInParsedState.length > 0) {
+            hasLabelsInSavedState = true;
+          }
         } catch (e) {
           console.error("Error parsing saved state from local storage, resetting:", e);
           localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear corrupted data
         }
       }
 
-      // Load the state first if it exists
-      if (parsedState) {
+      if (hasLabelsInSavedState) {
         loadState(JSON.stringify(parsedState)); // Pass the stringified parsed object back to loadState
-      }
-
-      // After attempting to load, if there are still no labels, create a default one
-      if (document.querySelectorAll('.label-block').length === 0) {
+      } else {
+        // Only create a default label if there were no labels in saved state or no saved state at all
         createLabelBlock('example_label', 'inform', 'content', 'ignore', false, true, [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}], '', true); // Pass true for isFirstLabel
         // Initialize API key to empty if no saved state
         geminiApiKey = '';
