@@ -1440,6 +1440,38 @@
       font-size: 1.2em; /* Larger icon size */
   }
 
+  /* New styles for count boxes in menu headers */
+  .menu-header-with-count {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      margin-bottom: 0.8em; /* Match existing h3 margin-bottom */
+  }
+
+  .menu-header-with-count h3 {
+      margin: 0; /* Remove default h3 margin */
+      color: var(--primary);
+      font-size: 1.2rem;
+      flex-shrink: 0;
+  }
+
+  .menu-header-count-box {
+    background: var(--gray);
+    color: white;
+    padding: 0.3em 0.6em;
+    border-radius: var(--border-radius);
+    font-size: 0.9em;
+    font-weight: 600;
+    flex-shrink: 0;
+    min-width: 30px;
+    text-align: center;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+
 </style>
 
 </head>
@@ -1476,7 +1508,7 @@
       </a>
       <div class="header-text-group">
         <h1>OZONE LABEL MASTER</h1>
-        <p>version 0.94</p>
+        <p>version 0.95</p>
       </div>
     </header>
 
@@ -1502,7 +1534,12 @@
                 <h3>Categories</h3>
                 <button id="closeCategoryMenuBtnDesktop" class="close-mobile-menu-btn" title="Close categories menu">X</button>
             </div>
-            <h3>Label Categories</h3>
+            <div class="menu-header-with-count">
+                <h3>Label Categories</h3>
+                <div class="menu-header-count-box">
+                    <span id="categoryCount">0</span>
+                </div>
+            </div>
             <div class="category-input-group">
                 <input type="text" id="newCategoryInput" placeholder="New category name" title="Enter a new category name" />
                 <button id="addCategoryBtn" title="Add the new category">Add</button>
@@ -1519,7 +1556,12 @@
                 <h3>Quick Access</h3>
                 <button id="closeRightMenuBtnDesktop" class="close-mobile-menu-btn" title="Close quick access menu">X</button>
             </div>
-            <h3>Labels Quick Access</h3>
+            <div class="menu-header-with-count">
+                <h3>Labels Quick Access</h3>
+                <div class="menu-header-count-box">
+                    <span id="labelTotalCount">0</span>
+                </div>
+            </div>
             <div class="scrollable-content">
                 <ul id="label-quick-access-list" title="Quick access links to label blocks">
                 </ul>
@@ -1538,7 +1580,7 @@
         <div class="label-block" style="margin-bottom: 1em;">
             <div class="label-header" style="cursor: default;">
                 <div class="label-number-box">
-                    <span class="label-number"></span>
+                    <span id="bulkSelectedCount" class="label-number">0</span>
                 </div>
                 <div class="label-identifier-box">
                     <span class="label-identifier-display">Bulk Edit Label Settings</span>
@@ -1973,6 +2015,9 @@
       updateUndoRedoButtons();
       updateLabelNumbers(); // Update numbers after loading state
       console.log("selectedLabelIds after loadState:", selectedLabelIds);
+      updateBulkActionsLabelCount(); // NEW: Update bulk actions count after loading state
+      updateTotalLabelCount(); // NEW: Update total label count after loading state
+      updateTotalCategoryCount(); // NEW: Update total category count after loading state
     }
 
     // Undo the last change
@@ -2119,6 +2164,7 @@
         div.remove();
         saveFullSessionStateToLocalStorage(); // Save full session state
         updateJSONOutput(); // Update JSON output display
+        updateTotalLabelCount(); // NEW: Update total label count
       };
 
       const nameInput = div.querySelector('.name');
@@ -2366,7 +2412,7 @@ Original description:
 
         applyBtn.onclick = () => {
           descriptionTextarea.value = translatedTextarea.value;
-          saveFullSessionStateToLocalStorage(); // Save full session state
+          saveFullSessionStateToLocalStorage();
           updateJSONOutput(); // Update JSON output display
           document.querySelector('.custom-modal-overlay').remove(); // Close the modal
         };
@@ -2530,6 +2576,8 @@ Original description:
                 updateJSONOutput(); // Update JSON output display
                 updateLabelNumbers(); // Update numbers after removal
                 console.log("selectedLabelIds after label removal:", selectedLabelIds);
+                updateBulkActionsLabelCount(); // NEW: Update bulk actions count
+                updateTotalLabelCount(); // NEW: Update total label count
             }
         });
       };
@@ -2563,6 +2611,7 @@ Original description:
           }
           updateFloatingMenu(); // Update quick access checkboxes
           populateBulkApplySnippetSelect(); // Update button disabled state
+          updateBulkActionsLabelCount(); // NEW: Update bulk actions count
           console.log("selectedLabelIds after bulk select checkbox change:", selectedLabelIds);
       });
 
@@ -2625,12 +2674,14 @@ Original description:
         createLocaleBlock(localesContainer, defaultLang, defaultName, defaultDescription, false); // New locales are not the first
         saveFullSessionStateToLocalStorage(); // Save full session state
         updateJSONOutput(); // Update JSON output display
+        updateTotalLabelCount(); // NEW: Update total label count
       };
 
       updateLabelBlockVisualState(labelDiv);
       addDragHandlers(labelDiv);
       updateLabelCategoryDropdowns(); // Update category dropdown for this new label
       updateLabelNumbers(); // Update numbers after adding a new label
+      updateTotalLabelCount(); // NEW: Update total label count after adding a new label
 
       return labelDiv;
     }
@@ -2687,6 +2738,7 @@ Original description:
       saveFullSessionStateToLocalStorage(); // Save full session state
       updateJSONOutput(); // Update JSON output display
       updateLabelNumbers(); // Update numbers after drag and drop
+      updateTotalLabelCount(); // NEW: Update total label count
       return false;
     }
 
@@ -2856,6 +2908,7 @@ Original description:
         updateJSONOutput();
         updateLabelNumbers();
         updateMoveButtons();
+        updateTotalLabelCount(); // NEW: Update total label count
       }
     }
 
@@ -2868,6 +2921,7 @@ Original description:
         updateJSONOutput();
         updateLabelNumbers();
         updateMoveButtons();
+        updateTotalLabelCount(); // NEW: Update total label count
       }
     }
 
@@ -2925,6 +2979,7 @@ Original description:
                 mainLabelCheckbox.checked = event.target.checked;
             }
             populateBulkApplySnippetSelect(); // Update button disabled state
+            updateBulkActionsLabelCount(); // NEW: Update bulk actions count
             console.log("selectedLabelIds after quick access checkbox change:", selectedLabelIds);
         });
 
@@ -2936,6 +2991,7 @@ Original description:
         listItem.addEventListener('drop', dropQuickAccess);
         listItem.addEventListener('dragend', dragEndQuickAccess);
       });
+      updateTotalLabelCount(); // NEW: Update total label count after floating menu update
     }
 
     function dragStartQuickAccess(e) {
@@ -2987,6 +3043,7 @@ Original description:
           updateJSONOutput();
           updateLabelNumbers(); // Re-number both main and quick access lists
           updateMoveButtons();
+          updateTotalLabelCount(); // NEW: Update total label count
         }
       }
       return false;
@@ -3033,6 +3090,7 @@ Original description:
               renderCategoryMenu();
               saveFullSessionStateToLocalStorage();
               updateJSONOutput(); // Trigger JSON update and history save
+              updateTotalCategoryCount(); // NEW: Update total category count
             }
           });
         };
@@ -3054,6 +3112,7 @@ Original description:
         listItem.addEventListener('drop', dropCategory);
         listItem.addEventListener('dragend', dragEndCategory);
       });
+      updateTotalCategoryCount(); // NEW: Update total category count after rendering
     }
 
     function dragStartCategory(e) {
@@ -3096,6 +3155,7 @@ Original description:
           renderCategoryMenu();
           saveFullSessionStateToLocalStorage();
           updateJSONOutput(); // Trigger JSON update and history save
+          updateTotalCategoryCount(); // NEW: Update total category count
         }
       }
       return false;
@@ -3117,6 +3177,7 @@ Original description:
         updateLabelCategoryDropdowns(); // Update all label category dropdowns
         saveFullSessionStateToLocalStorage();
         updateJSONOutput(); // Trigger JSON update and history save
+        updateTotalCategoryCount(); // NEW: Update total category count
       } else if (categories.includes(newCategoryName)) {
         showCustomModal('Category already exists!', 'alert');
       }
@@ -3196,6 +3257,7 @@ Original description:
       });
       updateFloatingMenu(); // Re-render quick access to reflect cleared checkboxes
       populateBulkApplySnippetSelect(); // Update button disabled state
+      updateBulkActionsLabelCount(); // NEW: Update bulk actions count
       console.log("selectedLabelIds after clearSelectedLabels:", selectedLabelIds);
     }
 
@@ -3222,6 +3284,8 @@ Original description:
           updateJSONOutput();
           updateLabelNumbers(); // Re-number remaining labels
           showCustomModal('Selected labels deleted successfully!', 'alert');
+          updateBulkActionsLabelCount(); // NEW: Update bulk actions count
+          updateTotalLabelCount(); // NEW: Update total label count
           console.log("selectedLabelIds after deleteSelectedLabels:", selectedLabelIds);
         }
       });
@@ -3250,6 +3314,7 @@ Original description:
           saveFullSessionStateToLocalStorage();
           updateJSONOutput(); // Trigger JSON update and history save
           showCustomModal('Selected categories deleted successfully!', 'alert');
+          updateTotalCategoryCount(); // NEW: Update total category count
         }
       });
     }
@@ -3569,6 +3634,30 @@ Original description:
         }
     }
 
+    // NEW: Function to update the count of selected labels in the bulk actions menu
+    function updateBulkActionsLabelCount() {
+        const bulkSelectedCountSpan = document.getElementById('bulkSelectedCount');
+        if (bulkSelectedCountSpan) {
+            bulkSelectedCountSpan.textContent = selectedLabelIds.size;
+        }
+    }
+
+    // NEW: Function to update the total label count in the Labels Quick Access menu
+    function updateTotalLabelCount() {
+        const labelTotalCountSpan = document.getElementById('labelTotalCount');
+        if (labelTotalCountSpan) {
+            labelTotalCountSpan.textContent = document.querySelectorAll('.label-block').length;
+        }
+    }
+
+    // NEW: Function to update the total category count in the Label Categories menu
+    function updateTotalCategoryCount() {
+        const categoryCountSpan = document.getElementById('categoryCount');
+        if (categoryCountSpan) {
+            categoryCountSpan.textContent = categories.length;
+        }
+    }
+
 
     // --- Event Listeners and Initialization ---
     document.addEventListener('DOMContentLoaded', () => {
@@ -3588,11 +3677,14 @@ Original description:
         }
       }
 
+      // Load the state first if it exists
       if (parsedState) {
         loadState(JSON.stringify(parsedState)); // Pass the stringified parsed object back to loadState
-      } else {
-        // Initial state if no valid saved data or corrupted data was found
-        createLabelBlock('example_label', 'inform', 'content', 'ignore', false, true, [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}], '', true);
+      }
+
+      // After attempting to load, if there are still no labels, create a default one
+      if (document.querySelectorAll('.label-block').length === 0) {
+        createLabelBlock('example_label', 'inform', 'content', 'ignore', false, true, [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}], '', true); // Pass true for isFirstLabel
         // Initialize API key to empty if no saved state
         geminiApiKey = '';
         const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
@@ -3601,6 +3693,7 @@ Original description:
         }
         updateJSONOutput(); // This will save the initial state and add to history
       }
+
 
       // Load history from local storage
       const savedHistory = localStorage.getItem(HISTORY_LOCAL_STORAGE_KEY);
@@ -3725,6 +3818,9 @@ Original description:
                 saveFullSessionStateToLocalStorage(); // Save the new state
                 updateJSONOutput(); // Update output and history
                 showCustomModal('JSON pasted successfully!', 'alert');
+                updateBulkActionsLabelCount(); // NEW: Update bulk actions count
+                updateTotalLabelCount(); // NEW: Update total label count
+                updateTotalCategoryCount(); // NEW: Update total category count
               } catch (error) {
                 console.error('Error pasting JSON:', error);
                 showCustomModal('Failed to paste JSON. Ensure it is valid JSON. Error: ' + error.message, 'alert');
@@ -3817,6 +3913,9 @@ Original description:
               saveFullSessionStateToLocalStorage(); // Save the new state
               updateJSONOutput(); // Update output and history
               showCustomModal('JSON imported successfully!', 'alert');
+              updateBulkActionsLabelCount(); // NEW: Update bulk actions count
+              updateTotalLabelCount(); // NEW: Update total label count
+              updateTotalCategoryCount(); // NEW: Update total category count
             } catch (error) {
               console.error('Error importing JSON:', error);
               showCustomModal('Failed to import JSON. Ensure the file is a valid JSON. Error: ' + error.message, 'alert');
@@ -3883,6 +3982,9 @@ Original description:
             if (geminiApiKeyInput) {
                 geminiApiKeyInput.value = geminiApiKey;
             }
+            updateBulkActionsLabelCount(); // NEW: Update bulk actions count
+            updateTotalLabelCount(); // NEW: Update total label count
+            updateTotalCategoryCount(); // NEW: Update total category count
             showCustomModal('All labels cleared and reset to default!', 'alert');
           }
         });
@@ -4270,12 +4372,14 @@ Original description:
       // --- End Post Preview Blur Logic ---
 
 
-      // Initial renders
+      // Initial renders and updates for new counts
       renderCategoryMenu();
-      // No longer calling renderSnippetManagementUI here
       populateBulkApplySnippetSelect();
       updateLabelNumbers(); // Ensure initial numbering is correct
       updateMoveButtons(); // Ensure initial button states are correct
+      updateBulkActionsLabelCount(); // Initial update for bulk actions count
+      updateTotalLabelCount(); // Initial update for total label count
+      updateTotalCategoryCount(); // Initial update for total category count
     });
 
     // Helper to populate the default locale language select dropdown
