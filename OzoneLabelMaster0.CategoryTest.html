@@ -1849,7 +1849,7 @@
           categories: categories, // Include categories in history snapshot
           timestamp: new Date().toISOString(), // Use ISO string for date
           defaultLocaleLanguage: defaultLocaleLanguage, // Include default locale language in history snapshot
-          descriptionSnippets: descriptionSnippets // Include snippets in history snapshot
+          descriptionSnippets: descriptionSnippets
         };
 
         // Update in-memory history for undo/redo
@@ -2204,7 +2204,7 @@ Original name:
             chatHistory.push({ role: "user", parts: [{ text: prompt }] });
             const payload = { contents: chatHistory };
             // IMPORTANT: Replace with your actual Gemini API Key here.
-            const apiKey = ""; 
+            const apiKey = "AIzaSyDiYlt8YhzSFIqgvEE7qSFZHVcjYLRXu-c"; 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             const response = await fetch(apiUrl, {
@@ -2335,7 +2335,7 @@ Original description:
             chatHistory.push({ role: "user", parts: [{ text: prompt }] });
             const payload = { contents: chatHistory };
             // IMPORTANT: Replace with your actual Gemini API Key here.
-            const apiKey = ""; 
+            const apiKey = "AIzaSyDiYlt8YhzSFIqgvEE7qSFZHVcjYLRXu-c"; 
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             const response = await fetch(apiUrl, {
@@ -3515,7 +3515,7 @@ Original description:
         chatHistory.push({ role: "user", parts: [{ text: prompt }] });
         const payload = { contents: chatHistory };
         // IMPORTANT: Replace with your actual Gemini API Key here.
-        const apiKey = ""; 
+        const apiKey = "AIzaSyDiYlt8YhzSFIqgvEE7qSFZHVcjYLRXu-c"; 
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
         const response = await fetch(apiUrl, {
