@@ -1508,7 +1508,7 @@
       </a>
       <div class="header-text-group">
         <h1>OZONE LABEL MASTER</h1>
-        <p>version 0.97</p>
+        <p>version 0.98</p>
       </div>
     </header>
 
@@ -2060,7 +2060,7 @@
       { code: 'ru', name: 'Russian' },
       { code: 'it', name: 'Italian' },
       { code: 'ko', name: 'Korean' },
-      { code: 'nl', name: 'Dutch' },
+      { code: 'nl', 'name': 'Dutch' },
       { code: 'sv', 'name': 'Swedish' },
       { code: 'pl', 'name': 'Polish' },
       { code: 'tr', 'name': 'Turkish' },
@@ -2475,6 +2475,8 @@ Original description:
 
     // Function to create a new label block
     function createLabelBlock(id = '', severity = 'inform', blurs = 'content', defaultSetting = 'ignore', adultOnly = false, enabled = true, locales = [], category = '', isFirstLabel = false, htmlId = `label-${crypto.randomUUID()}`) { // Added htmlId parameter
+      console.log(`createLabelBlock called for ID: "${id}" (HTML ID: ${htmlId}). Current label blocks BEFORE append:`, document.querySelectorAll('.label-block').length);
+
       const container = document.getElementById('labels-container');
       const labelDiv = document.createElement('div');
       labelDiv.className = 'label-block';
@@ -2557,6 +2559,8 @@ Original description:
       `;
 
       container.appendChild(labelDiv);
+      console.log(`createLabelBlock finished for ID: "${id}" (HTML ID: ${htmlId}). Current label blocks AFTER append:`, document.querySelectorAll('.label-block').length);
+
 
       const collapseBtn = labelDiv.querySelector('.collapse-btn');
       const labelContent = labelDiv.querySelector('.label-content');
@@ -2738,6 +2742,7 @@ Original description:
       saveFullSessionStateToLocalStorage(); // Save full session state
       updateJSONOutput(); // Update JSON output display
       updateLabelNumbers(); // Update numbers after drag and drop
+      updateMoveButtons();
       updateTotalLabelCount(); // NEW: Update total label count
       return false;
     }
@@ -2753,10 +2758,20 @@ Original description:
     // Extracts current label data from the DOM
     function getLabelsData() {
       const labels = [];
-      document.querySelectorAll('.label-block').forEach(labelDiv => {
-        // Add null checks for each querySelector result
+      const labelDivs = document.querySelectorAll('.label-block');
+      console.log(`getLabelsData called. Found ${labelDivs.length} label blocks.`);
+
+      labelDivs.forEach(labelDiv => {
+        // IMPORTANT: Only process label blocks that have a valid identifier input.
+        // This helps filter out any temporary or uninitialized elements.
         const identifierInput = labelDiv.querySelector('.identifier');
-        const identifier = identifierInput ? identifierInput.value.trim() : ''; // Default to empty string
+        if (!identifierInput) {
+            console.warn(`Skipping label block ${labelDiv.id} in getLabelsData: Missing identifier input.`);
+            return; // Skip this labelDiv if it's not fully formed
+        }
+
+        const identifier = identifierInput.value.trim();
+        console.log(`  - Processing label block ID: ${labelDiv.id}, Identifier: "${identifier}"`);
 
         const severitySelect = labelDiv.querySelector('.severity');
         const severity = severitySelect ? severitySelect.value : 'inform'; // Default to 'inform'
@@ -3661,47 +3676,47 @@ Original description:
 
     // --- Event Listeners and Initialization ---
     document.addEventListener('DOMContentLoaded', () => {
+      console.log("DOMContentLoaded: Starting initialization.");
       // ALWAYS clear the labels container at the very beginning
       document.getElementById('labels-container').innerHTML = '';
-      console.log("DOM Content Loaded. labels-container cleared.");
+      console.log("DOMContentLoaded: labels-container cleared. Current label blocks:", document.querySelectorAll('.label-block').length);
 
       const savedStateString = localStorage.getItem(LOCAL_STORAGE_KEY);
-      console.log("Retrieved savedStateString from localStorage:", savedStateString);
+      console.log("DOMContentLoaded: Retrieved savedStateString from localStorage:", savedStateString ? "exists" : "null/empty");
 
       let sessionDataToLoad = null;
 
       if (savedStateString) {
           try {
               const parsed = JSON.parse(savedStateString);
-              console.log("Parsed savedState:", parsed);
               const labelsArray = parsed.labelValueDefinitions || parsed.labels;
 
               if (labelsArray && Array.isArray(labelsArray) && labelsArray.length > 0) {
-                  // If there are labels in the saved state, use it
                   sessionDataToLoad = parsed;
-                  console.log("Found labels in saved state. Will load existing data.");
+                  console.log("DOMContentLoaded: Found existing labels in saved state. Will load.");
               } else {
-                  // Saved state exists but contains no labels (e.g., user cleared all)
-                  console.log("Saved state found, but no labels within it. Will create default.");
+                  console.log("DOMContentLoaded: Saved state found, but no labels within it. Will create default.");
               }
           } catch (e) {
-              console.error("Error parsing saved state from local storage, creating default:", e);
-              localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear corrupted data
+              console.error("DOMContentLoaded: Error parsing saved state, creating default:", e);
+              localStorage.removeItem(LOCAL_STORAGE_KEY);
           }
       }
 
       if (sessionDataToLoad) {
+          console.log("DOMContentLoaded: Calling loadState with existing data.");
           loadState(JSON.stringify(sessionDataToLoad));
       } else {
-          // No valid saved state with labels, or parsing failed. Create default.
-          console.log("No valid saved state with labels found. Creating default example label.");
+          console.log("DOMContentLoaded: No valid saved state with labels found. Creating default example label.");
           createLabelBlock('example_label', 'inform', 'content', 'ignore', false, true, [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}], '', true);
-          geminiApiKey = ''; // Ensure API key is cleared if no previous state
+          console.log("DOMContentLoaded: Default example label created. Current label blocks:", document.querySelectorAll('.label-block').length);
+          geminiApiKey = '';
           const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
           if (geminiApiKeyInput) {
               geminiApiKeyInput.value = geminiApiKey;
           }
-          updateJSONOutput(); // This will save the initial state and add to history
+          console.log("DOMContentLoaded: Calling updateJSONOutput after default creation.");
+          updateJSONOutput();
       }
 
       // Load history from local storage
