@@ -1888,6 +1888,8 @@
       suppressSave = true; // Prevent saving this load operation to history
       console.log('loadState called. suppressSave BEFORE:', suppressSave, 'historyIndex:', historyIndex);
 
+      selectedLabelIds.clear(); // IMPORTANT: Clear selected IDs on load
+
       const sessionData = JSON.parse(stateJson);
 
       // Load Labels
@@ -1928,7 +1930,7 @@
       suppressSave = false;
       console.log('loadState finished. suppressSave AFTER:', suppressSave);
       updateUndoRedoButtons();
-      clearSelectedLabels(); // Clear selection after loading state
+      // clearSelectedLabels(); // This is now redundant as selectedLabelIds.clear() is at the top of loadState
       updateLabelNumbers(); // Update numbers after loading state
     }
 
@@ -3199,13 +3201,17 @@ Original description:
 
       showCustomModal(`Are you sure you want to delete ${selectedLabelIds.size} selected labels? This action cannot be undone.`, 'confirm', (response) => {
         if (response) {
-          selectedLabelIds.forEach(id => {
+          const idsToDelete = new Set(selectedLabelIds); // Create a copy to iterate
+          idsToDelete.forEach(id => {
             const labelDiv = document.getElementById(id);
             if (labelDiv) {
               labelDiv.remove();
+            } else {
+              console.warn(`Attempted to delete non-existent label block with ID: ${id}`);
             }
+            selectedLabelIds.delete(id); // Ensure it's removed from the main set
           });
-          selectedLabelIds.clear(); // Clear the set after deletion
+          // No need for selectedLabelIds.clear() here as we iterated and deleted each
           saveFullSessionStateToLocalStorage();
           updateJSONOutput();
           updateLabelNumbers(); // Re-number remaining labels
@@ -3552,6 +3558,9 @@ Original description:
       // ALWAYS clear the labels container at the very beginning
       document.getElementById('labels-container').innerHTML = '';
 
+      // IMPORTANT: Ensure selectedLabelIds is cleared on every fresh load
+      selectedLabelIds.clear(); 
+
       // Load saved state from local storage or initialize default
       const savedState = localStorage.getItem(LOCAL_STORAGE_KEY);
       let parsedState = null;
@@ -3797,11 +3806,12 @@ Original description:
       document.getElementById('resetClearBtn').onclick = () => {
         showCustomModal('Are you sure you want to clear all labels and reset to default? This action cannot be undone.', 'confirm', (response) => {
           if (response) {
+            selectedLabelIds.clear(); // IMPORTANT: Clear selected IDs immediately on reset
             document.getElementById('labels-container').innerHTML = '';
             categories = []; // Clear categories too
             descriptionSnippets = []; // Clear snippets
             defaultLocaleLanguage = 'en'; // Reset default locale
-            selectedLabelIds.clear(); // Clear selected labels set
+            
             createLabelBlock('example_label', 'inform', 'content', 'ignore', false, true, [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}], '', true); // Pass true for isFirstLabel
             saveFullSessionStateToLocalStorage(); // Save the cleared state
             updateJSONOutput(); // Update JSON output and history
@@ -3809,6 +3819,8 @@ Original description:
             updateLabelCategoryDropdowns(); // Update label dropdowns
             populateBulkApplySnippetSelect(); // Update bulk apply snippet dropdown
             updateFloatingMenu(); // Rebuild floating menu to reflect cleared selection
+            updateLabelNumbers(); // Re-numbers
+            updateMoveButtons(); // Updates move buttons
             showCustomModal('All labels cleared and reset to default!', 'alert');
           }
         });
