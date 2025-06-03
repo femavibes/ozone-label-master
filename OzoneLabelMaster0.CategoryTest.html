@@ -1407,6 +1407,12 @@
       line-height: 250px; /* Vertically center placeholder text */
   }
 
+  /* New CSS for image blur */
+  .social-post-card .post-image.blurred {
+      filter: blur(8px); /* Apply blur effect */
+      transition: filter 0.3s ease-in-out; /* Smooth transition for blur */
+  }
+
   .social-post-card .post-actions {
       display: flex;
       justify-content: space-around; /* Evenly space items */
@@ -1598,7 +1604,7 @@
                     </a>
                 </div>
                 <div class="post-content">
-                    <div class="post-text">This is an example of a social media post, demonstrating how content might appear before moderation. It's a sunny day, perfect for trying out new tools and exploring creative possibilities online! This text is static.</div>
+                    <div class="post-text">This is an example of a social media post, demonstrating how content might appear before moderation. Use the above bulk actions menu to see how these settings will affect a post on Bluesky.</div>
                     <img src="https://placehold.co/400x200/9CA3AF/ffffff?text=Placeholder+Image" alt="Post Image" class="post-image">
                 </div>
                 <div class="post-actions">
@@ -4126,6 +4132,26 @@ Original description:
       document.getElementById('saveBtn').onclick = addVersionToHistory;
       document.getElementById('undoBtn').onclick = undo;
       document.getElementById('redoBtn').onclick = redo;
+
+      // --- New: Post Preview Blur Logic ---
+      const bulkBlursControl = document.getElementById('bulkBlursControl');
+      const postImage = document.querySelector('#blueskyPostPreview .post-image');
+
+      function updatePostImageBlur() {
+          if (bulkBlursControl.value === 'media') {
+              postImage.classList.add('blurred');
+          } else {
+              postImage.classList.remove('blurred');
+          }
+      }
+
+      // Initial state
+      updatePostImageBlur();
+
+      // Listen for changes
+      bulkBlursControl.addEventListener('change', updatePostImageBlur);
+      // --- End Post Preview Blur Logic ---
+
 
       // Initial renders
       renderCategoryMenu();
