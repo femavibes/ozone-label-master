@@ -1280,9 +1280,10 @@
 
   .snippet-management-section .snippet-actions {
       display: flex;
-      justify-content: space-between; /* Pushes buttons to ends */
+      justify-content: space-between;
       align-items: center;
-      margin-top: 0.5em;
+      /* Adjusted margin-top for buttons */
+      margin-top: 0.25em;
   }
 
   .snippet-management-section .snippet-actions button {
@@ -1501,6 +1502,7 @@
       font-size: 1.2rem;
       flex-shrink: 0;
       line-height: 30px; /* Match height of counter box for vertical centering */
+      padding-bottom: 2px; /* Adjusted for better visual alignment */
   }
 
   .menu-header-count-box {
@@ -1558,7 +1560,7 @@
       </a>
       <div class="header-text-group">
         <h1>OZONE LABEL MASTER</h1>
-        <p>version 1.04</p>
+        <p>version 1.07</p>
       </div>
     </header>
 
@@ -1588,7 +1590,7 @@
                 <div class="menu-header-count-box">
                     <span id="categoryCount">0</span>
                 </div>
-                <h3>Label Categories</h3>
+                <h3 style="padding-bottom: 2px;">Label Categories</h3>
             </div>
             <div class="category-input-group">
                 <input type="text" id="newCategoryInput" placeholder="New category name" title="Enter a new category name" />
@@ -1610,7 +1612,7 @@
                 <div class="menu-header-count-box">
                     <span id="labelTotalCount">0</span>
                 </div>
-                <h3>Labels Quick Access</h3>
+                <h3 style="padding-bottom: 2px;">Labels Quick Access</h3>
             </div>
             <div class="scrollable-content">
                 <ul id="label-quick-access-list" title="Quick access links to label blocks">
@@ -1625,9 +1627,14 @@
             <h3>Bulk Actions</h3>
             <button id="closeBulkActionsMenuBtnDesktop" class="close-mobile-menu-btn" title="Close bulk actions menu">X</button>
         </div>
-        <h3>Bulk Actions</h3>
+        <div class="menu-header-with-count">
+            <div class="menu-header-count-box">
+                <span id="bulkSelectedCount" class="label-number">0</span>
+            </div>
+            <h3 style="padding-bottom: 2px;">Bulk Actions</h3>
+        </div>
 
-        <div class="scrollable-content"> <!-- NEW: Wrap all bulk action groups in a scrollable content div -->
+        <div class="scrollable-content">
             <div class="label-block" style="margin-bottom: 1em;">
                 <div class="label-header" style="cursor: default;">
                     <div class="label-number-box">
@@ -1679,8 +1686,8 @@
                             </select>
                         </div>
                     </div>
-                    <label style="margin-top: 1em;">Adult Only: <input type="checkbox" id="bulkAdultOnlyControl" title="Mark if this label is for adult content only"></label>
-                    <div style="display: flex; justify-content: space-between; gap: 0.5em; margin-top: 1em;">
+                    <label style="margin-top: 0.5em;">Adult Only: <input type="checkbox" id="bulkAdultOnlyControl" title="Mark if this label is for adult content only"></label>
+                    <div style="display: flex; justify-content: space-between; gap: 0.5em; margin-top: 0.5em;">
                         <button id="bulkApplyPropertiesBtn" class="action-button" style="flex-grow: 1;" title="Apply selected property changes to target labels">Apply Selected Properties</button>
                         <button id="setDefaultLabelPropertiesBtn" class="action-button blue-button" style="flex-shrink: 0;" title="Set current Blurs, Severity, and Default Setting as defaults for new labels">Set Default</button>
                     </div>
@@ -1725,18 +1732,18 @@
             </div>
 
             <div class="bulk-action-group snippet-management-section">
-                <h3>Description Snippets</h3>
+                <h3 style="margin-bottom: 0.25em;">Description Snippets</h3>
                 <div class="snippet-input-group">
                     <label for="newSnippetName">Snippet Name:</label>
                     <input type="text" id="newSnippetName" placeholder="e.g., 'Common Disclaimer'" title="Enter a name for your snippet">
                     <label for="newSnippetContent">Snippet Content:</label>
-                    <textarea id="newSnippetContent" placeholder="Enter the prewritten text here..." title="Enter the text content of your snippet"></textarea>
+                    <textarea id="newSnippetContent" placeholder="Enter the prewritten text here..." style="margin-bottom: 0;" title="Enter the text content of your snippet"></textarea>
                 </div>
-                <div class="snippet-actions">
+                <div class="snippet-actions" style="margin-top: 0.25em;">
                     <button id="addSnippetBtn" class="action-button" style="background: var(--primary); color: white;" title="Add this text as a reusable snippet">Add Snippet</button>
                     <button id="viewSnippetsBtn" class="action-button blue-button" title="View, edit, or delete existing snippets">View Snippets</button>
                 </div>
-                <div class="bulk-action-row" style="margin-top: 1em; display: flex; align-items: center; gap: 0.5em;">
+                <div class="bulk-action-row" style="margin-top: 0.5em; display: flex; align-items: center; gap: 0.5em;">
                     <label for="bulkApplySnippetSelect" style="margin-top: 0;">Apply Snippet:</label>
                     <select id="bulkApplySnippetSelect" style="flex-grow: 1;" title="Select a snippet to apply to descriptions">
                         <option value="">(Select Snippet)</option>
@@ -1744,7 +1751,7 @@
                     <button id="bulkApplySnippetBtn" class="action-button" disabled title="Apply the selected snippet to descriptions of target labels">Apply</button>
                 </div>
             </div>
-        </div> <!-- End of scrollable-content -->
+        </div>
     </div>
   </div>
 
@@ -3098,6 +3105,11 @@ Original description:
 
         // Add event listener for quick access checkbox
         listItem.querySelector('.quick-access-select-checkbox').addEventListener('change', (event) => {
+            // When a quick access checkbox is changed, update the main label's checkbox too
+            const mainLabelCheckbox = document.querySelector(`#${event.target.dataset.labelId} .bulk-select-checkbox`);
+            if (mainLabelCheckbox) {
+                mainLabelCheckbox.checked = event.target.checked;
+            }
             recalculateSelectedLabels(); // Recalculate selected labels and update counts/checkboxes
         });
 
@@ -3818,25 +3830,44 @@ Original description:
     // NEW: Recalculate selected labels based on individual checkboxes and selected categories
     function recalculateSelectedLabels() {
         const newSelectedLabelIds = new Set();
+        const allLabelDivs = document.querySelectorAll('.label-block');
 
-        // 1. Add labels from individually checked checkboxes
+        // 1. Determine which labels are selected by their individual checkboxes
+        const individuallySelected = new Set();
         document.querySelectorAll('.label-block .bulk-select-checkbox').forEach(checkbox => {
             if (checkbox.checked) {
-                newSelectedLabelIds.add(checkbox.dataset.labelId);
+                individuallySelected.add(checkbox.dataset.labelId);
             }
         });
 
-        // 2. Add labels from selected categories
-        document.querySelectorAll('.label-block').forEach(labelDiv => {
+        // 2. Determine which categories are selected
+        const currentlySelectedCategories = new Set();
+        document.querySelectorAll('.category-select-checkbox').forEach(checkbox => {
+            if (checkbox.checked) {
+                currentlySelectedCategories.add(checkbox.dataset.categoryName);
+            }
+        });
+        selectedCategoryNames = currentlySelectedCategories; // Update global set
+
+
+        // 3. Populate newSelectedLabelIds based on individual and category selections
+        allLabelDivs.forEach(labelDiv => {
             const categorySelect = labelDiv.querySelector('.label-category');
-            if (categorySelect && selectedCategoryNames.has(categorySelect.value)) {
+            const labelCategory = categorySelect ? categorySelect.value : '';
+
+            // A label is selected if:
+            // a) it was individually selected, OR
+            // b) its category is selected AND it's not individually deselected (if that were an option)
+            // The current logic allows individual deselection to override category selection.
+            if (individuallySelected.has(labelDiv.id) || currentlySelectedCategories.has(labelCategory)) {
                 newSelectedLabelIds.add(labelDiv.id);
             }
         });
 
-        selectedLabelIds = newSelectedLabelIds; // Update the global set
+        // 4. Update the global selectedLabelIds
+        selectedLabelIds = newSelectedLabelIds;
 
-        // 3. Update all UI checkboxes to reflect the new state of selectedLabelIds
+        // 5. Update all UI checkboxes to reflect the new state of selectedLabelIds
         document.querySelectorAll('.label-block .bulk-select-checkbox').forEach(checkbox => {
             checkbox.checked = selectedLabelIds.has(checkbox.dataset.labelId);
         });
@@ -3844,7 +3875,14 @@ Original description:
             checkbox.checked = selectedLabelIds.has(checkbox.dataset.labelId);
         });
 
-        // 4. Update the bulk actions counter
+        // 6. Update the category checkboxes in the category menu (already done by renderCategoryMenu)
+        // This ensures the category checkbox reflects the `selectedCategoryNames` set.
+        document.querySelectorAll('.category-select-checkbox').forEach(checkbox => {
+            checkbox.checked = selectedCategoryNames.has(checkbox.dataset.categoryName);
+        });
+
+
+        // 7. Update the bulk actions counter
         updateBulkActionsLabelCount();
         populateBulkApplySnippetSelect(); // Update button disabled state
     }
