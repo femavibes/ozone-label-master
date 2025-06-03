@@ -1565,7 +1565,7 @@
       </a>
       <div class="header-text-group">
         <h1>OZONE LABEL MASTER</h1>
-        <p>version 1.09</p>
+        <p>version 1.10</p>
       </div>
     </header>
 
@@ -2557,14 +2557,17 @@ Original description:
             const sourceDescription = descriptionTextarea.value.trim();
             const targetLabelId = div.closest('.label-block').id;
 
-            // Open the bulk translate modal first
-            populateBulkTranslateLanguageOptionsModal(sourceLangCode);
-            document.getElementById('bulkTranslateModal').style.display = 'flex';
+            // Wrap the bulk translate action with the API key check
+            checkApiKeyAndProceed(() => {
+                // Open the bulk translate modal first
+                populateBulkTranslateLanguageOptionsModal(sourceLangCode);
+                document.getElementById('bulkTranslateModal').style.display = 'flex';
 
-            // Set up the start button for the bulk translate modal
-            document.getElementById('startBulkTranslateBtn').onclick = () => {
-                performBulkTranslate(sourceLangCode, sourceName, sourceDescription, targetLabelId);
-            };
+                // Set up the start button for the bulk translate modal
+                document.getElementById('startBulkTranslateBtn').onclick = () => {
+                    performBulkTranslate(sourceLangCode, sourceName, sourceDescription, targetLabelId);
+                };
+            });
         };
       }
 
@@ -2930,23 +2933,23 @@ Original description:
           }
         });
 
-        // Create a temporary label object that includes 'enabled' and 'category' for internal processing
-        const tempLabel = {
+        // Create a label object that includes 'enabled' and 'category' for internal processing
+        const labelData = {
           identifier,
           severity,
           blurs,
           defaultSetting,
           adultOnly,
-          enabled, // Temporarily include 'enabled' here for internal state management
+          enabled, // Include 'enabled' here for internal state management and .ozm export
           locales
         };
 
-        // Add category only if it's not empty
+        // Add category only if it's not empty, for internal state and .ozm export
         if (category) {
-            tempLabel.category = category;
+            labelData.category = category;
         }
 
-        labels.push(tempLabel);
+        labels.push(labelData);
       });
       return labels; // This array now contains label objects with 'enabled' and 'category' properties
     }
@@ -2960,15 +2963,12 @@ Original description:
         .filter(label => label.enabled) // Filter based on the 'enabled' property
         .map(label => label.identifier);
 
-      // labelValueDefinitions should include all labels, but WITHOUT the 'enabled' property
+      // labelValueDefinitions should include all labels, but WITHOUT the 'enabled' property.
+      // The 'category' property SHOULD be included if present.
       const labelValueDefinitions = currentLabels.map(label => {
-          const { enabled, category, ...rest } = label; // Destructure to exclude 'enabled' and 'category'
-          // Re-add category if it exists and is not empty, as per Ozone's expected structure
-          const definition = { ...rest };
-          if (category) {
-              definition.category = category;
-          }
-          return definition;
+          const { enabled, ...rest } = label; // Destructure to exclude 'enabled'
+          // 'rest' now contains all other properties including 'category' if it exists.
+          return rest;
       });
 
       updateDuplicateWarning(labelValues);
@@ -4041,7 +4041,7 @@ Original description:
                 const text = pasteJsonTextarea.value;
                 const parsedData = JSON.parse(text);
 
-                // Check if it's the new format (labels array) or old format (labelValueDefinitions)
+                // Check for the new `labels` key first, then fallback to old `labelValueDefinitions` or `labels`
                 const labelsToLoad = parsedData.labels || parsedData.labelValueDefinitions;
 
                 if (!Array.isArray(labelsToLoad)) {
