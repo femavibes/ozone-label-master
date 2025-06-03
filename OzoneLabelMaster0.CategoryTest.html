@@ -1565,7 +1565,7 @@
       </a>
       <div class="header-text-group">
         <h1>OZONE LABEL MASTER</h1>
-        <p>version 1.08</p>
+        <p>version 1.09</p>
       </div>
     </header>
 
@@ -1985,9 +1985,9 @@
 
     // This function saves the current working state to local storage for persistence across sessions.
     function saveFullSessionStateToLocalStorage() {
-      const currentLabels = getLabelsData();
+      const currentLabels = getLabelsData(); // This returns the array of label objects with 'enabled' and 'category'
       const currentSessionState = {
-        labels: currentLabels, // This `labels` array contains the `category` property for each label
+        labels: currentLabels, // This `labels` array contains the `category` and `enabled` properties for each label
         categories: categories,
         defaultLocaleLanguage: defaultLocaleLanguage,
         descriptionSnippets: descriptionSnippets,
@@ -2009,10 +2009,11 @@
     function addVersionToHistory() {
       showLoadingOverlay('Saving version...');
       try {
-        const currentLabels = getLabelsData();
+        const currentLabels = getLabelsData(); // Gets labels including the 'enabled' property
         const versionData = {
           labelValues: currentLabels.filter(label => label.enabled).map(label => label.identifier), // Only enabled labels
-          labelValueDefinitions: currentLabels, // All labels, including disabled ones, with their 'enabled' state
+          // For history, we save the full internal representation including 'enabled' and 'category'
+          labels: currentLabels, // Save all labels with their 'enabled' state and category
           categories: categories, // Include categories in history snapshot
           timestamp: new Date().toISOString(), // Use ISO string for date
           defaultLocaleLanguage: defaultLocaleLanguage, // Include default locale language in history snapshot
@@ -2058,9 +2059,8 @@
 
       const sessionData = JSON.parse(stateJson);
 
-      // Load Labels
-      // Prioritize `labelValueDefinitions` if present, otherwise fall back to `labels` (old format)
-      const dataLabels = sessionData.labelValueDefinitions || sessionData.labels;
+      // Load Labels: Prioritize `labels` (new format with category/enabled), then fallback to `labelValueDefinitions` (old)
+      const dataLabels = sessionData.labels || sessionData.labelValueDefinitions;
       document.getElementById('labels-container').innerHTML = ''; // Ensure a clean slate
       dataLabels.forEach((label, index) => { // Pass index to createLabelBlock
         // Generate a unique HTML ID for this label block *before* creating it
@@ -2889,34 +2889,30 @@ Original description:
       console.log(`getLabelsData called. Found ${labelDivs.length} label blocks.`);
 
       labelDivs.forEach(labelDiv => {
-        // IMPORTANT: Only process label blocks that have a valid identifier input.
-        // This helps filter out any temporary or uninitialized elements.
         const identifierInput = labelDiv.querySelector('.identifier');
         if (!identifierInput) {
             console.warn(`Skipping label block ${labelDiv.id} in getLabelsData: Missing identifier input.`);
-            return; // Skip this labelDiv if it's not fully formed
+            return;
         }
 
         const identifier = identifierInput.value.trim();
-        console.log(`  - Processing label block ID: ${labelDiv.id}, Identifier: "${identifier}"`);
-
         const severitySelect = labelDiv.querySelector('.severity');
-        const severity = severitySelect ? severitySelect.value : 'inform'; // Default to 'inform'
+        const severity = severitySelect ? severitySelect.value : 'inform';
 
         const blursSelect = labelDiv.querySelector('.blurs');
-        const blurs = blursSelect ? blursSelect.value : 'content'; // Default to 'content'
+        const blurs = blursSelect ? blursSelect.value : 'content';
 
         const defaultSettingSelect = labelDiv.querySelector('.defaultSetting');
-        const defaultSetting = defaultSettingSelect ? defaultSettingSelect.value : 'ignore'; // Default to 'ignore'
+        const defaultSetting = defaultSettingSelect ? defaultSettingSelect.value : 'ignore';
 
         const adultOnlyCheckbox = labelDiv.querySelector('.adultOnly');
-        const adultOnly = adultOnlyCheckbox ? adultOnlyCheckbox.checked : false; // Default to false
+        const adultOnly = adultOnlyCheckbox ? adultOnlyCheckbox.checked : false;
 
         const enabledCheckbox = labelDiv.querySelector('.enabled');
-        const enabled = enabledCheckbox ? enabledCheckbox.checked : true; // Default to true
+        const enabled = enabledCheckbox ? enabledCheckbox.checked : true; // Capture enabled state for internal use
 
         const categorySelect = labelDiv.querySelector('.label-category');
-        const category = categorySelect ? categorySelect.value : ''; // Default to empty string
+        const category = categorySelect ? categorySelect.value : '';
 
         const locales = [];
         labelDiv.querySelectorAll('.locale-block').forEach(localeDiv => {
@@ -2929,37 +2925,53 @@ Original description:
           const descriptionTextarea = localeDiv.querySelector('.description');
           const description = descriptionTextarea ? descriptionTextarea.value.trim() : '';
 
-          if(lang || name || description) { // Only push if at least one field has content
+          if(lang || name || description) {
             locales.push({lang, name, description});
           }
         });
 
-        labels.push({
-          identifier, // Use 'identifier' property name
+        // Create a temporary label object that includes 'enabled' and 'category' for internal processing
+        const tempLabel = {
+          identifier,
           severity,
           blurs,
           defaultSetting,
           adultOnly,
-          enabled, // Include enabled state in the label object
-          category: category || undefined // Only include if not empty
-        });
+          enabled, // Temporarily include 'enabled' here for internal state management
+          locales
+        };
+
+        // Add category only if it's not empty
+        if (category) {
+            tempLabel.category = category;
+        }
+
+        labels.push(tempLabel);
       });
-      return labels;
+      return labels; // This array now contains label objects with 'enabled' and 'category' properties
     }
 
     // Function to generate and display the JSON output, and save state
-    function updateJSONOutput() { // Renamed from updateJSON
-      const currentLabels = getLabelsData(); // This returns the array of label objects as currently structured
+    function updateJSONOutput() {
+      const currentLabels = getLabelsData(); // This returns the array of label objects as currently structured, including 'enabled' and 'category'
 
       // Filter labelValues to include only identifiers of enabled labels
       const labelValues = currentLabels
-        .filter(label => label.enabled)
+        .filter(label => label.enabled) // Filter based on the 'enabled' property
         .map(label => label.identifier);
 
-      // labelValueDefinitions should include all labels, with their 'enabled' state
-      const labelValueDefinitions = currentLabels; // No filtering needed here
+      // labelValueDefinitions should include all labels, but WITHOUT the 'enabled' property
+      const labelValueDefinitions = currentLabels.map(label => {
+          const { enabled, category, ...rest } = label; // Destructure to exclude 'enabled' and 'category'
+          // Re-add category if it exists and is not empty, as per Ozone's expected structure
+          const definition = { ...rest };
+          if (category) {
+              definition.category = category;
+          }
+          return definition;
+      });
 
-      updateDuplicateWarning(labelValues); // Use labelValues for duplicate check
+      updateDuplicateWarning(labelValues);
 
       const output = {
         labelValues: labelValues,
@@ -2968,10 +2980,9 @@ Original description:
 
       document.getElementById('output').textContent = JSON.stringify(output, null, 2);
       saveFullSessionStateToLocalStorage(); // Save current state to local storage for persistence
-      updateFloatingMenu(); // Always update floating menu when JSON changes
-      updateMoveButtons(); // Update state of move buttons after JSON changes
+      updateFloatingMenu();
+      updateMoveButtons();
 
-      // If not suppressing save (i.e., it's a user-initiated change), add to history
       if (!suppressSave) {
           addStateToHistoryForUndoAndRedo();
       }
@@ -2983,10 +2994,10 @@ Original description:
         // Prevent adding to history if suppressSave is true (e.g., during loadState)
         if (suppressSave) return;
 
-        const currentLabels = getLabelsData();
-        // Ensure history also saves in the new format
+        const currentLabels = getLabelsData(); // Gets labels including the 'enabled' and 'category' properties
+        // Ensure history also saves in the new format, including 'labels' array with 'enabled' and 'category'
         const stateToSave = JSON.stringify({
-          labelValueDefinitions: currentLabels, // Save all labels with their 'enabled' state
+          labels: currentLabels, // Save all labels with their 'enabled' state and category (for internal tool state)
           categories: categories,
           defaultLocaleLanguage: defaultLocaleLanguage,
           descriptionSnippets: descriptionSnippets,
@@ -3612,7 +3623,7 @@ Original description:
                 const addSnippetBtn = document.getElementById('addSnippetBtn');
                 addSnippetBtn.dataset.editIndex = index; // Store index for update
                 addSnippetBtn.textContent = 'Update Snippet';
-                addBtn.style.background = '#f59e0b'; // Amber color
+                addSnippetBtn.style.background = '#f59e0b'; // Amber color
                 
                 document.getElementById('viewSnippetsModal').style.display = 'none'; // Close modal
             };
@@ -4600,7 +4611,7 @@ Original description:
       // Save Session File
       document.getElementById('saveSessionFileBtn').onclick = () => {
           const currentSessionState = {
-              labels: getLabelsData(), // This `labels` array contains the `category` property for each label
+              labels: getLabelsData(), // This `labels` array contains the `category` and `enabled` properties for each label
               categories: categories,
               defaultLocaleLanguage: defaultLocaleLanguage,
               descriptionSnippets: descriptionSnippets,
@@ -4622,7 +4633,7 @@ Original description:
 
       // Load Session File
       document.getElementById('loadSessionFileBtn').onclick = () => {
-          showCustomModal('Loading a session file will overwrite your current labels, categories, and settings. Are you sure?', 'confirm', (response) => {
+          showCustomModal('Loading a session file will overwrite your current labels, categories, snippets, and settings. Are you sure?', 'confirm', (response) => {
               if (response) {
                   document.getElementById('sessionFileInput').click();
               }
@@ -4675,7 +4686,8 @@ Original description:
 
 
                 const date = new Date(version.timestamp).toLocaleString();
-                const labelCount = version.labelValueDefinitions ? version.labelValueDefinitions.length : 0;
+                // When displaying history, use the labels array from the history object
+                const labelCount = version.labels ? version.labels.length : 0;
                 const categoryCount = version.categories ? version.categories.length : 0;
                 const snippetCount = version.descriptionSnippets ? version.descriptionSnippets.length : 0;
 
