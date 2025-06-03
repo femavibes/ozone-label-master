@@ -1508,7 +1508,7 @@
       </a>
       <div class="header-text-group">
         <h1>OZONE LABEL MASTER</h1>
-        <p>version 0.96</p>
+        <p>version 0.97</p>
       </div>
     </header>
 
@@ -3665,39 +3665,44 @@ Original description:
       document.getElementById('labels-container').innerHTML = '';
       console.log("DOM Content Loaded. labels-container cleared.");
 
-      // Load saved state from local storage or initialize default
-      const savedState = localStorage.getItem(LOCAL_STORAGE_KEY);
-      let parsedState = null;
-      let hasLabelsInSavedState = false;
+      const savedStateString = localStorage.getItem(LOCAL_STORAGE_KEY);
+      console.log("Retrieved savedStateString from localStorage:", savedStateString);
 
-      if (savedState) {
-        try {
-          parsedState = JSON.parse(savedState);
-          // Check if parsedState contains any labels
-          const labelsInParsedState = parsedState.labelValueDefinitions || parsedState.labels;
-          if (labelsInParsedState && Array.isArray(labelsInParsedState) && labelsInParsedState.length > 0) {
-            hasLabelsInSavedState = true;
+      let sessionDataToLoad = null;
+
+      if (savedStateString) {
+          try {
+              const parsed = JSON.parse(savedStateString);
+              console.log("Parsed savedState:", parsed);
+              const labelsArray = parsed.labelValueDefinitions || parsed.labels;
+
+              if (labelsArray && Array.isArray(labelsArray) && labelsArray.length > 0) {
+                  // If there are labels in the saved state, use it
+                  sessionDataToLoad = parsed;
+                  console.log("Found labels in saved state. Will load existing data.");
+              } else {
+                  // Saved state exists but contains no labels (e.g., user cleared all)
+                  console.log("Saved state found, but no labels within it. Will create default.");
+              }
+          } catch (e) {
+              console.error("Error parsing saved state from local storage, creating default:", e);
+              localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear corrupted data
           }
-        } catch (e) {
-          console.error("Error parsing saved state from local storage, resetting:", e);
-          localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear corrupted data
-        }
       }
 
-      if (hasLabelsInSavedState) {
-        loadState(JSON.stringify(parsedState)); // Pass the stringified parsed object back to loadState
+      if (sessionDataToLoad) {
+          loadState(JSON.stringify(sessionDataToLoad));
       } else {
-        // Only create a default label if there were no labels in saved state or no saved state at all
-        createLabelBlock('example_label', 'inform', 'content', 'ignore', false, true, [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}], '', true); // Pass true for isFirstLabel
-        // Initialize API key to empty if no saved state
-        geminiApiKey = '';
-        const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
-        if (geminiApiKeyInput) {
-            geminiApiKeyInput.value = geminiApiKey;
-        }
-        updateJSONOutput(); // This will save the initial state and add to history
+          // No valid saved state with labels, or parsing failed. Create default.
+          console.log("No valid saved state with labels found. Creating default example label.");
+          createLabelBlock('example_label', 'inform', 'content', 'ignore', false, true, [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}], '', true);
+          geminiApiKey = ''; // Ensure API key is cleared if no previous state
+          const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
+          if (geminiApiKeyInput) {
+              geminiApiKeyInput.value = geminiApiKey;
+          }
+          updateJSONOutput(); // This will save the initial state and add to history
       }
-
 
       // Load history from local storage
       const savedHistory = localStorage.getItem(HISTORY_LOCAL_STORAGE_KEY);
