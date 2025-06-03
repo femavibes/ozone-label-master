@@ -1476,7 +1476,7 @@
       </a>
       <div class="header-text-group">
         <h1>OZONE LABEL MASTER</h1>
-        <p>version 0.92</p>
+        <p>version 0.93</p>
       </div>
     </header>
 
@@ -1755,6 +1755,12 @@
     let defaultLocaleLanguage = ''; // New global variable for default locale language
     let descriptionSnippets = []; // New global variable for description snippets
 
+    // --- IMPORTANT: Clear selectedLabelIds at the very start of script execution ---
+    // This ensures a clean slate for selected IDs on every page load.
+    selectedLabelIds.clear();
+    console.log("Initial selectedLabelIds cleared:", selectedLabelIds);
+
+
     // Show/Hide loading overlay
     function showLoadingOverlay(message = 'Loading...') {
       const overlay = document.getElementById('loadingOverlay');
@@ -1889,6 +1895,8 @@
       console.log('loadState called. suppressSave BEFORE:', suppressSave, 'historyIndex:', historyIndex);
 
       selectedLabelIds.clear(); // IMPORTANT: Clear selected IDs on load
+      console.log("selectedLabelIds cleared at start of loadState:", selectedLabelIds);
+
 
       const sessionData = JSON.parse(stateJson);
 
@@ -1896,9 +1904,10 @@
       const dataLabels = sessionData.labelValueDefinitions || sessionData.labels; // Support old and new formats
       document.getElementById('labels-container').innerHTML = ''; // Ensure a clean slate
       dataLabels.forEach((label, index) => { // Pass index to createLabelBlock
-        const labelIdentifier = label.identifier !== undefined ? label.identifier : label.id; // Backward compatibility
+        // Generate a unique HTML ID for this label block *before* creating it
+        const uniqueHtmlId = `label-${crypto.randomUUID()}`;
         createLabelBlock(
-          labelIdentifier || '',
+          label.identifier || label.id || '', // Backward compatibility
           label.severity || 'inform',
           label.blurs || 'content',
           label.defaultSetting || 'ignore',
@@ -1906,7 +1915,8 @@
           label.enabled !== undefined ? label.enabled : true,
           label.locales || [],
           label.category || '',
-          index === 0 // Pass true if it's the first label being loaded
+          index === 0, // Pass true if it's the first label being loaded
+          uniqueHtmlId // Pass the generated ID
         );
       });
 
@@ -1930,8 +1940,8 @@
       suppressSave = false;
       console.log('loadState finished. suppressSave AFTER:', suppressSave);
       updateUndoRedoButtons();
-      // clearSelectedLabels(); // This is now redundant as selectedLabelIds.clear() is at the top of loadState
       updateLabelNumbers(); // Update numbers after loading state
+      console.log("selectedLabelIds after loadState:", selectedLabelIds);
     }
 
     // Undo the last change
@@ -2211,8 +2221,7 @@ Original name:
             let chatHistory = [];
             chatHistory.push({ role: "user", parts: [{ text: prompt }] });
             const payload = { contents: chatHistory };
-            // IMPORTANT: Replace with your actual Gemini API Key here.
-            const apiKey = "AIzaSyDiYlt8YhzSFIqgvEE7qSFZHVcjYLRXu-c"; 
+            const apiKey = ""; // If you want to use models other than gemini-2.0-flash or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             const response = await fetch(apiUrl, {
@@ -2342,8 +2351,7 @@ Original description:
             let chatHistory = [];
             chatHistory.push({ role: "user", parts: [{ text: prompt }] });
             const payload = { contents: chatHistory };
-            // IMPORTANT: Replace with your actual Gemini API Key here.
-            const apiKey = "AIzaSyDiYlt8YhzSFIqgvEE7qSFZHVcjYLRXu-c"; 
+            const apiKey = ""; // If you want to use models other than gemini-2.0-flash or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             const response = await fetch(apiUrl, {
@@ -2440,15 +2448,14 @@ Original description:
     }
 
     // Function to create a new label block
-    function createLabelBlock(id = '', severity = 'inform', blurs = 'content', defaultSetting = 'ignore', adultOnly = false, enabled = true, locales = [], category = '', isFirstLabel = false) { // Added isFirstLabel
+    function createLabelBlock(id = '', severity = 'inform', blurs = 'content', defaultSetting = 'ignore', adultOnly = false, enabled = true, locales = [], category = '', isFirstLabel = false, htmlId = `label-${crypto.randomUUID()}`) { // Added htmlId parameter
       const container = document.getElementById('labels-container');
       const labelDiv = document.createElement('div');
       labelDiv.className = 'label-block';
       labelDiv.setAttribute('draggable', 'true');
 
-      // Generate a unique HTML ID for this label block
-      const uniqueHtmlId = `label-${crypto.randomUUID()}`;
-      labelDiv.id = uniqueHtmlId;
+      // Use the provided htmlId or generate a new one
+      labelDiv.id = htmlId;
 
       let isCollapsed = false;
 
@@ -2459,7 +2466,7 @@ Original description:
         <div class="label-header" title="Click to expand/collapse this label">
           <div class="label-number-box">
             <span class="label-number"></span>
-            <input type="checkbox" class="bulk-select-checkbox" data-label-id="${uniqueHtmlId}" title="Select this label for bulk actions">
+            <input type="checkbox" class="bulk-select-checkbox" data-label-id="${labelDiv.id}" title="Select this label for bulk actions">
           </div>
           <button class="collapse-btn" title="Collapse/expand this label's details">Collapse</button>
           <div class="label-identifier-box">
@@ -2471,7 +2478,7 @@ Original description:
               <input type="checkbox" class="enabled" ${enabled ? 'checked' : ''} title="Toggle label enabled/disabled state">
             </div>
             <div class="category-in-header">
-              <select id="${uniqueHtmlId}-category" class="label-category" title="Assign a category to this label">
+              <select id="${labelDiv.id}-category" class="label-category" title="Assign a category to this label">
                 <option value="">(No Category)</option>
               </select>
             </div>
@@ -2485,12 +2492,12 @@ Original description:
         <div class="label-content">
           <div class="input-group-row">
             <div>
-              <label for="${uniqueHtmlId}-identifier">Identifier:</label>
-              <input type="text" id="${uniqueHtmlId}-identifier" class="identifier" value="${id}" title="Unique identifier for this label">
+              <label for="${labelDiv.id}-identifier">Identifier:</label>
+              <input type="text" id="${labelDiv.id}-identifier" class="identifier" value="${id}" title="Unique identifier for this label">
             </div>
             <div>
-              <label for="${uniqueHtmlId}-blurs">Blurs:</label>
-              <select id="${uniqueHtmlId}-blurs" class="blurs" title="Content blurring setting for the label">
+              <label for="${labelDiv.id}-blurs">Blurs:</label>
+              <select id="${labelDiv.id}-blurs" class="blurs" title="Content blurring setting for the label">
                 <option value="content" ${blurs === 'content' ? 'selected' : ''}>content</option>
                 <option value="media" ${blurs === 'media' ? 'selected' : ''}>media</option>
                 <option value="none" ${blurs === 'none' ? 'selected' : ''}>none</option>
@@ -2499,16 +2506,16 @@ Original description:
           </div>
           <div class="input-group-row">
             <div>
-              <label for="${uniqueHtmlId}-severity">Severity:</label>
-              <select id="${uniqueHtmlId}-severity" class="severity" title="Severity level of the label">
+              <label for="${labelDiv.id}-severity">Severity:</label>
+              <select id="${labelDiv.id}-severity" class="severity" title="Severity level of the label">
                 <option value="inform" ${severity === 'inform' ? 'selected' : ''}>inform</option>
                 <option value="alert" ${severity === 'alert' ? 'selected' : ''}>alert</option>
                 <option value="none" ${severity === 'none' ? 'selected' : ''}>none</option>
               </select>
             </div>
             <div>
-              <label for="${uniqueHtmlId}-defaultSetting">Default Setting:</label>
-              <select id="${uniqueHtmlId}-defaultSetting" class="defaultSetting" title="Default action when this label is applied">
+              <label for="${labelDiv.id}-defaultSetting">Default Setting:</label>
+              <select id="${labelDiv.id}-defaultSetting" class="defaultSetting" title="Default action when this label is applied">
                 <option value="ignore" ${defaultSetting === 'ignore' ? 'selected' : ''}>ignore</option>
                 <option value="warn" ${defaultSetting === 'warn' ? 'selected' : ''}>warn</option>
                 <option value="hide" ${defaultSetting === 'hide' ? 'selected' : ''}>hide</option>
@@ -2537,11 +2544,12 @@ Original description:
         showCustomModal('Are you sure you want to delete this label? This action cannot be undone.', 'confirm', (response) => {
             if (response) {
                 labelDiv.remove();
-                selectedLabelIds.delete(uniqueHtmlId); // Remove from selection set
+                selectedLabelIds.delete(labelDiv.id); // Remove from selection set
                 updateFloatingMenu(); // Update quick access checkboxes
                 saveFullSessionStateToLocalStorage(); // Save full session state
                 updateJSONOutput(); // Update JSON output display
                 updateLabelNumbers(); // Update numbers after removal
+                console.log("selectedLabelIds after label removal:", selectedLabelIds);
             }
         });
       };
@@ -2569,12 +2577,13 @@ Original description:
       // Event listener for bulk select checkbox
       bulkSelectCheckbox.addEventListener('change', () => {
           if (bulkSelectCheckbox.checked) {
-              selectedLabelIds.add(uniqueHtmlId);
+              selectedLabelIds.add(labelDiv.id);
           } else {
-              selectedLabelIds.delete(uniqueHtmlId);
+              selectedLabelIds.delete(labelDiv.id);
           }
           updateFloatingMenu(); // Update quick access checkboxes
           populateBulkApplySnippetSelect(); // Update button disabled state
+          console.log("selectedLabelIds after bulk select checkbox change:", selectedLabelIds);
       });
 
       // Use 'change' for select and checkbox, 'input' for text inputs
@@ -2886,13 +2895,27 @@ Original description:
       const quickAccessList = document.getElementById('label-quick-access-list');
       quickAccessList.innerHTML = ''; // Clear existing list
 
-      document.querySelectorAll('.label-block').forEach((labelDiv, index) => {
+      // Get all current label blocks from the main container
+      const currentLabelBlocks = document.querySelectorAll('.label-block');
+      const existingLabelIdsInDOM = new Set(Array.from(currentLabelBlocks).map(div => div.id));
+
+      // Filter selectedLabelIds to ensure only currently existing labels are tracked
+      selectedLabelIds = new Set(Array.from(selectedLabelIds).filter(id => existingLabelIdsInDOM.has(id)));
+      console.log("selectedLabelIds filtered in updateFloatingMenu:", selectedLabelIds);
+
+
+      currentLabelBlocks.forEach((labelDiv, index) => {
+        const uniqueHtmlId = labelDiv.id;
+        // Only proceed if the labelDiv actually exists in the DOM
+        if (!document.getElementById(uniqueHtmlId)) {
+            console.warn(`Skipping Quick Access entry for non-existent labelDiv ID: ${uniqueHtmlId}`);
+            return; // Skip this iteration if the labelDiv is not found
+        }
+
         // Safely get the identifier input, defaulting to a placeholder if not found
         const identifierInput = labelDiv.querySelector('.identifier');
         const identifier = identifierInput ? identifierInput.value : '(Untitled Label)';
         
-        const uniqueHtmlId = labelDiv.id;
-
         const listItem = document.createElement('li');
         listItem.setAttribute('draggable', 'true'); // Make list items draggable
         listItem.dataset.labelId = uniqueHtmlId; // Store the ID for drag/drop
@@ -2921,6 +2944,7 @@ Original description:
                 mainLabelCheckbox.checked = event.target.checked;
             }
             populateBulkApplySnippetSelect(); // Update button disabled state
+            console.log("selectedLabelIds after quick access checkbox change:", selectedLabelIds);
         });
 
         // Add drag handlers for quick access list items
@@ -3191,6 +3215,7 @@ Original description:
       });
       updateFloatingMenu(); // Re-render quick access to reflect cleared checkboxes
       populateBulkApplySnippetSelect(); // Update button disabled state
+      console.log("selectedLabelIds after clearSelectedLabels:", selectedLabelIds);
     }
 
     function deleteSelectedLabels() {
@@ -3216,6 +3241,7 @@ Original description:
           updateJSONOutput();
           updateLabelNumbers(); // Re-number remaining labels
           showCustomModal('Selected labels deleted successfully!', 'alert');
+          console.log("selectedLabelIds after deleteSelectedLabels:", selectedLabelIds);
         }
       });
     }
@@ -3526,8 +3552,7 @@ Original description:
         let chatHistory = [];
         chatHistory.push({ role: "user", parts: [{ text: prompt }] });
         const payload = { contents: chatHistory };
-        // IMPORTANT: Replace with your actual Gemini API Key here.
-        const apiKey = "AIzaSyDiYlt8YhzSFIqgvEE7qSFZHVcjYLRXu-c"; 
+        const apiKey = ""; // If you want to use models other than gemini-2.0-flash or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
         const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
         const response = await fetch(apiUrl, {
@@ -3557,9 +3582,7 @@ Original description:
     document.addEventListener('DOMContentLoaded', () => {
       // ALWAYS clear the labels container at the very beginning
       document.getElementById('labels-container').innerHTML = '';
-
-      // IMPORTANT: Ensure selectedLabelIds is cleared on every fresh load
-      selectedLabelIds.clear(); 
+      console.log("DOM Content Loaded. labels-container cleared.");
 
       // Load saved state from local storage or initialize default
       const savedState = localStorage.getItem(LOCAL_STORAGE_KEY);
@@ -3648,8 +3671,15 @@ Original description:
                   throw new Error('Invalid JSON format. Expected an array of labels.');
                 }
 
+                // Clear selectedLabelIds before loading new labels
+                selectedLabelIds.clear();
+                console.log("selectedLabelIds cleared before paste JSON load:", selectedLabelIds);
+
+
                 document.getElementById('labels-container').innerHTML = ''; // Clear existing
                 labelsToLoad.forEach((label, index) => { // Pass index to createLabelBlock
+                  // Generate a unique HTML ID for this label block *before* creating it
+                  const uniqueHtmlId = `label-${crypto.randomUUID()}`;
                   createLabelBlock(
                     label.identifier || label.id || '', // Support old 'id' or new 'identifier'
                     label.severity || 'inform',
@@ -3659,7 +3689,8 @@ Original description:
                     label.enabled !== undefined ? label.enabled : true,
                     label.locales || [],
                     label.category || '',
-                    index === 0 // Pass true if it's the first label being loaded
+                    index === 0, // Pass true if it's the first label being loaded
+                    uniqueHtmlId // Pass the generated ID
                   );
                 });
 
@@ -3724,8 +3755,15 @@ Original description:
                 throw new Error('Invalid JSON format. Expected an array of labels.');
               }
 
+              // Clear selectedLabelIds before loading new labels
+              selectedLabelIds.clear();
+              console.log("selectedLabelIds cleared before import JSON load:", selectedLabelIds);
+
+
               document.getElementById('labels-container').innerHTML = ''; // Clear existing
               labelsToLoad.forEach((label, index) => { // Pass index to createLabelBlock
+                // Generate a unique HTML ID for this label block *before* creating it
+                const uniqueHtmlId = `label-${crypto.randomUUID()}`;
                 createLabelBlock(
                   label.identifier || label.id || '',
                   label.severity || 'inform',
@@ -3735,7 +3773,8 @@ Original description:
                   label.enabled !== undefined ? label.enabled : true,
                   label.locales || [],
                   label.category || '',
-                  index === 0 // Pass true if it's the first label being loaded
+                  index === 0, // Pass true if it's the first label being loaded
+                  uniqueHtmlId // Pass the generated ID
                 );
               });
 
@@ -3807,6 +3846,7 @@ Original description:
         showCustomModal('Are you sure you want to clear all labels and reset to default? This action cannot be undone.', 'confirm', (response) => {
           if (response) {
             selectedLabelIds.clear(); // IMPORTANT: Clear selected IDs immediately on reset
+            console.log("selectedLabelIds cleared on reset button click:", selectedLabelIds);
             document.getElementById('labels-container').innerHTML = '';
             categories = []; // Clear categories too
             descriptionSnippets = []; // Clear snippets
