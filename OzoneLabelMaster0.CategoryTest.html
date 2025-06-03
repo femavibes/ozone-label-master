@@ -1260,18 +1260,18 @@
   .snippet-management-section {
       display: flex;
       flex-direction: column;
-      gap: 0.5em;
+      /* Reduced gap to tighten spacing */
+      gap: 0.25em; /* Reduced from 0.5em */
   }
 
   .snippet-management-section .snippet-input-group {
       display: flex;
       flex-direction: column;
-      /* Reduced gap to tighten spacing */
-      gap: 0.25em; /* Reduced from 0.5em */
+      gap: 0.25em;
   }
   /* Adjust label margin within snippet-input-group to bring closer to title */
   .snippet-management-section .snippet-input-group label {
-      margin-top: 0.25em; /* Reduced from 0.5em */
+      margin-top: 0.25em;
   }
   .snippet-management-section .snippet-input-group label:first-child {
       margin-top: 0; /* No top margin for the very first label */
@@ -1282,8 +1282,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      /* Adjusted margin-top for buttons */
-      margin-top: 0.25em;
+      margin-top: 0; /* Adjusted from 0.25em to 0 */
   }
 
   .snippet-management-section .snippet-actions button {
@@ -1523,7 +1522,13 @@
     /* Removed gap: 0.3em; if it's just a number, no internal gap needed */
   }
 
-
+  /* Specific adjustments for Bulk Edit Label Settings */
+  .label-content .adultOnly {
+      margin-top: 0.5em; /* Reduce gap above Adult Only checkbox */
+  }
+  .label-content > div:last-of-type { /* Target the div containing Apply/Set Default buttons */
+      margin-top: 0.5em; /* Reduce gap between Adult Only and buttons */
+  }
 </style>
 
 </head>
@@ -1546,8 +1551,8 @@
     <button id="undoBtn" class="left-menu-button" disabled title="Undo the last change">↩️</button>
     <button id="redoBtn" class="left-menu-button" disabled title="Redo the last undone change">↪️</button>
     <div class="separator"></div>
-    <button id="saveSessionFileBtn" class="left-menu-button" title="Download current labels and categories as a session file (.ozm)">📥</button>
-    <button id="loadSessionFileBtn" class="left-menu-button" title="Load labels and categories from a session file (.ozm or .json)">📤</button>
+    <button id="saveSessionFileBtn" class="left-menu-button" title="Download current labels, categories, snippets, and app settings as a session file (.ozm)">📥</button>
+    <button id="loadSessionFileBtn" class="left-menu-button" title="Load labels, categories, snippets, and app settings from a session file (.ozm or .json)">📤</button>
     <input type="file" id="sessionFileInput" accept=".json,.ozm" style="display:none" />
     <div class="separator"></div>
     <button id="optionsBtn" class="left-menu-button" title="Open options menu">⚙️</button>
@@ -1560,7 +1565,7 @@
       </a>
       <div class="header-text-group">
         <h1>OZONE LABEL MASTER</h1>
-        <p>version 1.07</p>
+        <p>version 1.08</p>
       </div>
     </header>
 
@@ -1686,7 +1691,7 @@
                             </select>
                         </div>
                     </div>
-                    <label style="margin-top: 0.5em;">Adult Only: <input type="checkbox" id="bulkAdultOnlyControl" title="Mark if this label is for adult content only"></label>
+                    <label class="adultOnly" style="margin-top: 0.5em;">Adult Only: <input type="checkbox" id="bulkAdultOnlyControl" title="Mark if this label is for adult content only"></label>
                     <div style="display: flex; justify-content: space-between; gap: 0.5em; margin-top: 0.5em;">
                         <button id="bulkApplyPropertiesBtn" class="action-button" style="flex-grow: 1;" title="Apply selected property changes to target labels">Apply Selected Properties</button>
                         <button id="setDefaultLabelPropertiesBtn" class="action-button blue-button" style="flex-shrink: 0;" title="Set current Blurs, Severity, and Default Setting as defaults for new labels">Set Default</button>
@@ -1739,7 +1744,7 @@
                     <label for="newSnippetContent">Snippet Content:</label>
                     <textarea id="newSnippetContent" placeholder="Enter the prewritten text here..." style="margin-bottom: 0;" title="Enter the text content of your snippet"></textarea>
                 </div>
-                <div class="snippet-actions" style="margin-top: 0.25em;">
+                <div class="snippet-actions" style="margin-top: 0;">
                     <button id="addSnippetBtn" class="action-button" style="background: var(--primary); color: white;" title="Add this text as a reusable snippet">Add Snippet</button>
                     <button id="viewSnippetsBtn" class="action-button blue-button" title="View, edit, or delete existing snippets">View Snippets</button>
                 </div>
@@ -1982,7 +1987,7 @@
     function saveFullSessionStateToLocalStorage() {
       const currentLabels = getLabelsData();
       const currentSessionState = {
-        labels: currentLabels,
+        labels: currentLabels, // This `labels` array contains the `category` property for each label
         categories: categories,
         defaultLocaleLanguage: defaultLocaleLanguage,
         descriptionSnippets: descriptionSnippets,
@@ -2006,8 +2011,8 @@
       try {
         const currentLabels = getLabelsData();
         const versionData = {
-          labelValues: currentLabels.map(label => label.identifier), // New structure
-          labelValueDefinitions: currentLabels, // New structure
+          labelValues: currentLabels.filter(label => label.enabled).map(label => label.identifier), // Only enabled labels
+          labelValueDefinitions: currentLabels, // All labels, including disabled ones, with their 'enabled' state
           categories: categories, // Include categories in history snapshot
           timestamp: new Date().toISOString(), // Use ISO string for date
           defaultLocaleLanguage: defaultLocaleLanguage, // Include default locale language in history snapshot
@@ -2054,20 +2059,21 @@
       const sessionData = JSON.parse(stateJson);
 
       // Load Labels
-      const dataLabels = sessionData.labelValueDefinitions || sessionData.labels; // Support old and new formats
+      // Prioritize `labelValueDefinitions` if present, otherwise fall back to `labels` (old format)
+      const dataLabels = sessionData.labelValueDefinitions || sessionData.labels;
       document.getElementById('labels-container').innerHTML = ''; // Ensure a clean slate
       dataLabels.forEach((label, index) => { // Pass index to createLabelBlock
         // Generate a unique HTML ID for this label block *before* creating it
         const uniqueHtmlId = `label-${crypto.randomUUID()}`;
         createLabelBlock(
-          label.identifier || label.id || '', // Backward compatibility
+          label.identifier || label.id || '', // Backward compatibility for 'id'
           label.severity || 'inform',
           label.blurs || 'content',
           label.defaultSetting || 'ignore',
           label.adultOnly || false,
-          label.enabled !== undefined ? label.enabled : true,
+          label.enabled !== undefined ? label.enabled : true, // Ensure enabled state is loaded
           label.locales || [],
-          label.category || '',
+          label.category || '', // Load category
           index === 0, // Pass true if it's the first label being loaded
           uniqueHtmlId // Pass the generated ID
         );
@@ -2934,8 +2940,7 @@ Original description:
           blurs,
           defaultSetting,
           adultOnly,
-          enabled,
-          locales,
+          enabled, // Include enabled state in the label object
           category: category || undefined // Only include if not empty
         });
       });
@@ -2946,11 +2951,13 @@ Original description:
     function updateJSONOutput() { // Renamed from updateJSON
       const currentLabels = getLabelsData(); // This returns the array of label objects as currently structured
 
-      const labelValues = currentLabels.map(label => label.identifier); // Extract only the identifiers
-      const labelValueDefinitions = currentLabels.map(label => {
-          const { category, ...rest } = label; // Exclude category from JSON output
-          return rest;
-      });
+      // Filter labelValues to include only identifiers of enabled labels
+      const labelValues = currentLabels
+        .filter(label => label.enabled)
+        .map(label => label.identifier);
+
+      // labelValueDefinitions should include all labels, with their 'enabled' state
+      const labelValueDefinitions = currentLabels; // No filtering needed here
 
       updateDuplicateWarning(labelValues); // Use labelValues for duplicate check
 
@@ -2979,7 +2986,7 @@ Original description:
         const currentLabels = getLabelsData();
         // Ensure history also saves in the new format
         const stateToSave = JSON.stringify({
-          labelValueDefinitions: currentLabels,
+          labelValueDefinitions: currentLabels, // Save all labels with their 'enabled' state
           categories: categories,
           defaultLocaleLanguage: defaultLocaleLanguage,
           descriptionSnippets: descriptionSnippets,
@@ -3605,7 +3612,7 @@ Original description:
                 const addSnippetBtn = document.getElementById('addSnippetBtn');
                 addSnippetBtn.dataset.editIndex = index; // Store index for update
                 addSnippetBtn.textContent = 'Update Snippet';
-                addSnippetBtn.style.background = '#f59e0b'; // Amber color
+                addBtn.style.background = '#f59e0b'; // Amber color
                 
                 document.getElementById('viewSnippetsModal').style.display = 'none'; // Close modal
             };
@@ -3903,7 +3910,8 @@ Original description:
       if (savedStateString) {
           try {
               const parsed = JSON.parse(savedStateString);
-              const labelsArray = parsed.labelValueDefinitions || parsed.labels;
+              // Check for the new `labels` key first, then fallback to old `labelValueDefinitions` or `labels`
+              const labelsArray = parsed.labels || parsed.labelValueDefinitions;
 
               if (labelsArray && Array.isArray(labelsArray) && labelsArray.length > 0) {
                   sessionDataToLoad = parsed;
@@ -4022,8 +4030,8 @@ Original description:
                 const text = pasteJsonTextarea.value;
                 const parsedData = JSON.parse(text);
 
-                // Check if it's the old format (labels array) or new format (labelValueDefinitions)
-                const labelsToLoad = parsedData.labelValueDefinitions || parsedData.labels;
+                // Check if it's the new format (labels array) or old format (labelValueDefinitions)
+                const labelsToLoad = parsedData.labels || parsedData.labelValueDefinitions;
 
                 if (!Array.isArray(labelsToLoad)) {
                   throw new Error('Invalid JSON format. Expected an array of labels.');
@@ -4044,9 +4052,9 @@ Original description:
                     label.blurs || 'content',
                     label.defaultSetting || 'ignore',
                     label.adultOnly || false,
-                    label.enabled !== undefined ? label.enabled : true,
+                    label.enabled !== undefined ? label.enabled : true, // Ensure enabled state is loaded
                     label.locales || [],
-                    label.category || '',
+                    label.category || '', // Load category
                     index === 0, // Pass true if it's the first label being loaded
                     uniqueHtmlId // Pass the generated ID
                   );
@@ -4134,7 +4142,8 @@ Original description:
           reader.onload = (e) => {
             try {
               const parsedData = JSON.parse(e.target.result);
-              const labelsToLoad = parsedData.labelValueDefinitions || parsedData.labels;
+              // Check for the new `labels` key first, then fallback to old `labelValueDefinitions` or `labels`
+              const labelsToLoad = parsedData.labels || parsedData.labelValueDefinitions;
 
               if (!Array.isArray(labelsToLoad)) {
                 throw new Error('Invalid JSON format. Expected an array of labels.');
@@ -4155,9 +4164,9 @@ Original description:
                   label.blurs || 'content',
                   label.defaultSetting || 'ignore',
                   label.adultOnly || false,
-                  label.enabled !== undefined ? label.enabled : true,
+                  label.enabled !== undefined ? label.enabled : true, // Ensure enabled state is loaded
                   label.locales || [],
-                  label.category || '',
+                  label.category || '', // Load category
                   index === 0, // Pass true if it's the first label being loaded
                   uniqueHtmlId // Pass the generated ID
                 );
@@ -4591,7 +4600,7 @@ Original description:
       // Save Session File
       document.getElementById('saveSessionFileBtn').onclick = () => {
           const currentSessionState = {
-              labels: getLabelsData(),
+              labels: getLabelsData(), // This `labels` array contains the `category` property for each label
               categories: categories,
               defaultLocaleLanguage: defaultLocaleLanguage,
               descriptionSnippets: descriptionSnippets,
