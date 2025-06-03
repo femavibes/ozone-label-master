@@ -21,6 +21,8 @@
     --border-radius: 4px; /* Changed to 4px for a more squared look */
     --label-box-background: hsl(180, 70%, 90%); /* Light teal for the identifier box */
     --label-box-text: hsl(180, 100%, 20%); /* Darker teal for contrast */
+    /* Pride Mode Background (Default to transparent for non-pride mode) */
+    --pride-background: transparent;
   }
 
   /* Dark Mode Overrides */
@@ -41,9 +43,24 @@
     --label-box-text: hsl(180, 70%, 90%); /* Lighter text for contrast */
   }
 
+  /* Pride Mode Overrides (only background) */
+  body.pride-mode {
+      --pride-background: linear-gradient(to bottom,
+          #E40303, /* Red */
+          #FF8C00, /* Orange */
+          #FFED00, /* Yellow */
+          #008026, /* Green */
+          #004DFF, /* Blue */
+          #750787  /* Violet */
+      );
+  }
+
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: var(--light-gray);
+    background: var(--light-gray); /* Default background */
+    background-image: var(--pride-background); /* Apply pride background if enabled */
+    background-size: cover; /* Cover the entire background */
+    background-attachment: fixed; /* Keep background fixed when scrolling */
     color: var(--text-color); /* Use variable */
     margin: 0;
     padding: 2em;
@@ -1508,7 +1525,7 @@
       </a>
       <div class="header-text-group">
         <h1>OZONE LABEL MASTER</h1>
-        <p>version 0.98</p>
+        <p>version 0.99</p>
       </div>
     </header>
 
@@ -1725,6 +1742,14 @@
           <div class="slider round"></div>
         </label>
       </div>
+      <!-- NEW: Pride Mode Toggle -->
+      <div class="theme-switch-wrapper" style="margin-top: 0.5em;" title="Toggle gay pride background colors">
+        <span class="theme-switch-label-text">Pride Mode</span>
+        <label class="theme-switch" for="prideModeCheckbox">
+          <input type="checkbox" id="prideModeCheckbox" />
+          <div class="slider round"></div>
+        </label>
+      </div>
       <button id="closeOptionsModalBtn" class="confirm-btn" style="margin-top: 1em;">Close</button>
     </div>
   </div>
@@ -1817,6 +1842,7 @@
     let descriptionSnippets = []; // New global variable for description snippets
     let geminiApiKey = ''; // NEW: Global variable for Gemini API Key
     let pendingTranslationAction = null; // NEW: Stores the function to call after API key is provided
+    let isPrideMode = false; // NEW: Global variable for Pride Mode
 
     // --- IMPORTANT: Clear selectedLabelIds at the very start of script execution ---
     // This ensures a clean slate for selected IDs on every page load.
@@ -1902,7 +1928,8 @@
         categories: categories,
         defaultLocaleLanguage: defaultLocaleLanguage,
         descriptionSnippets: descriptionSnippets,
-        geminiApiKey: geminiApiKey // NEW: Save Gemini API Key
+        geminiApiKey: geminiApiKey, // NEW: Save Gemini API Key
+        isPrideMode: isPrideMode // NEW: Save Pride Mode state
       };
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentSessionState));
       // console.log("Saved current session state to local storage:", currentSessionState); // Commented for less console noise
@@ -1926,7 +1953,8 @@
           timestamp: new Date().toISOString(), // Use ISO string for date
           defaultLocaleLanguage: defaultLocaleLanguage, // Include default locale language in history snapshot
           descriptionSnippets: descriptionSnippets,
-          geminiApiKey: geminiApiKey // NEW: Include Gemini API Key in history snapshot
+          geminiApiKey: geminiApiKey, // NEW: Include Gemini API Key in history snapshot
+          isPrideMode: isPrideMode // NEW: Include Pride Mode state in history snapshot
         };
 
         // Update in-memory history for undo/redo
@@ -2005,6 +2033,14 @@
       const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
       if (geminiApiKeyInput) {
           geminiApiKeyInput.value = geminiApiKey;
+      }
+
+      // NEW: Load Pride Mode state
+      isPrideMode = sessionData.isPrideMode || false;
+      const prideModeCheckbox = document.getElementById('prideModeCheckbox');
+      if (prideModeCheckbox) {
+          prideModeCheckbox.checked = isPrideMode;
+          applyPrideMode(isPrideMode);
       }
 
 
@@ -2570,6 +2606,7 @@ Original description:
         collapseBtn.textContent = isCollapsed ? 'Expand' : 'Collapse';
       };
 
+      // NEW: Confirmation for deleting a label
       labelDiv.querySelector('.remove-btn').onclick = () => {
         showCustomModal('Are you sure you want to delete this label? This action cannot be undone.', 'confirm', (response) => {
             if (response) {
@@ -2862,7 +2899,8 @@ Original description:
           categories: categories,
           defaultLocaleLanguage: defaultLocaleLanguage,
           descriptionSnippets: descriptionSnippets,
-          geminiApiKey: geminiApiKey // NEW: Include Gemini API Key
+          geminiApiKey: geminiApiKey, // NEW: Include Gemini API Key
+          isPrideMode: isPrideMode // NEW: Include Pride Mode state
         });
 
         if (historyIndex < history.length - 1) {
@@ -3071,7 +3109,20 @@ Original description:
 
     // --- Category Management Functions ---
     function renderCategoryMenu() {
-      const categoryList = document.getElementById('category-list');
+      // Determine which category menu is active (desktop or mobile)
+      const isMobile = window.innerWidth <= 992 && document.getElementById('right-menu-wrapper-mobile').classList.contains('open');
+      const categoryMenuElement = isMobile ? document.getElementById('category-menu-mobile') : document.getElementById('category-menu');
+
+      if (!categoryMenuElement) {
+          console.warn("Category menu element not found. Skipping renderCategoryMenu.");
+          return;
+      }
+
+      const categoryList = categoryMenuElement.querySelector('ul#category-list');
+      if (!categoryList) {
+          console.warn("Category list (ul#category-list) not found within the active category menu. Skipping renderCategoryMenu.");
+          return;
+      }
       categoryList.innerHTML = ''; // Clear existing list
 
       categories.forEach((categoryName, index) => {
@@ -3102,7 +3153,7 @@ Original description:
                   select.value = ''; // Set to no category
                 }
               });
-              renderCategoryMenu();
+              renderCategoryMenu(); // Re-render to update the list
               saveFullSessionStateToLocalStorage();
               updateJSONOutput(); // Trigger JSON update and history save
               updateTotalCategoryCount(); // NEW: Update total category count
@@ -3183,12 +3234,22 @@ Original description:
 
 
     function addCategory() {
-      const newCategoryInput = document.getElementById('newCategoryInput');
+      // Determine which category input and button are currently active
+      const isMobile = window.innerWidth <= 992 && document.getElementById('right-menu-wrapper-mobile').classList.contains('open');
+      const activeCategoryMenu = isMobile ? document.getElementById('category-menu-mobile') : document.getElementById('category-menu');
+
+      if (!activeCategoryMenu) {
+          console.warn("Active category menu element not found. Cannot add category.");
+          return;
+      }
+
+      const newCategoryInput = activeCategoryMenu.querySelector('#newCategoryInput');
       const newCategoryName = newCategoryInput.value.trim();
+
       if (newCategoryName && !categories.includes(newCategoryName)) {
         categories.push(newCategoryName);
         newCategoryInput.value = '';
-        renderCategoryMenu();
+        renderCategoryMenu(); // Re-render to update the list
         updateLabelCategoryDropdowns(); // Update all label category dropdowns
         saveFullSessionStateToLocalStorage();
         updateJSONOutput(); // Trigger JSON update and history save
@@ -3673,6 +3734,15 @@ Original description:
         }
     }
 
+    // NEW: Pride Mode Toggle Functionality
+    function applyPrideMode(enabled) {
+        if (enabled) {
+            document.body.classList.add('pride-mode');
+        } else {
+            document.body.classList.remove('pride-mode');
+        }
+    }
+
 
     // --- Event Listeners and Initialization ---
     document.addEventListener('DOMContentLoaded', () => {
@@ -3708,13 +3778,20 @@ Original description:
           loadState(JSON.stringify(sessionDataToLoad));
       } else {
           console.log("DOMContentLoaded: No valid saved state with labels found. Creating default example label.");
-          createLabelBlock('example_label', 'inform', 'content', 'ignore', false, true, [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}], '', true);
+          createLabelBlock('example_label', 'inform', 'content', 'ignore', false, true, [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}], '', true); // Pass true for isFirstLabel
           console.log("DOMContentLoaded: Default example label created. Current label blocks:", document.querySelectorAll('.label-block').length);
           geminiApiKey = '';
           const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
           if (geminiApiKeyInput) {
               geminiApiKeyInput.value = geminiApiKey;
           }
+          isPrideMode = false; // Ensure pride mode is off by default on fresh run
+          const prideModeCheckbox = document.getElementById('prideModeCheckbox');
+          if (prideModeCheckbox) {
+              prideModeCheckbox.checked = false;
+              applyPrideMode(false);
+          }
+
           console.log("DOMContentLoaded: Calling updateJSONOutput after default creation.");
           updateJSONOutput();
       }
@@ -3838,6 +3915,16 @@ Original description:
                     }
                 }
 
+                // NEW: If isPrideMode is present, update it
+                if (parsedData.isPrideMode !== undefined) {
+                    isPrideMode = parsedData.isPrideMode;
+                    const prideModeCheckbox = document.getElementById('prideModeCheckbox');
+                    if (prideModeCheckbox) {
+                        prideModeCheckbox.checked = isPrideMode;
+                        applyPrideMode(isPrideMode);
+                    }
+                }
+
 
                 saveFullSessionStateToLocalStorage(); // Save the new state
                 updateJSONOutput(); // Update output and history
@@ -3934,6 +4021,16 @@ Original description:
                   }
               }
 
+              // NEW: If isPrideMode is present, update it
+              if (parsedData.isPrideMode !== undefined) {
+                  isPrideMode = parsedData.isPrideMode;
+                  const prideModeCheckbox = document.getElementById('prideModeCheckbox');
+                  if (prideModeCheckbox) {
+                      prideModeCheckbox.checked = isPrideMode;
+                      applyPrideMode(isPrideMode);
+                  }
+              }
+
               saveFullSessionStateToLocalStorage(); // Save the new state
               updateJSONOutput(); // Update output and history
               showCustomModal('JSON imported successfully!', 'alert');
@@ -3991,6 +4088,7 @@ Original description:
             descriptionSnippets = []; // Clear snippets
             defaultLocaleLanguage = 'en'; // Reset default locale
             geminiApiKey = ''; // NEW: Clear API key on reset
+            isPrideMode = false; // NEW: Clear Pride Mode on reset
             
             createLabelBlock('example_label', 'inform', 'content', 'ignore', false, true, [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}], '', true); // Pass true for isFirstLabel
             saveFullSessionStateToLocalStorage(); // Save the cleared state
@@ -4005,6 +4103,12 @@ Original description:
             const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
             if (geminiApiKeyInput) {
                 geminiApiKeyInput.value = geminiApiKey;
+            }
+            // Update Pride Mode checkbox in options modal
+            const prideModeCheckbox = document.getElementById('prideModeCheckbox');
+            if (prideModeCheckbox) {
+                prideModeCheckbox.checked = false;
+                applyPrideMode(false);
             }
             updateBulkActionsLabelCount(); // NEW: Update bulk actions count
             updateTotalLabelCount(); // NEW: Update total label count
@@ -4065,6 +4169,7 @@ Original description:
       const closeRightMenuBtnMobile = document.getElementById('closeRightMenuBtnMobile');
 
       // Move desktop right menus into mobile wrapper if on mobile
+      // This block runs only once on DOMContentLoaded
       if (window.innerWidth <= 992) {
           const categoryMenuDesktop = document.getElementById('category-menu');
           const floatingMenuDesktop = document.getElementById('floating-menu');
@@ -4093,6 +4198,7 @@ Original description:
 
           // Re-attach event listeners for elements moved to mobile menus
           // Category Menu
+          // IMPORTANT: Attach to the mobile-specific elements
           categoryMenuMobile.querySelector('#addCategoryBtn').onclick = addCategory;
           categoryMenuMobile.querySelector('#deleteSelectedCategoriesBtn').onclick = deleteSelectedCategories;
           categoryMenuMobile.querySelector('#newCategoryInput').addEventListener('keypress', (e) => {
@@ -4187,6 +4293,27 @@ Original description:
         }
       });
 
+      // NEW: Pride Mode Toggle
+      const prideModeToggle = document.getElementById('prideModeCheckbox');
+      const savedPrideMode = localStorage.getItem('isPrideMode');
+      if (savedPrideMode === 'true') {
+          isPrideMode = true;
+          prideModeToggle.checked = true;
+          applyPrideMode(true);
+      } else {
+          isPrideMode = false;
+          prideModeToggle.checked = false;
+          applyPrideMode(false);
+      }
+
+      prideModeToggle.addEventListener('change', function() {
+          isPrideMode = this.checked;
+          applyPrideMode(isPrideMode);
+          localStorage.setItem('isPrideMode', isPrideMode);
+          saveFullSessionStateToLocalStorage(); // Save the new state
+      });
+
+
       // Default Locale Language Select
       const defaultLocaleLangSelect = document.getElementById('defaultLocaleLangSelect');
       populateDefaultLocaleLanguageSelect(); // Populate on load
@@ -4269,7 +4396,8 @@ Original description:
               categories: categories,
               defaultLocaleLanguage: defaultLocaleLanguage,
               descriptionSnippets: descriptionSnippets,
-              geminiApiKey: geminiApiKey // NEW: Save Gemini API Key
+              geminiApiKey: geminiApiKey, // NEW: Save Gemini API Key
+              isPrideMode: isPrideMode // NEW: Save Pride Mode state
           };
           const blob = new Blob([JSON.stringify(currentSessionState, null, 2)], { type: 'application/json' });
           const url = URL.createObjectURL(blob);
@@ -4404,6 +4532,15 @@ Original description:
       updateBulkActionsLabelCount(); // Initial update for bulk actions count
       updateTotalLabelCount(); // Initial update for total label count
       updateTotalCategoryCount(); // Initial update for total category count
+
+      // Attach event listeners for the desktop category menu's input and button
+      const desktopCategoryMenu = document.getElementById('category-menu');
+      if (desktopCategoryMenu) {
+          desktopCategoryMenu.querySelector('#addCategoryBtn').onclick = addCategory;
+          desktopCategoryMenu.querySelector('#newCategoryInput').addEventListener('keypress', (e) => {
+              if (e.key === 'Enter') addCategory();
+          });
+      }
     });
 
     // Helper to populate the default locale language select dropdown
