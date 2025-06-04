@@ -165,9 +165,15 @@
                         </div>
                     </div>
                     <div>
-                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Top Websites</h3>
-                        <div id="topWebsites">
-                            <p class="text-gray-500 text-center">No websites yet to analyze.</p>
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Top Links</h3> <!-- Renamed Top Websites to Top Links -->
+                        <div id="topLinks"> <!-- Renamed div id -->
+                            <p class="text-gray-500 text-center">No links yet to analyze.</p>
+                        </div>
+                    </div>
+                    <div class="md:col-span-2"> <!-- This div will span both columns on medium screens and up -->
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Top Websites (Domains)</h3> <!-- New section -->
+                        <div id="topDomains">
+                            <p class="text-gray-500 text-center">No domains yet to analyze.</p>
                         </div>
                     </div>
                 </div>
@@ -217,12 +223,14 @@
         const connectionStatusElem = document.getElementById('connectionStatus');
         const loadingIndicatorElem = document.getElementById('loadingIndicator');
         const topTermsDiv = document.getElementById('topTerms'); // For Top Hashtags
-        const topWebsitesDiv = document.getElementById('topWebsites'); // For Top Websites
+        const topLinksDiv = document.getElementById('topLinks'); // Renamed from topWebsitesDiv
+        const topDomainsDiv = document.getElementById('topDomains'); // New for Top Websites (Domains)
         const noPostsMessage = document.getElementById('noPostsMessage');
 
         // --- Analysis Data (synced with Firestore) ---
         let termCounts = {}; // For hashtags
-        let websiteCounts = {}; // For websites
+        let linkCounts = {}; // Renamed from websiteCounts
+        let domainCounts = {}; // New for domains
 
         // --- WebSocket Variables ---
         let ws = null;
@@ -247,6 +255,22 @@
             'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very',
             's', 't', 'can', 'will', 'just', 'don', 'should', 'now'
         ]);
+
+        // Helper function to extract base domain from a URL
+        function getBaseDomain(url) {
+            try {
+                const hostname = new URL(url).hostname;
+                const parts = hostname.split('.');
+                // For a simple base domain, take the last two parts (e.g., "example.com" from "sub.example.com")
+                if (parts.length > 1) {
+                    return parts.slice(-2).join('.');
+                }
+                return hostname; // Fallback for single-part hostnames like 'localhost'
+            } catch (e) {
+                console.error("Error parsing base domain from URL:", url, e);
+                return 'Invalid Domain';
+            }
+        }
 
 
         // --- Firebase Initialization ---
@@ -299,7 +323,8 @@
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     let currentTermCounts = data.termCounts || {}; 
-                    let currentWebsiteCounts = data.websiteCounts || {}; // Get website counts
+                    let currentLinkCounts = data.linkCounts || {}; // Get link counts (renamed)
+                    let currentDomainCounts = data.domainCounts || {}; // Get domain counts (new)
 
                     // --- Sanitize termCounts: Remove any non-hashtag entries ---
                     let needsCleanup = false;
@@ -323,22 +348,26 @@
                         termCounts = currentTermCounts; // No cleanup needed, use as is
                     }
 
-                    websiteCounts = currentWebsiteCounts; // Update local website counts
+                    linkCounts = currentLinkCounts; // Update local link counts
+                    domainCounts = currentDomainCounts; // Update local domain counts
 
-                    console.log("Firestore data received via onSnapshot:", { termCounts, websiteCounts }); 
+                    console.log("Firestore data received via onSnapshot:", { termCounts, linkCounts, domainCounts }); 
                 } else {
                     // Document doesn't exist, initialize it with empty counts
                     console.log("Analysis document does not exist, initializing with empty counts.");
                     setDoc(analysisDocRef, { 
                         termCounts: {},
-                        websiteCounts: {} // Initialize website counts
+                        linkCounts: {}, // Initialize link counts
+                        domainCounts: {} // Initialize domain counts
                     }, { merge: true })
                         .catch(e => console.error("Error creating analysis document:", e));
                     termCounts = {};
-                    websiteCounts = {}; // Initialize local website counts
+                    linkCounts = {}; // Initialize local link counts
+                    domainCounts = {}; // Initialize local domain counts
                 }
                 renderTopTerms(); // Renders hashtags
-                renderTopWebsites(); // Renders websites
+                renderTopLinks(); // Renders links
+                renderTopDomains(); // Renders domains
             }, (error) => {
                 console.error("Error listening to Firestore:", error);
                 connectionStatusElem.textContent = `Firestore Listener Error: ${error.message}`;
@@ -386,225 +415,4 @@
                         const commitData = data.commit;
                         const post = commitData.record; // The actual post record
                         
-                        // Ensure post.text exists and is a string before assigning
-                        if (typeof post.text === 'string') {
-                            postText = post.text;
-                        } else {
-                            console.warn("Post record text is not a string or is missing, defaulting to empty string:", post.text);
-                            postText = ''; // Ensure it's an empty string
-                        }
-                        
-                        timestamp = post.createdAt; // Use ISO string for accurate date parsing
-                        postEmbed = post.embed; // Capture embed data
-
-                        // Even though postsContainer is hidden, we still call addPostToDisplay
-                        // to ensure the parsing logic is exercised and logged.
-                        addPostToDisplay(postText, authorDisplayName, authorHandle, new Date(timestamp).toLocaleString()); // Display formatted timestamp
-                        
-                        console.log("Scheduling Firestore update via debounce.");
-                        debouncedUpdateFirestoreAnalysis(authorHandle, postText, postEmbed); // Pass embed data
-                    } else {
-                        console.log("WebSocket message is not a recognized post type or missing expected fields.");
-                    }
-
-                } catch (e) {
-                    console.error('Failed to parse message or process data:', e);
-                }
-            };
-
-            ws.onerror = (error) => {
-                console.error('WebSocket error:', error);
-                connectionStatusElem.textContent = 'WebSocket error. Trying to reconnect...';
-                connectionStatusElem.classList.remove('text-green-600', 'text-orange-600');
-                connectionStatusElem.classList.add('text-red-600');
-                loadingIndicatorElem.style.display = 'none';
-            };
-
-            ws.onclose = (event) => {
-                console.warn('WebSocket closed:', event);
-                connectionStatusElem.textContent = `Disconnected. Code: ${event.code}, Reason: ${event.reason}. Reconnecting in ${RECONNECT_DELAY / 1000}s...`;
-                connectionStatusElem.classList.remove('text-green-600', 'text-red-600');
-                connectionStatusElem.classList.add('text-orange-600');
-                loadingIndicatorElem.style.display = 'none';
-                if (!reconnectInterval) {
-                    reconnectInterval = setInterval(connectWebSocket, RECONNECT_DELAY);
-                }
-            };
-        }
-
-        // --- UI Update Functions ---
-        // This function is still called to process and log, but the postsContainer is hidden.
-        function addPostToDisplay(content, displayName, handle, timestamp) {
-            const postCard = document.createElement('div');
-            postCard.className = 'post-card';
-            postCard.innerHTML = `
-                <div class="post-author">
-                    <div class="text-gray-700">${displayName}</div> <!-- Display name -->
-                    <div class="text-blue-600 text-sm">@${handle}</div> <!-- Display handle with @ prefix -->
-                </div>
-                <div class="post-content">${content}</div>
-                <div class="post-timestamp">${timestamp}</div>
-            `;
-            // Add new posts to the top for a live feed effect (still happens, but hidden)
-            if (postsContainer.firstChild) {
-                postsContainer.insertBefore(postCard, postsContainer.firstChild);
-            } else {
-                postsContainer.appendChild(postCard);
-            }
-            // Limit number of displayed posts to prevent excessive DOM elements
-            while (postsContainer.children.length > 50) {
-                postsContainer.removeChild(postsContainer.lastChild);
-            }
-        }
-
-        // --- Debounced Firestore Update Function ---
-        // This function accumulates updates and writes to Firestore only after a delay.
-        let accumulatedUpdates = { 
-            termCounts: {},
-            websiteCounts: {} // Added websiteCounts
-        };
-
-        async function debouncedUpdateFirestoreAnalysis(authorDid, text, embed) { // Added embed parameter
-            // Ensure accumulatedUpdates always has the expected structure at the start of the function call
-            // This is a more robust way to ensure properties exist than separate if checks.
-            accumulatedUpdates = {
-                termCounts: accumulatedUpdates.termCounts || {},
-                websiteCounts: accumulatedUpdates.websiteCounts || {}
-            };
-
-            const safeText = String(text || '');
-            
-            // --- Hashtag Counting ---
-            let hashtags = [];
-            try {
-                const matchedHashtags = safeText.toLowerCase().match(/#\b\w+\b/g);
-                hashtags = matchedHashtags ? [...matchedHashtags] : []; 
-            } catch (e) {
-                console.error("Error during hashtag matching:", e, "Text:", safeText);
-                hashtags = []; // Default to empty array on error
-            }
-            hashtags.forEach(tag => {
-                accumulatedUpdates.termCounts[tag] = (accumulatedUpdates.termCounts[tag] || 0) + 1;
-            });
-
-            // --- Website Counting ---
-            if (embed && embed.$type === 'app.bsky.embed.external' && embed.external && embed.external.uri) {
-                const uri = embed.external.uri;
-                // You might want to normalize the URI (e.g., remove query params, force HTTPS)
-                // For simplicity, we'll use it as is for now.
-                accumulatedUpdates.websiteCounts[uri] = (accumulatedUpdates.websiteCounts[uri] || 0) + 1;
-            }
-
-
-            // Clear any existing timer
-            if (debounceTimer) {
-                clearTimeout(debounceTimer);
-            }
-
-            // Set a new timer to execute the actual Firestore update after DEBOUNCE_DELAY
-            debounceTimer = setTimeout(async () => {
-                if (!db || !isFirebaseReady) {
-                    console.warn("Firestore not ready for update after debounce. Cannot update analysis.");
-                    return;
-                }
-
-                const analysisDocRef = doc(db, `artifacts/${appId}/public/data/grazeFeedAnalysis`, 'summary');
-
-                try {
-                    const docSnap = await getDoc(analysisDocRef);
-                    let currentData = {
-                        termCounts: {},
-                        websiteCounts: {} // Include websiteCounts in currentData
-                    };
-
-                    if (docSnap.exists()) {
-                        currentData = docSnap.data();
-                        // Ensure properties exist on fetched data before merging
-                        currentData.termCounts = currentData.termCounts || {};
-                        currentData.websiteCounts = currentData.websiteCounts || {};
-                    }
-
-                    // Merge accumulated updates with current Firestore data
-                    for (const key in accumulatedUpdates.termCounts) {
-                        currentData.termCounts[key] = (currentData.termCounts[key] || 0) + accumulatedUpdates.termCounts[key];
-                    }
-                    for (const key in accumulatedUpdates.websiteCounts) {
-                        currentData.websiteCounts[key] = (currentData.websiteCounts[key] || 0) + accumulatedUpdates.websiteCounts[key];
-                    }
-
-                    await setDoc(analysisDocRef, currentData, { merge: true });
-                    console.log("Firestore update successful (debounced)!");
-                    console.log("Updated Firestore data (local state):", currentData);
-
-                    // Reset accumulated updates after successful write
-                    accumulatedUpdates = { 
-                        termCounts: {},
-                        websiteCounts: {} // Reset websiteCounts
-                    };
-
-                } catch (e) {
-                    console.error("Error updating Firestore analysis (debounced):", e);
-                    if (e.code === 'permission-denied') {
-                        console.error("Firestore Permission Denied: Check your Firestore Security Rules! Ensure authenticated users can write to /artifacts/{appId}/public/data/grazeFeedAnalysis/summary");
-                    }
-                }
-            }, DEBOUNCE_DELAY);
-        }
-
-        // --- Render Functions for Analysis ---
-        function renderTopTerms() { // This function now renders hashtags
-            const sortedTerms = Object.entries(termCounts)
-                .sort(([, countA], [, countB]) => countB - countA)
-                .slice(0, 20); // Top 20 hashtags
-
-            topTermsDiv.innerHTML = ''; // Clear previous content
-            if (sortedTerms.length === 0) {
-                topTermsDiv.innerHTML = '<p class="text-gray-500 text-center">No hashtags yet to analyze.</p>';
-                return;
-            }
-            sortedTerms.forEach(([term, count], index) => { // Added index for numbering
-                const item = document.createElement('div');
-                item.className = 'analysis-item';
-                // Ensure hashtag always starts with # for display
-                const displayTerm = term.startsWith('#') ? term : `#${term}`; 
-                item.innerHTML = `
-                    <span class="analysis-label">${index + 1}. ${displayTerm}</span>
-                    <span class="analysis-value">${count} uses</span>
-                `;
-                topTermsDiv.appendChild(item);
-            });
-        }
-
-        function renderTopWebsites() {
-            const sortedWebsites = Object.entries(websiteCounts)
-                .sort(([, countA], [, countB]) => countB - countA)
-                .slice(0, 20); // Top 20 websites
-
-            topWebsitesDiv.innerHTML = ''; // Clear previous content
-            if (sortedWebsites.length === 0) {
-                topWebsitesDiv.innerHTML = '<p class="text-gray-500 text-center">No websites yet to analyze.</p>';
-                return;
-            }
-            sortedWebsites.forEach(([url, count], index) => { // Added index for numbering
-                const item = document.createElement('div');
-                item.className = 'analysis-item';
-                // Display the URL, maybe truncate long ones
-                const displayUrl = url.length > 50 ? url.substring(0, 47) + '...' : url;
-                item.innerHTML = `
-                    <span class="analysis-label"><a href="${url}" target="_blank" class="text-blue-500 hover:underline">${index + 1}. ${displayUrl}</a></span>
-                    <span class="analysis-value">${count} shares</span>
-                `;
-                topWebsitesDiv.appendChild(item);
-            });
-        }
-
-        // --- Initialize on Window Load ---
-        window.onload = function () {
-            initializeFirebase(); // Start Firebase initialization and auth
-            // Initial render calls for all analysis sections
-            renderTopTerms();
-            renderTopWebsites();
-        };
-    </script>
-</body>
-</html>
+                        // Ensure post.text exists and is a string before as
