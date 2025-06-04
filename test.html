@@ -476,6 +476,10 @@
             });
 
             // --- Website Counting ---
+            // Ensure accumulatedUpdates.websiteCounts is an object before using it
+            if (typeof accumulatedUpdates.websiteCounts !== 'object' || accumulatedUpdates.websiteCounts === null) {
+                accumulatedUpdates.websiteCounts = {};
+            }
             if (embed && embed.$type === 'app.bsky.embed.external' && embed.external && embed.external.uri) {
                 const uri = embed.external.uri;
                 // You might want to normalize the URI (e.g., remove query params, force HTTPS)
