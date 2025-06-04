@@ -125,7 +125,7 @@
                 <div id="loadingIndicator" class="loading-indicator">Connecting to feed...</div>
                 <div id="postsContainer" class="flex-grow overflow-y-auto border border-gray-200 rounded-md p-2" style="max-height: 500px;">
                     <!-- Live posts will be appended here -->
-                    <p id="noPostsMessage" class="text-gray-500 text-center py-4" style="display: none;">Waiting for new posts...</p>
+                    <p id="noPostsMessage" class="text-gray-500 text-center py-4">Waiting for new posts...</p>
                 </div>
                 <div id="connectionStatus" class="text-center mt-4 text-sm text-gray-600">
                     Initializing...
@@ -290,9 +290,10 @@
                     const data = docSnap.data();
                     posterCounts = data.posterCounts || {};
                     termCounts = data.termCounts || {};
+                    console.log("Firestore data received via onSnapshot:", { posterCounts, termCounts }); // Log received data
                 } else {
                     // Document doesn't exist, initialize it with empty counts
-                    console.log("Analysis document does not exist, creating it.");
+                    console.log("Analysis document does not exist, initializing with empty counts.");
                     setDoc(analysisDocRef, { posterCounts: {}, termCounts: {} }, { merge: true })
                         .catch(e => console.error("Error creating analysis document:", e));
                     posterCounts = {};
@@ -308,6 +309,12 @@
 
         // --- WebSocket Connection Logic ---
         function connectWebSocket() {
+            if (!isFirebaseReady) { // Ensure Firebase is ready before attempting WebSocket connection
+                console.warn("Firebase is not ready, delaying WebSocket connection.");
+                setTimeout(connectWebSocket, 1000); // Retry after 1 second
+                return;
+            }
+
             if (ws && ws.readyState === WebSocket.OPEN) {
                 return; // Already connected
             }
@@ -330,37 +337,46 @@
             ws.onmessage = async (event) => {
                 try {
                     const data = JSON.parse(event.data);
-                    // console.log('Received message:', data); // Log for debugging
+                    console.log('Received raw WebSocket message:', data); // Log the raw data for inspection
 
                     let authorHandle = 'Unknown Author';
                     let postText = '';
                     let timestamp = new Date().toLocaleString();
 
                     // Bluesky AT Protocol / Jetstream format parsing
-                    if (data.repo && data.commit && data.blocks) {
-                        const commit = data.commit;
+                    // The Contrails stream sends 'commit' objects which contain 'blocks'
+                    // where the actual post record resides.
+                    if (data.$type === 'com.atproto.sync.subscribeRepos#commit' && data.blocks) {
+                        const commit = data; // The whole data object is the commit
                         const blocks = data.blocks;
 
+                        // Iterate through blocks to find post records
                         for (const block of blocks) {
-                            if (block.$type === 'app.bsky.feed.post' && data.op === 'create') {
-                                const post = block;
-                                authorHandle = post.author || data.repo; // Use hydrated author if available, else DID
+                            // The actual record data is often nested within the block
+                            // We need to check the $type of the *record* within the block
+                            // The 'record' field is typically where the actual post data lives within a block
+                            if (block.record && block.record.$type === 'app.bsky.feed.post') {
+                                const post = block.record; // Access the nested record
+                                authorHandle = commit.repo; // Author's DID is in the commit's repo field
                                 postText = post.text;
                                 timestamp = new Date(commit.time).toLocaleString();
+                                console.log(`Detected a 'create' post operation.`);
+                                console.log(`Extracted Author: ${authorHandle}`);
+                                console.log(`Extracted Content: "${postText.substring(0, Math.min(postText.length, 100))}..."`);
+                                console.log(`Extracted Timestamp: ${timestamp}`);
                                 break; // Found the post, exit loop
                             }
                         }
-                    } else if (data.$type && data.record && data.repo) {
-                        // Handle cases where the message might be a direct record update
-                        const post = data.record;
-                        authorHandle = data.repo;
-                        postText = post.text;
-                        timestamp = new Date().toLocaleString(); // Fallback to current time
+                    } else {
+                        console.log("WebSocket message is not a 'commit' or does not contain a recognized post record type.");
                     }
 
-                    if (postText) {
-                        addPostToDisplay(postText, authorHandle, timestamp); // Corrected argument order
+                    if (postText && authorHandle !== 'Unknown Author') { // Only process if we successfully parsed content and author
+                        addPostToDisplay(postText, authorHandle, timestamp);
+                        console.log("Attempting to update Firestore with new post data.");
                         await updateFirestoreAnalysis(authorHandle, postText);
+                    } else {
+                        console.log("Skipping Firestore update: Post text or author not found in message or not a recognized post type.");
                     }
 
                 } catch (e) {
@@ -389,7 +405,6 @@
         }
 
         // --- UI Update Functions ---
-        // Corrected argument order to match how it's called in ws.onmessage
         function addPostToDisplay(content, author, timestamp) {
             noPostsMessage.style.display = 'none'; // Hide "Waiting for new posts..." message
             const postCard = document.createElement('div');
@@ -414,7 +429,7 @@
         // --- Firestore Update Function ---
         async function updateFirestoreAnalysis(author, text) {
             if (!db || !isFirebaseReady) {
-                console.warn("Firestore not ready for update.");
+                console.warn("Firestore not ready for update. Cannot update analysis.");
                 return;
             }
 
@@ -429,6 +444,9 @@
                     const data = docSnap.data();
                     currentPosterCounts = data.posterCounts || {};
                     currentTermCounts = data.termCounts || {};
+                    console.log("Existing Firestore data before update:", { currentPosterCounts, currentTermCounts });
+                } else {
+                    console.log("Firestore document does not exist, will create with initial empty counts.");
                 }
 
                 currentPosterCounts[author] = (currentPosterCounts[author] || 0) + 1;
@@ -446,9 +464,16 @@
                     posterCounts: currentPosterCounts,
                     termCounts: currentTermCounts
                 }, { merge: true });
+                console.log("Firestore update successful!");
+                console.log("Updated Firestore data (local state):", { posterCounts: currentPosterCounts, termCounts: currentTermCounts });
+
 
             } catch (e) {
                 console.error("Error updating Firestore analysis:", e);
+                // This is where Firestore security rule errors would typically appear
+                if (e.code === 'permission-denied') {
+                    console.error("Firestore Permission Denied: Check your Firestore Security Rules! Ensure authenticated users can write to /artifacts/{appId}/public/data/grazeFeedAnalysis/summary");
+                }
             }
         }
 
