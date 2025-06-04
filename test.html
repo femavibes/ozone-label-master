@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Urbanism+ Feed & Analysis</title>
+    <title>Urbanism+ Feed & Hashtag Analysis</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -32,6 +32,8 @@
             .section-wrapper {
                 flex: 1; /* Each section takes equal width */
                 min-width: 45%; /* Ensure they don't get too narrow */
+                display: flex; /* Make section-wrapper a flex container */
+                flex-direction: column; /* Stack cards within it vertically */
             }
         }
 
@@ -42,6 +44,7 @@
             padding: 25px;
             display: flex;
             flex-direction: column;
+            flex-grow: 1; /* Allow cards to grow and fill space */
         }
         .section-title {
             font-size: 1.75rem; /* Larger title */
@@ -104,11 +107,35 @@
             text-align: center;
             margin-bottom: 15px;
         }
+        .iframe-embed {
+            width: 100%;
+            height: 100%; /* Make iframe take full height of its container */
+            min-height: 500px; /* Ensure a minimum height for the iframe */
+            border: none;
+            border-radius: 8px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
     </style>
 </head>
 <body>
     <div class="main-wrapper">
-        <!-- Section for Live Analysis (Contrails data processed in background) -->
+        <!-- Section for Iframe Embed (Visual Feed) - Now on the left -->
+        <div class="section-wrapper">
+            <div class="section-card">
+                <h2 class="section-title">Urbanism+ Feed</h2>
+                <iframe
+                    src="https://graze.social/feeds/embed/3654"
+                    title="Urbanism+ Social Feed"
+                    class="iframe-embed"
+                    allowFullScreen
+                ></iframe>
+                <p class="text-sm text-gray-600 mt-4 text-center">
+                    This is the embedded feed from Graze Social, providing a pre-styled view.
+                </p>
+            </div>
+        </div>
+
+        <!-- Section for Live Analysis (Contrails data processed in background) - Now on the right -->
         <div class="section-wrapper">
             <div class="section-card">
                 <h2 class="section-title">Urbanism+</h2>
@@ -124,7 +151,7 @@
                 <div id="loadingIndicator" class="loading-indicator" style="display: none;">Connecting to feed...</div>
 
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6"> <!-- Changed to 2 columns for side-by-side rankings -->
                     <div>
                         <h3 class="text-xl font-semibold text-gray-700 mb-4">Top Hashtags</h3>
                         <div id="topTerms">
@@ -132,40 +159,12 @@
                         </div>
                     </div>
                     <div>
-                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Top Hours for Posts</h3>
-                        <div id="topHours">
-                            <p class="text-gray-500 text-center">No posts yet to analyze.</p>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Top Content Types</h3>
-                        <div id="topContentTypes">
-                            <p class="text-gray-500 text-center">No posts yet to analyze.</p>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Top Emojis</h3>
-                        <div id="topEmojis">
-                            <p class="text-gray-500 text-center">No posts yet to analyze.</p>
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Top Websites</h3>
+                        <div id="topWebsites">
+                            <p class="text-gray-500 text-center">No websites yet to analyze.</p>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Section for Iframe Embed (Visual Feed) -->
-        <div class="section-wrapper">
-            <div class="section-card">
-                <h2 class="section-title">Urbanism+ Feed</h2>
-                <iframe
-                    src="https://graze.social/feeds/embed/3654"
-                    title="Urbanism+ Social Feed"
-                    class="iframe-embed"
-                    allowFullScreen
-                ></iframe>
-                <p class="text-sm text-gray-600 mt-4 text-center">
-                    This is the embedded feed from Graze Social, providing a pre-styled view.
-                </p>
             </div>
         </div>
     </div>
@@ -211,21 +210,13 @@
         const postsContainer = document.getElementById('postsContainer');
         const connectionStatusElem = document.getElementById('connectionStatus');
         const loadingIndicatorElem = document.getElementById('loadingIndicator');
-        const topPostersDiv = document.getElementById('topPosters'); // Still used for rendering, but logic for counting removed
         const topTermsDiv = document.getElementById('topTerms'); // For Top Hashtags
-        const topHoursDiv = document.getElementById('topHours'); // For Top Hours
-        const topContentTypesDiv = document.getElementById('topContentTypes'); // For Top Content Types
-        const topEmojisDiv = document.getElementById('topEmojis'); // For Top Emojis
-        const feedNameDisplay = document.getElementById('feedNameDisplay'); 
+        const topWebsitesDiv = document.getElementById('topWebsites'); // For Top Websites
         const noPostsMessage = document.getElementById('noPostsMessage');
 
         // --- Analysis Data (synced with Firestore) ---
-        // Removed posterCounts from here, as it's no longer a primary ranking metric.
-        // If needed for internal logic (e.g., unique user check), it would be managed locally.
         let termCounts = {}; // For hashtags
-        let hourlyCounts = {}; // For top hours
-        let contentTypeCounts = {}; // For content types
-        let emojiCounts = {}; // For emojis
+        let websiteCounts = {}; // For websites
 
         // --- WebSocket Variables ---
         let ws = null;
@@ -250,9 +241,6 @@
             'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very',
             's', 't', 'can', 'will', 'just', 'don', 'should', 'now'
         ]);
-
-        // Regex to find emojis (covers a broad range of Unicode emoji blocks)
-        const emojiRegex = /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/g;
 
 
         // --- Firebase Initialization ---
@@ -304,11 +292,8 @@
             onSnapshot(analysisDocRef, async (docSnap) => { // Made async to allow await setDoc
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    // posterCounts = data.posterCounts || {}; // Removed, no longer needed for display
                     let currentTermCounts = data.termCounts || {}; 
-                    let currentHourlyCounts = data.hourlyCounts || {};
-                    let currentContentTypeCounts = data.contentTypeCounts || {};
-                    let currentEmojiCounts = data.emojiCounts || {};
+                    let currentWebsiteCounts = data.websiteCounts || {}; // Get website counts
 
                     // --- Sanitize termCounts: Remove any non-hashtag entries ---
                     let needsCleanup = false;
@@ -332,31 +317,22 @@
                         termCounts = currentTermCounts; // No cleanup needed, use as is
                     }
 
-                    hourlyCounts = currentHourlyCounts;
-                    contentTypeCounts = currentContentTypeCounts;
-                    emojiCounts = currentEmojiCounts;
+                    websiteCounts = currentWebsiteCounts; // Update local website counts
 
-                    console.log("Firestore data received via onSnapshot:", { termCounts, hourlyCounts, contentTypeCounts, emojiCounts }); 
+                    console.log("Firestore data received via onSnapshot:", { termCounts, websiteCounts }); 
                 } else {
                     // Document doesn't exist, initialize it with empty counts
                     console.log("Analysis document does not exist, initializing with empty counts.");
                     setDoc(analysisDocRef, { 
-                        termCounts: {}, 
-                        hourlyCounts: {}, 
-                        contentTypeCounts: {}, 
-                        emojiCounts: {} 
+                        termCounts: {},
+                        websiteCounts: {} // Initialize website counts
                     }, { merge: true })
                         .catch(e => console.error("Error creating analysis document:", e));
                     termCounts = {};
-                    hourlyCounts = {};
-                    contentTypeCounts = {};
-                    emojiCounts = {};
+                    websiteCounts = {}; // Initialize local website counts
                 }
-                // renderTopPosters(); // Removed, no longer needed
                 renderTopTerms(); // Renders hashtags
-                renderTopHours(); // Renders top hours
-                renderTopContentTypes(); // Renders top content types
-                renderTopEmojis(); // Renders top emojis
+                renderTopWebsites(); // Renders websites
             }, (error) => {
                 console.error("Error listening to Firestore:", error);
                 connectionStatusElem.textContent = `Firestore Listener Error: ${error.message}`;
@@ -376,13 +352,13 @@
             }
 
             loadingIndicatorElem.style.display = 'block';
-            connectionStatusElem.textContent = 'Connecting to Graze feed...';
+            connectionStatusElem.textContent = 'Connecting to feed...';
 
             ws = new WebSocket(WEBSOCKET_URL);
 
             ws.onopen = () => {
                 console.log('WebSocket connected!');
-                connectionStatusElem.textContent = 'Connected to Graze Social feed.';
+                connectionStatusElem.textContent = 'Connected'; // Changed text to "Connected"
                 connectionStatusElem.classList.remove('text-red-600', 'text-orange-600');
                 connectionStatusElem.classList.add('text-green-600');
                 loadingIndicatorElem.style.display = 'none';
@@ -393,12 +369,11 @@
             ws.onmessage = async (event) => {
                 try {
                     const data = JSON.parse(event.data);
-                    // console.log('Received raw WebSocket message:', data); // Log the raw data for inspection
-
                     let authorDisplayName = 'User'; // Default display name
                     let authorHandle = data.did; // Default to DID as handle
                     let postText = '';
                     let timestamp = ''; // Initialize timestamp as empty string
+                    let postEmbed = null; // Initialize embed data
 
                     // Bluesky AT Protocol / Jetstream format parsing
                     if (data.commit && data.commit.record && data.commit.record.$type === 'app.bsky.feed.post') {
@@ -414,14 +389,14 @@
                         }
                         
                         timestamp = post.createdAt; // Use ISO string for accurate date parsing
+                        postEmbed = post.embed; // Capture embed data
 
                         // Even though postsContainer is hidden, we still call addPostToDisplay
                         // to ensure the parsing logic is exercised and logged.
                         addPostToDisplay(postText, authorDisplayName, authorHandle, new Date(timestamp).toLocaleString()); // Display formatted timestamp
                         
                         console.log("Scheduling Firestore update via debounce.");
-                        // Call debounced update function. Use the DID as the key for analysis.
-                        debouncedUpdateFirestoreAnalysis(authorHandle, postText, timestamp, post.embed); // Pass embed data
+                        debouncedUpdateFirestoreAnalysis(authorHandle, postText, postEmbed); // Pass embed data
                     } else {
                         console.log("WebSocket message is not a recognized post type or missing expected fields.");
                     }
@@ -479,23 +454,19 @@
         // --- Debounced Firestore Update Function ---
         // This function accumulates updates and writes to Firestore only after a delay.
         let accumulatedUpdates = { 
-            termCounts: {}, 
-            hourlyCounts: {}, 
-            contentTypeCounts: {}, 
-            emojiCounts: {} 
+            termCounts: {},
+            websiteCounts: {} // Added websiteCounts
         };
 
-        async function debouncedUpdateFirestoreAnalysis(authorDid, text, timestamp, embed) { 
+        async function debouncedUpdateFirestoreAnalysis(authorDid, text, embed) { // Added embed parameter
             // Ensure text is a string to prevent errors
             const safeText = String(text || '');
-            console.log("DEBUG: Original text received:", text, "Type:", typeof text);
-            console.log("DEBUG: SafeText for processing:", safeText, "Type:", typeof safeText);
-
+            
             // --- Hashtag Counting ---
             let hashtags = [];
             try {
                 const matchedHashtags = safeText.toLowerCase().match(/#\b\w+\b/g);
-                hashtags = matchedHashtags || []; // Ensure it's an array
+                hashtags = matchedHashtags ? [...matchedHashtags] : []; 
             } catch (e) {
                 console.error("Error during hashtag matching:", e, "Text:", safeText);
                 hashtags = []; // Default to empty array on error
@@ -504,41 +475,13 @@
                 accumulatedUpdates.termCounts[tag] = (accumulatedUpdates.termCounts[tag] || 0) + 1;
             });
 
-            // --- Hourly Counting ---
-            const date = new Date(timestamp);
-            const hour = date.getHours(); // 0-23
-            accumulatedUpdates.hourlyCounts[hour] = (accumulatedUpdates.hourlyCounts[hour] || 0) + 1;
-
-            // --- Content Type Counting ---
-            if (embed && embed.$type) {
-                let contentType = 'Other Embed';
-                if (embed.$type === 'app.bsky.embed.external') {
-                    contentType = 'External Link';
-                } else if (embed.$type === 'app.bsky.embed.images') {
-                    contentType = 'Image(s)';
-                } else if (embed.$type === 'app.bsky.embed.record') {
-                    contentType = 'Record Embed (Quote/Reply)';
-                } else if (embed.$type === 'app.bsky.embed.recordWithMedia') {
-                    contentType = 'Record with Media';
-                }
-                accumulatedUpdates.contentTypeCounts[contentType] = (accumulatedUpdates.contentTypeCounts[contentType] || 0) + 1;
-            } else {
-                accumulatedUpdates.contentTypeCounts['Text Only'] = (accumulatedUpdates.contentTypeCounts['Text Only'] || 0) + 1;
+            // --- Website Counting ---
+            if (embed && embed.$type === 'app.bsky.embed.external' && embed.external && embed.external.uri) {
+                const uri = embed.external.uri;
+                // You might want to normalize the URI (e.g., remove query params, force HTTPS)
+                // For simplicity, we'll use it as is for now.
+                accumulatedUpdates.websiteCounts[uri] = (accumulatedUpdates.websiteCounts[uri] || 0) + 1;
             }
-
-            // --- Emoji Counting ---
-            let emojis = [];
-            try {
-                // Ensure match result is not null before assigning
-                const matchedEmojis = safeText.match(emojiRegex);
-                emojis = matchedEmojis || []; // Ensure it's an array
-            } catch (e) {
-                console.error("Error during emoji matching:", e, "Text:", safeText);
-                emojis = []; // Default to empty array on error
-            }
-            emojis.forEach(emoji => {
-                accumulatedUpdates.emojiCounts[emoji] = (accumulatedUpdates.emojiCounts[emoji] || 0) + 1;
-            });
 
 
             // Clear any existing timer
@@ -559,9 +502,7 @@
                     const docSnap = await getDoc(analysisDocRef);
                     let currentData = {
                         termCounts: {},
-                        hourlyCounts: {},
-                        contentTypeCounts: {},
-                        emojiCounts: {}
+                        websiteCounts: {} // Include websiteCounts in currentData
                     };
 
                     if (docSnap.exists()) {
@@ -572,14 +513,8 @@
                     for (const key in accumulatedUpdates.termCounts) {
                         currentData.termCounts[key] = (currentData.termCounts[key] || 0) + accumulatedUpdates.termCounts[key];
                     }
-                    for (const key in accumulatedUpdates.hourlyCounts) {
-                        currentData.hourlyCounts[key] = (currentData.hourlyCounts[key] || 0) + accumulatedUpdates.hourlyCounts[key];
-                    }
-                    for (const key in accumulatedUpdates.contentTypeCounts) {
-                        currentData.contentTypeCounts[key] = (currentData.contentTypeCounts[key] || 0) + accumulatedUpdates.contentTypeCounts[key];
-                    }
-                    for (const key in accumulatedUpdates.emojiCounts) {
-                        currentData.emojiCounts[key] = (currentData.emojiCounts[key] || 0) + accumulatedUpdates.emojiCounts[key];
+                    for (const key in accumulatedUpdates.websiteCounts) {
+                        currentData.websiteCounts[key] = (currentData.websiteCounts[key] || 0) + accumulatedUpdates.websiteCounts[key];
                     }
 
                     await setDoc(analysisDocRef, currentData, { merge: true });
@@ -588,10 +523,8 @@
 
                     // Reset accumulated updates after successful write
                     accumulatedUpdates = { 
-                        termCounts: {}, 
-                        hourlyCounts: {}, 
-                        contentTypeCounts: {}, 
-                        emojiCounts: {} 
+                        termCounts: {},
+                        websiteCounts: {} // Reset websiteCounts
                     };
 
                 } catch (e) {
@@ -604,8 +537,6 @@
         }
 
         // --- Render Functions for Analysis ---
-        // Removed renderTopPosters() as it's no longer needed.
-
         function renderTopTerms() { // This function now renders hashtags
             const sortedTerms = Object.entries(termCounts)
                 .sort(([, countA], [, countB]) => countB - countA)
@@ -629,67 +560,26 @@
             });
         }
 
-        function renderTopHours() {
-            const sortedHours = Object.entries(hourlyCounts)
+        function renderTopWebsites() {
+            const sortedWebsites = Object.entries(websiteCounts)
                 .sort(([, countA], [, countB]) => countB - countA)
-                .slice(0, 20); // Top 20 hours
+                .slice(0, 20); // Top 20 websites
 
-            topHoursDiv.innerHTML = '';
-            if (sortedHours.length === 0) {
-                topHoursDiv.innerHTML = '<p class="text-gray-500 text-center">No posts yet to analyze.</p>';
+            topWebsitesDiv.innerHTML = ''; // Clear previous content
+            if (sortedWebsites.length === 0) {
+                topWebsitesDiv.innerHTML = '<p class="text-gray-500 text-center">No websites yet to analyze.</p>';
                 return;
             }
-            sortedHours.forEach(([hour, count], index) => { // Added index for numbering
+            sortedWebsites.forEach(([url, count], index) => { // Added index for numbering
                 const item = document.createElement('div');
                 item.className = 'analysis-item';
-                const displayHour = `${hour}:00 - ${hour}:59`;
+                // Display the URL, maybe truncate long ones
+                const displayUrl = url.length > 50 ? url.substring(0, 47) + '...' : url;
                 item.innerHTML = `
-                    <span class="analysis-label">${index + 1}. ${displayHour}</span>
-                    <span class="analysis-value">${count} posts</span>
+                    <span class="analysis-label"><a href="${url}" target="_blank" class="text-blue-500 hover:underline">${index + 1}. ${displayUrl}</a></span>
+                    <span class="analysis-value">${count} shares</span>
                 `;
-                topHoursDiv.appendChild(item);
-            });
-        }
-
-        function renderTopContentTypes() {
-            const sortedContentTypes = Object.entries(contentTypeCounts)
-                .sort(([, countA], [, countB]) => countB - countA)
-                .slice(0, 20); // Top 20 content types
-
-            topContentTypesDiv.innerHTML = '';
-            if (sortedContentTypes.length === 0) {
-                topContentTypesDiv.innerHTML = '<p class="text-gray-500 text-center">No posts yet to analyze.</p>';
-                return;
-            }
-            sortedContentTypes.forEach(([type, count], index) => { // Added index for numbering
-                const item = document.createElement('div');
-                item.className = 'analysis-item';
-                item.innerHTML = `
-                    <span class="analysis-label">${index + 1}. ${type}</span>
-                    <span class="analysis-value">${count} posts</span>
-                `;
-                topContentTypesDiv.appendChild(item);
-            });
-        }
-
-        function renderTopEmojis() {
-            const sortedEmojis = Object.entries(emojiCounts)
-                .sort(([, countA], [, countB]) => countB - countA)
-                .slice(0, 20); // Top 20 emojis
-
-            topEmojisDiv.innerHTML = '';
-            if (sortedEmojis.length === 0) {
-                topEmojisDiv.innerHTML = '<p class="text-gray-500 text-center">No posts yet to analyze.</p>';
-                return;
-            }
-            sortedEmojis.forEach(([emoji, count], index) => { // Added index for numbering
-                const item = document.createElement('div');
-                item.className = 'analysis-item';
-                item.innerHTML = `
-                    <span class="analysis-label">${index + 1}. ${emoji}</span>
-                    <span class="analysis-value">${count} uses</span>
-                `;
-                topEmojisDiv.appendChild(item);
+                topWebsitesDiv.appendChild(item);
             });
         }
 
@@ -698,9 +588,7 @@
             initializeFirebase(); // Start Firebase initialization and auth
             // Initial render calls for all analysis sections
             renderTopTerms();
-            renderTopHours();
-            renderTopContentTypes();
-            renderTopEmojis();
+            renderTopWebsites();
         };
     </script>
 </body>
