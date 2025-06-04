@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Graze Social Feed & Analysis</title>
+    <title>Urbanism+ Feed & Analysis</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -19,11 +19,20 @@
         }
         .main-wrapper {
             display: flex;
-            flex-direction: column; /* Always stack sections */
+            flex-direction: column; /* Stack sections on small screens */
             gap: 30px; /* Space between the two main sections */
             width: 100%;
-            max-width: 800px; /* Adjusted max-width for single column */
+            max-width: 1200px; /* Wider max-width for dual content */
             margin: auto;
+        }
+        @media (min-width: 1024px) { /* Side-by-side on larger screens */
+            .main-wrapper {
+                flex-direction: row;
+            }
+            .section-wrapper {
+                flex: 1; /* Each section takes equal width */
+                min-width: 45%; /* Ensure they don't get too narrow */
+            }
         }
 
         .section-card {
@@ -88,7 +97,7 @@
             font-size: 1.2rem;
             color: #666;
         }
-        .feed-name-display {
+        .feed-name-display { /* This class is no longer used for display, but kept for consistency */
             font-size: 1.2rem;
             font-weight: 600;
             color: #555;
@@ -99,26 +108,23 @@
 </head>
 <body>
     <div class="main-wrapper">
-        <!-- Section for Live Contrails Feed and Analysis -->
+        <!-- Section for Live Analysis (Contrails data processed in background) -->
         <div class="section-wrapper">
             <div class="section-card">
-                <h2 class="section-title">Live Graze Social Feed</h2>
-                <div id="feedNameDisplay" class="feed-name-display">
-                    Feed Name: <span class="font-bold text-blue-600"></span>
-                </div>
-                <div id="loadingIndicator" class="loading-indicator">Connecting to feed...</div>
-                <div id="postsContainer" class="flex-grow overflow-y-auto border border-gray-200 rounded-md p-2" style="max-height: 500px;">
-                    <!-- Live posts will be appended here -->
-                    <p id="noPostsMessage" class="text-gray-500 text-center py-4">Waiting for new posts...</p>
-                </div>
-                <div id="connectionStatus" class="text-center mt-4 text-sm text-gray-600">
+                <h2 class="section-title">Urbanism+</h2>
+                <!-- Connection status moved here -->
+                <div id="connectionStatus" class="text-center mt-4 mb-6 text-sm text-gray-600">
                     Initializing...
                 </div>
-            </div>
+                
+                <!-- The actual live posts container is now hidden, but still updated -->
+                <div id="postsContainer" class="flex-grow overflow-y-auto border border-gray-200 rounded-md p-2" style="max-height: 500px; display: none;">
+                    <p id="noPostsMessage" class="text-gray-500 text-center py-4" style="display: none;">Waiting for new posts...</p>
+                </div>
+                <div id="loadingIndicator" class="loading-indicator" style="display: none;">Connecting to feed...</div>
 
-            <div class="section-card mt-6">
-                <h2 class="section-title">Live Analysis (Persistent)</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                     <div>
                         <h3 class="text-xl font-semibold text-gray-700 mb-4">Top Posters</h3>
                         <div id="topPosters">
@@ -127,11 +133,27 @@
                     </div>
                     <div>
                         <h3 class="text-xl font-semibold text-gray-700 mb-4">Top Hashtags</h3>
-                        <div id="topTerms"> <!-- Renamed from topTerms to topHashtags conceptually -->
+                        <div id="topTerms">
                             <p class="text-gray-500 text-center">No posts yet to analyze.</p>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Section for Iframe Embed (Visual Feed) -->
+        <div class="section-wrapper">
+            <div class="section-card">
+                <h2 class="section-title">Urbanism+ Feed</h2>
+                <iframe
+                    src="https://graze.social/feeds/embed/3654"
+                    title="Urbanism+ Social Feed"
+                    class="iframe-embed"
+                    allowFullScreen
+                ></iframe>
+                <p class="text-sm text-gray-600 mt-4 text-center">
+                    This is the embedded feed from Graze Social, providing a pre-styled view.
+                </p>
             </div>
         </div>
     </div>
@@ -169,7 +191,7 @@
         // --- Configuration ---
         const GRAZE_FEED_URI = 'at://did:plc:lptjvw6ut224kwrj7ub3sqbe/app.bsky.feed.generator/aaaotfjzjplna';
         const WEBSOCKET_URL = `wss://api.graze.social/app/contrail?feed=${GRAZE_FEED_URI}`;
-        // Extract the programmatic feed name from the URI
+        // Extract the programmatic feed name from the URI (no longer displayed)
         const PROGRAMMATIC_FEED_NAME = GRAZE_FEED_URI.split('/').pop();
         const RECONNECT_DELAY = 5000; // 5 seconds
 
@@ -178,8 +200,8 @@
         const connectionStatusElem = document.getElementById('connectionStatus');
         const loadingIndicatorElem = document.getElementById('loadingIndicator');
         const topPostersDiv = document.getElementById('topPosters');
-        const topTermsDiv = document.getElementById('topTerms'); // Still use topTermsDiv for consistency in JS
-        const feedNameDisplay = document.getElementById('feedNameDisplay').querySelector('span');
+        const topTermsDiv = document.getElementById('topTerms');
+        const feedNameDisplay = document.getElementById('feedNameDisplay'); // No longer query span, as element is removed
         const noPostsMessage = document.getElementById('noPostsMessage');
 
         // --- Analysis Data (synced with Firestore) ---
@@ -330,7 +352,7 @@
             ws.onmessage = async (event) => {
                 try {
                     const data = JSON.parse(event.data);
-                    console.log('Received raw WebSocket message:', data); // Log the raw data for inspection
+                    // console.log('Received raw WebSocket message:', data); // Log the raw data for inspection
 
                     let authorDisplayName = 'User'; // Default display name
                     let authorHandle = data.did; // Default to DID as handle
@@ -353,23 +375,15 @@
                         postText = post.text;
                         timestamp = new Date(post.createdAt).toLocaleString(); // Use createdAt from the post record
 
-                        console.log(`Detected a 'create' post operation.`);
-                        console.log(`Extracted Author DID: ${authorHandle}`);
-                        console.log(`Extracted Content: "${postText.substring(0, Math.min(postText.length, 100))}..."`);
-                        console.log(`Extracted Timestamp: ${timestamp}`);
-                        
-                    } else {
-                        console.log("WebSocket message is not a recognized post type or missing expected fields.");
-                    }
-
-                    if (postText && authorHandle !== 'Unknown Author') { // Only process if we successfully parsed content and author
-                        // Pass both display name (generic) and handle (DID) to addPostToDisplay
+                        // Even though postsContainer is hidden, we still call addPostToDisplay
+                        // to ensure the parsing logic is exercised and logged.
                         addPostToDisplay(postText, authorDisplayName, authorHandle, timestamp);
+                        
                         console.log("Scheduling Firestore update via debounce.");
                         // Call debounced update function. Use the DID as the key for analysis.
                         debouncedUpdateFirestoreAnalysis(authorHandle, postText);
                     } else {
-                        console.log("Skipping Firestore update: Post text or author not found in message or not a recognized post type.");
+                        console.log("WebSocket message is not a recognized post type or missing expected fields.");
                     }
 
                 } catch (e) {
@@ -400,7 +414,8 @@
         // --- UI Update Functions ---
         // Updated to accept display name and handle separately
         function addPostToDisplay(content, displayName, handle, timestamp) {
-            noPostsMessage.style.display = 'none'; // Hide "Waiting for new posts..." message
+            // This function is still called to process and log, but the postsContainer is hidden.
+            // noPostsMessage.style.display = 'none'; // No longer needed as postsContainer is hidden
             const postCard = document.createElement('div');
             postCard.className = 'post-card';
             postCard.innerHTML = `
@@ -411,7 +426,7 @@
                 <div class="post-content">${content}</div>
                 <div class="post-timestamp">${timestamp}</div>
             `;
-            // Add new posts to the top for a live feed effect
+            // Add new posts to the top for a live feed effect (still happens, but hidden)
             if (postsContainer.firstChild) {
                 postsContainer.insertBefore(postCard, postsContainer.firstChild);
             } else {
@@ -538,7 +553,7 @@
 
         // --- Initialize on Window Load ---
         window.onload = function () {
-            feedNameDisplay.textContent = PROGRAMMATIC_FEED_NAME; // Display the programmatic feed name
+            // feedNameDisplay.textContent = PROGRAMMATIC_FEED_NAME; // This element is now removed
             initializeFirebase(); // Start Firebase initialization and auth
             renderTopPosters(); // Render initial empty state for analysis
             renderTopTerms();
