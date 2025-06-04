@@ -1,0 +1,363 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection } from 'firebase/firestore';
+
+// Global variables provided by the Canvas environment
+declare const __app_id: string;
+declare const __firebase_config: string;
+declare const __initial_auth_token: string;
+
+function App() {
+    // --- Firebase State ---
+    const [db, setDb] = useState(null);
+    const [auth, setAuth] = useState(null);
+    const [userId, setUserId] = useState(null);
+    const [isAuthReady, setIsAuthReady] = useState(false);
+
+    // --- Graze Feed & UI State ---
+    const [posts, setPosts] = useState([]);
+    const [connectionStatus, setConnectionStatus] = useState('Initializing...');
+    const [loadingIndicator, setLoadingIndicator] = useState(true);
+
+    // --- Analysis Data (synced with Firestore) ---
+    const [posterCounts, setPosterCounts] = useState({});
+    const [termCounts, setTermCounts] = useState({});
+
+    // --- Configuration ---
+    const GRAZE_FEED_URI = 'at://did:plc:lptjvw6ut224kwrj7ub3sqbe/app.bsky.feed.generator/aaaotfjzjplna';
+    const WEBSOCKET_URL = `wss://api.graze.social/app/contrail?feed=${GRAZE_FEED_URI}`;
+    const FEED_NAME = GRAZE_FEED_URI.split('/').pop();
+    const RECONNECT_DELAY = 5000; // 5 seconds
+
+    // Ref to hold WebSocket instance
+    const wsRef = useRef(null);
+    const reconnectIntervalRef = useRef(null);
+
+    // Stop words for term analysis
+    const stopWords = new Set([
+        'a', 'an', 'the', 'and', 'or', 'but', 'for', 'nor', 'on', 'at', 'to', 'from', 'by',
+        'with', 'in', 'of', 'is', 'am', 'are', 'was', 'were', 'be', 'been', 'being', 'have',
+        'has', 'had', 'do', 'does', 'did', 'not', 'no', 'yes', 'it', 'its', 'he', 'she', 'they',
+        'we', 'you', 'i', 'me', 'him', 'her', 'us', 'them', 'this', 'that', 'these', 'those',
+        'my', 'your', 'his', 'her', 'our', 'their', 'which', 'who', 'whom', 'where', 'when',
+        'why', 'how', 'what', 'then', 'than', 'as', 'so', 'if', 'else', 'about', 'just', 'can',
+        'will', 'would', 'should', 'could', 'get', 'like', 'one', 'two', 'new', 'time', 'good',
+        'great', 'very', 'much', 'more', 'also', 'up', 'down', 'out', 'in', 'on', 'off', 'all',
+        'any', 'some', 'such', 'only', 'very', 'through', 'into', 'from', 'here', 'there', 'when',
+        'where', 'why', 'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other',
+        'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very',
+        's', 't', 'can', 'will', 'just', 'don', 'should', 'now'
+    ]);
+
+    // --- Firebase Initialization and Auth Listener ---
+    useEffect(() => {
+        try {
+            const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+            const app = initializeApp(firebaseConfig);
+            const firestore = getFirestore(app);
+            const firebaseAuth = getAuth(app);
+
+            setDb(firestore);
+            setAuth(firebaseAuth);
+
+            const unsubscribe = onAuthStateChanged(firebaseAuth, async (user) => {
+                if (user) {
+                    setUserId(user.uid);
+                    setIsAuthReady(true);
+                } else {
+                    // Sign in anonymously if no user is authenticated
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(firebaseAuth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(firebaseAuth);
+                        }
+                    } catch (error) {
+                        console.error("Firebase Auth error:", error);
+                        setConnectionStatus(`Auth Error: ${error.message}`);
+                        setIsAuthReady(false);
+                    }
+                }
+            });
+
+            return () => unsubscribe(); // Cleanup auth listener
+        } catch (error) {
+            console.error("Firebase initialization failed:", error);
+            setConnectionStatus(`Firebase Init Error: ${error.message}`);
+        }
+    }, []); // Run once on component mount
+
+    // --- Firestore Data Listener (onSnapshot) ---
+    useEffect(() => {
+        if (!db || !isAuthReady || !userId) {
+            return;
+        }
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const analysisDocRef = doc(db, `artifacts/${appId}/public/data/grazeFeedAnalysis`, 'summary');
+
+        const unsubscribe = onSnapshot(analysisDocRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                setPosterCounts(data.posterCounts || {});
+                setTermCounts(data.termCounts || {});
+            } else {
+                // Document doesn't exist, initialize it
+                console.log("Analysis document does not exist, creating it.");
+                setDoc(analysisDocRef, { posterCounts: {}, termCounts: {} }, { merge: true })
+                    .catch(e => console.error("Error creating analysis document:", e));
+                setPosterCounts({});
+                setTermCounts({});
+            }
+        }, (error) => {
+            console.error("Error listening to Firestore:", error);
+            setConnectionStatus(`Firestore Error: ${error.message}`);
+        });
+
+        return () => unsubscribe(); // Cleanup listener
+    }, [db, userId, isAuthReady]); // Re-run if db, userId, or auth status changes
+
+    // --- WebSocket Connection Logic ---
+    const connectWebSocket = () => {
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+            return; // Already connected
+        }
+
+        setLoadingIndicator(true);
+        setConnectionStatus('Connecting to Graze feed...');
+
+        wsRef.current = new WebSocket(WEBSOCKET_URL);
+
+        wsRef.current.onopen = () => {
+            console.log('WebSocket connected!');
+            setConnectionStatus('Connected to Graze Social feed.');
+            setLoadingIndicator(false);
+            clearInterval(reconnectIntervalRef.current);
+            reconnectIntervalRef.current = null;
+        };
+
+        wsRef.current.onmessage = async (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                console.log('Received message:', data);
+
+                let authorHandle = 'Unknown Author';
+                let postText = '';
+                let timestamp = new Date().toLocaleString();
+
+                // Attempt to parse Bluesky AT Protocol / Jetstream format
+                if (data.repo && data.commit && data.blocks) {
+                    const commit = data.commit;
+                    const blocks = data.blocks;
+
+                    for (const block of blocks) {
+                        if (block.$type === 'app.bsky.feed.post' && data.op === 'create') {
+                            const post = block;
+                            authorHandle = post.author || data.repo; // Use hydrated author if available, else DID
+                            postText = post.text;
+                            timestamp = new Date(commit.time).toLocaleString();
+                            break; // Found the post, exit loop
+                        }
+                    }
+                } else if (data.$type && data.record && data.repo) {
+                    // Simpler post object structure
+                    const post = data.record;
+                    authorHandle = data.repo;
+                    postText = post.text;
+                    timestamp = new Date().toLocaleString();
+                }
+
+                if (postText) {
+                    // Add to local display immediately
+                    setPosts(prevPosts => {
+                        const newPosts = [{ author: authorHandle, content: postText, timestamp }, ...prevPosts];
+                        return newPosts.slice(0, 50); // Keep max 50 posts for display
+                    });
+
+                    // Update Firestore with new analysis data
+                    await updateFirestoreAnalysis(authorHandle, postText);
+                }
+
+            } catch (e) {
+                console.error('Failed to parse message or process data:', e);
+            }
+        };
+
+        wsRef.current.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            setConnectionStatus('WebSocket error. Trying to reconnect...');
+            setLoadingIndicator(false);
+        };
+
+        wsRef.current.onclose = (event) => {
+            console.warn('WebSocket closed:', event);
+            setConnectionStatus(`Disconnected. Code: ${event.code}, Reason: ${event.reason}. Reconnecting in ${RECONNECT_DELAY / 1000}s...`);
+            setLoadingIndicator(false);
+            // Reconnect after a delay
+            if (!reconnectIntervalRef.current) { // Prevent multiple intervals
+                reconnectIntervalRef.current = setInterval(connectWebSocket, RECONNECT_DELAY);
+            }
+        };
+    };
+
+    // --- Effect for WebSocket Connection (depends on Firebase readiness) ---
+    useEffect(() => {
+        if (isAuthReady && db) {
+            connectWebSocket();
+        }
+
+        // Cleanup WebSocket on component unmount
+        return () => {
+            if (wsRef.current) {
+                wsRef.current.close();
+            }
+            clearInterval(reconnectIntervalRef.current);
+        };
+    }, [isAuthReady, db]); // Connect once Firebase is ready
+
+    // --- Firestore Update Function ---
+    const updateFirestoreAnalysis = async (author, text) => {
+        if (!db || !isAuthReady) {
+            console.warn("Firestore not ready for update.");
+            return;
+        }
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const analysisDocRef = doc(db, `artifacts/${appId}/public/data/grazeFeedAnalysis`, 'summary');
+
+        try {
+            // Fetch current state to avoid overwriting concurrent updates
+            const docSnap = await getDoc(analysisDocRef);
+            let currentPosterCounts = {};
+            let currentTermCounts = {};
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                currentPosterCounts = data.posterCounts || {};
+                currentTermCounts = data.termCounts || {};
+            }
+
+            // Update counts
+            currentPosterCounts[author] = (currentPosterCounts[author] || 0) + 1;
+
+            const wordsAndHashtags = text.toLowerCase().match(/(#?\b\w+\b)/g) || [];
+            wordsAndHashtags.forEach(item => {
+                if (item.startsWith('#')) {
+                    currentTermCounts[item] = (currentTermCounts[item] || 0) + 1;
+                } else if (!stopWords.has(item) && item.length > 2) {
+                    currentTermCounts[item] = (currentTermCounts[item] || 0) + 1;
+                }
+            });
+
+            // Set the updated data back to Firestore
+            await setDoc(analysisDocRef, {
+                posterCounts: currentPosterCounts,
+                termCounts: currentTermCounts
+            }, { merge: true }); // Use merge to only update specified fields
+
+        } catch (e) {
+            console.error("Error updating Firestore analysis:", e);
+        }
+    };
+
+    // --- Render Functions for Analysis ---
+    const renderTopPosters = () => {
+        const sortedPosters = Object.entries(posterCounts)
+            .sort(([, countA], [, countB]) => countB - countA)
+            .slice(0, 5); // Top 5 posters
+
+        if (sortedPosters.length === 0) {
+            return <p className="text-gray-500">No posts yet to analyze.</p>;
+        }
+        return sortedPosters.map(([author, count]) => (
+            <div key={author} className="analysis-item">
+                <span className="analysis-label">{author}</span>
+                <span className="analysis-value">{count} posts</span>
+            </div>
+        ));
+    };
+
+    const renderTopTerms = () => {
+        const sortedTerms = Object.entries(termCounts)
+            .sort(([, countA], [, countB]) => countB - countA)
+            .slice(0, 5); // Top 5 terms
+
+        if (sortedTerms.length === 0) {
+            return <p className="text-gray-500">No posts yet to analyze.</p>;
+        }
+        return sortedTerms.map(([term, count]) => (
+            <div key={term} className="analysis-item">
+                <span className="analysis-label">{term.startsWith('#') ? term : term}</span>
+                <span className="analysis-value">{count} uses</span>
+            </div>
+        ));
+    };
+
+    return (
+        <div className="main-wrapper">
+            {/* Section for Live Contrails Feed and Analysis */}
+            <div className="section-wrapper">
+                <div className="section-card">
+                    <h2 className="section-title">Live Graze Social Feed</h2>
+                    <div id="feedNameDisplay" className="feed-name-display">
+                        Feed Name: {FEED_NAME}
+                    </div>
+                    {loadingIndicator && <div className="loading-indicator">Connecting to feed...</div>}
+                    <div id="postsContainer" className="flex-grow overflow-y-auto" style={{ maxHeight: '500px' }}>
+                        {posts.length === 0 && !loadingIndicator && (
+                            <p className="text-gray-500 text-center">Waiting for new posts...</p>
+                        )}
+                        {posts.map((post, index) => (
+                            <div key={index} className="post-card">
+                                <div className="post-author">{post.author}</div>
+                                <div className="post-content">{post.content}</div>
+                                <div className="post-timestamp">{post.timestamp}</div>
+                            </div>
+                        ))}
+                    </div>
+                    <div id="connectionStatus" className="text-center mt-4 text-sm text-gray-600">
+                        {connectionStatus}
+                    </div>
+                </div>
+
+                <div className="section-card mt-6">
+                    <h2 className="section-title">Live Analysis (Persistent)</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 className="text-xl font-semibold text-gray-700 mb-4">Top Posters</h3>
+                            <div id="topPosters">
+                                {renderTopPosters()}
+                            </div>
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-semibold text-gray-700 mb-4">Top Terms</h3>
+                            <div id="topTerms">
+                                {renderTopTerms()}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Section for Iframe Embed */}
+            <div className="section-wrapper">
+                <div className="section-card">
+                    <h2 className="section-title">Graze Social Feed (Iframe Embed)</h2>
+                    <iframe
+                        src="https://graze.social/feeds/embed/3654"
+                        title="Graze Social Feed"
+                        className="iframe-embed"
+                        allowFullScreen
+                    ></iframe>
+                    <p className="text-sm text-gray-600 mt-4 text-center">
+                        This is the original embed using an iframe, which offers a pre-styled view of the feed.
+                        Content within this iframe cannot be directly accessed or analyzed by this page due to browser security.
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default App;
