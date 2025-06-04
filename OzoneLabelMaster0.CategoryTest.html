@@ -749,12 +749,20 @@
     display: none;
   }
 
+  /* Adjusted styling for menu headers to include count box */
   #floating-menu h3, #category-menu h3, #bulk-actions-menu h3 {
-    margin-top: 0;
+    margin: 0; /* Remove default h3 margin */
     color: var(--primary);
     font-size: 1.2rem;
-    margin-bottom: 0.8em;
-    flex-shrink: 0; /* Prevent title from shrinking */
+    flex-shrink: 0;
+  }
+
+  /* New flex container for menu headers with count boxes */
+  .menu-header-with-count-box {
+      display: flex;
+      justify-content: space-between; /* Pushes h3 to left, count box to right */
+      align-items: center;
+      margin-bottom: 0.8em; /* Consistent spacing below header */
   }
 
   #floating-menu ul, #category-menu ul {
@@ -810,8 +818,8 @@
     border: 2px dashed var(--primary);
   }
 
-  /* Quick Access Label Number Box */
-  #floating-menu .label-number-box {
+  /* Quick Access Label Number Box (reused for header counts) */
+  .label-number-box {
     background: var(--gray);
     color: white;
     padding: 0.3em 0.6em;
@@ -1213,24 +1221,6 @@
     margin-left: auto;
   }
 
-  /* Style for the label number box */
-  .label-number-box {
-    background: var(--gray);
-    color: white;
-    padding: 0.3em 0.6em;
-    border-radius: var(--border-radius);
-    font-size: 0.9em;
-    font-weight: 600;
-    flex-shrink: 0;
-    min-width: 30px;
-    text-align: center;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.3em;
-  }
-
   /* Style for the enabled toggle in the header */
   .enabled-toggle-header {
     display: flex;
@@ -1487,41 +1477,6 @@
       font-size: 1.2em; /* Larger icon size */
   }
 
-  /* New styles for count boxes in menu headers */
-  .menu-header-with-count {
-      display: flex;
-      flex-direction: column; /* Stack h3 and count box vertically */
-      align-items: flex-start; /* Align items to the left */
-      gap: 0.5em; /* Space between h3 and count box */
-      margin-bottom: 0.8em; /* Match existing h3 margin-bottom */
-  }
-
-  .menu-header-with-count h3 {
-      margin: 0; /* Remove default h3 margin to allow centering */
-      color: var(--primary);
-      font-size: 1.2rem;
-      flex-shrink: 0;
-      /* Removed line-height and padding-bottom as flex-direction is column now */
-  }
-
-  .menu-header-count-box {
-    background: var(--gray);
-    color: white;
-    padding: 0.3em 0.6em;
-    border-radius: var(--border-radius);
-    font-size: 0.9em;
-    font-weight: 600;
-    flex-shrink: 0;
-    min-width: 30px;
-    height: 30px; /* Fixed height for consistency */
-    text-align: center;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* Removed gap: 0.3em; if it's just a number, no internal gap needed */
-  }
-
   /* Specific adjustments for Bulk Edit Label Settings */
   .label-content .adultOnly {
       margin-top: 0.5em; /* Reduce gap above Adult Only checkbox */
@@ -1591,9 +1546,10 @@
                 <h3>Categories</h3>
                 <button id="closeCategoryMenuBtnDesktop" class="close-mobile-menu-btn" title="Close categories menu">X</button>
             </div>
-            <div class="menu-header-with-count">
+            <!-- Reverted to flex header with count box -->
+            <div class="menu-header-with-count-box">
                 <h3>Label Categories</h3>
-                <div class="menu-header-count-box">
+                <div class="label-number-box">
                     <span id="categoryCount">0</span>
                 </div>
             </div>
@@ -1613,9 +1569,10 @@
                 <h3>Quick Access</h3>
                 <button id="closeRightMenuBtnDesktop" class="close-mobile-menu-btn" title="Close quick access menu">X</button>
             </div>
-            <div class="menu-header-with-count">
+            <!-- Reverted to flex header with count box -->
+            <div class="menu-header-with-count-box">
                 <h3>Labels Quick Access</h3>
-                <div class="menu-header-count-box">
+                <div class="label-number-box">
                     <span id="labelTotalCount">0</span>
                 </div>
             </div>
@@ -2056,7 +2013,7 @@
 
       const sessionData = JSON.parse(stateJson);
 
-      // Load Labels: Prioritize `labels` (new format with category/enabled), then fallback to `labelValueDefinitions` (old)
+      // Load Labels: Prioritize `labels` (new format with category/enabled), then fallback to old `labelValueDefinitions` (old)
       const dataLabels = sessionData.labels || sessionData.labelValueDefinitions;
       document.getElementById('labels-container').innerHTML = ''; // Ensure a clean slate
       dataLabels.forEach((label, index) => { // Pass index to createLabelBlock
@@ -3762,7 +3719,7 @@ Original description:
                     const namePrompt = `Translate the following content moderation label name into ${targetLangName}. Only provide the translated text, no additional commentary.
 Original name:
 '${sourceName}'`;
-                    const translatedName = await callGeminiAPI(namePrompt);
+                    const translatedName = await callGeminiAPI(prompt);
                     nameInput.value = translatedName;
                 }
 
@@ -3772,7 +3729,7 @@ Original name:
                     const descriptionPrompt = `Translate the following content moderation label description into ${targetLangName}. Only provide the translated text, no additional commentary.
 Original description:
 '${sourceDescription}'`;
-                    const translatedDescription = await callGeminiAPI(descriptionPrompt);
+                    const translatedDescription = await callGeminiAPI(prompt);
                     descriptionTextarea.value = translatedDescription;
                 }
                 translationsPerformed++;
@@ -3856,7 +3813,7 @@ Original description:
         const totalLabels = document.querySelectorAll('.label-block .identifier').length;
         const labelTotalCountSpan = document.getElementById('labelTotalCount');
         if (labelTotalCountSpan) {
-            labelTotalCountSpan.textContent = `total labels: ${totalLabels}`;
+            labelTotalCountSpan.textContent = totalLabels; // Changed to just the number
             console.log("updateTotalLabelCount: Total labels counted:", totalLabels);
         }
     }
@@ -3865,7 +3822,7 @@ Original description:
     function updateTotalCategoryCount() {
         const categoryCountSpan = document.getElementById('categoryCount');
         if (categoryCountSpan) {
-            categoryCountSpan.textContent = `total categories: ${categories.length}`;
+            categoryCountSpan.textContent = categories.length; // Changed to just the number
         }
     }
 
@@ -4242,7 +4199,7 @@ Original description:
 
               labelsToLoad.forEach((label, index) => { // Pass index to createLabelBlock
                 // Generate a unique HTML ID for this label block *before* creating it
-                const uniqueHtmlId = `label-${crypto.randomUUID()}`; // Corrected: Added closing parenthesis
+                const uniqueHtmlId = `label-${crypto.randomUUID()}`;
                 createLabelBlock(
                   label.identifier || label.id || '',
                   label.severity || 'inform',
