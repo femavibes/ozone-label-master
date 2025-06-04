@@ -296,15 +296,38 @@
         ]);
 
         // Helper function to extract base domain from a URL
+        // Improved to handle multi-part TLDs like .co.uk
         function getBaseDomain(url) {
             try {
                 const hostname = new URL(url).hostname;
                 const parts = hostname.split('.');
-                // Handle cases like 'co.uk', 'com.au' etc. more robustly if needed,
-                // but for simplicity, we'll take the last two parts for most cases.
-                if (parts.length >= 2) {
-                    // Simple logic: take the last two parts. This might not be perfect for all TLDs.
-                    return parts.slice(-2).join('.');
+                const numParts = parts.length;
+
+                // Common multi-part TLDs (Public Suffix List relevant examples)
+                const multiPartTlds = [
+                    'co.uk', 'org.uk', 'ac.uk', 'gov.uk', 'mod.uk', 'net.uk', 'plc.uk', 'sch.uk',
+                    'com.au', 'net.au', 'org.au', 'edu.au', 'gov.au',
+                    'co.nz', 'org.nz', 'net.nz', 'ac.nz',
+                    'co.jp', 'ne.jp', 'or.jp', 'ac.jp', 'ad.jp', 'ed.jp', 'go.jp', 'gr.jp', 'lg.jp',
+                    'com.br', 'net.br', 'org.br',
+                    'com.cn', 'net.cn', 'org.cn',
+                    'com.hk', 'net.hk', 'org.hk'
+                ];
+
+                // Check if the last two parts form a known multi-part TLD
+                if (numParts >= 2) {
+                    const lastTwoParts = parts.slice(numParts - 2).join('.');
+                    if (multiPartTlds.includes(lastTwoParts)) {
+                        // If it's a multi-part TLD, include the part before it
+                        if (numParts >= 3) {
+                            return parts.slice(numParts - 3).join('.');
+                        }
+                    }
+                }
+                
+                // For standard TLDs or if no multi-part TLD found, return the last two parts
+                if (numParts >= 2) {
+                    return parts.slice(numParts - 2).join('.');
                 }
                 return hostname; 
             } catch (e) {
