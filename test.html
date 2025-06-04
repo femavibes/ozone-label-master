@@ -256,11 +256,33 @@
             // Public data path for shared analysis
             const analysisDocRef = doc(db, `artifacts/${appId}/public/data/grazeFeedAnalysis`, 'summary');
 
-            onSnapshot(analysisDocRef, (docSnap) => {
+            onSnapshot(analysisDocRef, async (docSnap) => { // Made async to allow await setDoc
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     posterCounts = data.posterCounts || {};
-                    termCounts = data.termCounts || {};
+                    let currentTermCounts = data.termCounts || {}; // Use a temporary variable for terms
+
+                    // --- Sanitize termCounts: Remove any non-hashtag entries ---
+                    let needsCleanup = false;
+                    const sanitizedTermCounts = {};
+                    for (const term in currentTermCounts) {
+                        if (term.startsWith('#')) {
+                            sanitizedTermCounts[term] = currentTermCounts[term];
+                        } else {
+                            needsCleanup = true; // Found a non-hashtag term, indicates old data
+                            console.warn(`Detected non-hashtag term "${term}" in Firestore. Initiating cleanup.`);
+                        }
+                    }
+
+                    if (needsCleanup) {
+                        // If cleanup is needed, update Firestore with only valid hashtags
+                        await setDoc(analysisDocRef, { termCounts: sanitizedTermCounts }, { merge: true })
+                            .then(() => console.log("Firestore termCounts cleaned up successfully."))
+                            .catch(e => console.error("Error cleaning up Firestore termCounts:", e));
+                        termCounts = sanitizedTermCounts; // Update local state immediately
+                    } else {
+                        termCounts = currentTermCounts; // No cleanup needed, use as is
+                    }
                     console.log("Firestore data received via onSnapshot:", { posterCounts, termCounts }); // Log received data
                 } else {
                     // Document doesn't exist, initialize it with empty counts
@@ -320,11 +342,13 @@
                         const commitData = data.commit;
                         const post = commitData.record; // The actual post record
                         
-                        // Attempt to extract handle and display name from the 'author' object if available
-                        // The 'author' object is typically present in the 'info' message type from Contrails,
-                        // but not always directly in the 'commit' message type for every post.
-                        // For now, we'll continue to use the DID as the handle for analysis.
-                        // If a more hydrated stream is available, this logic can be updated.
+                        // IMPORTANT: The Contrails stream for 'subscribeRepos#commit' typically provides
+                        // only the DID (data.did) for the author directly within the message.
+                        // It does NOT usually include the hydrated handle or display name.
+                        // To get handle/display name, a separate API call to Bluesky (e.g., app.bsky.actor.getProfile)
+                        // would be needed for each DID. This is not feasible client-side due to CORS/rate limits.
+                        // Therefore, we will continue to use the DID as the handle for now.
+                        // The 'authorDisplayName' will remain generic "User" or could be derived from DID if desired.
                         
                         postText = post.text;
                         timestamp = new Date(post.createdAt).toLocaleString(); // Use createdAt from the post record
