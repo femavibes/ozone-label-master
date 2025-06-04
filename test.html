@@ -486,9 +486,20 @@
         };
 
         async function debouncedUpdateFirestoreAnalysis(authorDid, text, timestamp, embed) { 
+            // Ensure text is a string to prevent errors
+            const safeText = String(text || '');
+            console.log("DEBUG: Original text received:", text, "Type:", typeof text);
+            console.log("DEBUG: SafeText for processing:", safeText, "Type:", typeof safeText);
+
             // --- Hashtag Counting ---
-            // Use optional chaining to safely call toLowerCase and match
-            const hashtags = text?.toLowerCase().match(/#\b\w+\b/g) || []; 
+            let hashtags = [];
+            try {
+                const matchedHashtags = safeText.toLowerCase().match(/#\b\w+\b/g);
+                hashtags = matchedHashtags || []; // Ensure it's an array
+            } catch (e) {
+                console.error("Error during hashtag matching:", e, "Text:", safeText);
+                hashtags = []; // Default to empty array on error
+            }
             hashtags.forEach(tag => {
                 accumulatedUpdates.termCounts[tag] = (accumulatedUpdates.termCounts[tag] || 0) + 1;
             });
@@ -516,8 +527,15 @@
             }
 
             // --- Emoji Counting ---
-            // Use optional chaining to safely call match
-            const emojis = text?.match(emojiRegex) || [];
+            let emojis = [];
+            try {
+                // Ensure match result is not null before assigning
+                const matchedEmojis = safeText.match(emojiRegex);
+                emojis = matchedEmojis || []; // Ensure it's an array
+            } catch (e) {
+                console.error("Error during emoji matching:", e, "Text:", safeText);
+                emojis = []; // Default to empty array on error
+            }
             emojis.forEach(emoji => {
                 accumulatedUpdates.emojiCounts[emoji] = (accumulatedUpdates.emojiCounts[emoji] || 0) + 1;
             });
