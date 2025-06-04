@@ -121,6 +121,31 @@
             border-radius: 8px;
             box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
         }
+        .timeframe-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap; /* Allow wrapping on small screens */
+        }
+        .timeframe-selector label {
+            background-color: #e2e8f0;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #4a5568;
+            transition: background-color 0.2s, color 0.2s;
+            white-space: nowrap; /* Prevent text from wrapping inside label */
+        }
+        .timeframe-selector input[type="radio"] {
+            display: none;
+        }
+        .timeframe-selector input[type="radio"]:checked + label {
+            background-color: #3498db;
+            color: #ffffff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -156,8 +181,19 @@
                 </div>
                 <div id="loadingIndicator" class="loading-indicator" style="display: none;">Connecting to feed...</div>
 
+                <!-- Timeframe Selector -->
+                <div class="timeframe-selector">
+                    <input type="radio" id="timeframeAllTime" name="timeframe" value="allTime" checked>
+                    <label for="timeframeAllTime">All Time</label>
+                    <input type="radio" id="timeframeDay" name="timeframe" value="day">
+                    <label for="timeframeDay">Day</label>
+                    <input type="radio" id="timeframeWeek" name="timeframe" value="week">
+                    <label for="timeframeWeek">Week</label>
+                    <input type="radio" id="timeframeMonth" name="timeframe" value="month">
+                    <label for="timeframeMonth">Month</label>
+                </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6"> <!-- Changed to 2 columns for side-by-side rankings -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                     <div>
                         <h3 class="text-xl font-semibold text-gray-700 mb-4">Top Hashtags</h3>
                         <div id="topTerms">
@@ -165,13 +201,13 @@
                         </div>
                     </div>
                     <div>
-                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Top Links</h3> <!-- Renamed Top Websites to Top Links -->
-                        <div id="topLinks"> <!-- Renamed div id -->
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Top Links</h3>
+                        <div id="topLinks">
                             <p class="text-gray-500 text-center">No links yet to analyze.</p>
                         </div>
                     </div>
-                    <div class="md:col-span-2"> <!-- This div will span both columns on medium screens and up -->
-                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Top Websites (Domains)</h3> <!-- New section -->
+                    <div class="md:col-span-2">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Top Websites (Domains)</h3>
                         <div id="topDomains">
                             <p class="text-gray-500 text-center">No domains yet to analyze.</p>
                         </div>
@@ -185,7 +221,7 @@
         // Firebase CDN imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Firebase Configuration (Provided by User) ---
         const firebaseConfig = {
@@ -199,38 +235,41 @@
         };
 
         // --- Global variables (derived from firebaseConfig or defaults) ---
-        // Using projectId from firebaseConfig for appId
         const appId = firebaseConfig.projectId; 
-        // Initial auth token is not needed for anonymous sign-in, removing reliance on __initial_auth_token
-        // If custom token authentication is required, it would need to be provided by the environment.
 
         // --- Firebase Instances ---
         let app;
         let db;
         let auth;
         let currentUserId = null;
-        let isFirebaseReady = false; // Flag to ensure Firebase is ready before operations
+        let isFirebaseReady = false; 
 
         // --- Configuration ---
         const GRAZE_FEED_URI = 'at://did:plc:lptjvw6ut224kwrj7ub3sqbe/app.bsky.feed.generator/aaaotfjzjplna';
         const WEBSOCKET_URL = `wss://api.graze.social/app/contrail?feed=${GRAZE_FEED_URI}`;
-        // Extract the programmatic feed name from the URI (no longer displayed)
-        const PROGRAMMATIC_FEED_NAME = GRAZE_FEED_URI.split('/').pop();
-        const RECONNECT_DELAY = 5000; // 5 seconds
+        const RECONNECT_DELAY = 5000; 
 
         // --- DOM Elements ---
         const postsContainer = document.getElementById('postsContainer');
         const connectionStatusElem = document.getElementById('connectionStatus');
         const loadingIndicatorElem = document.getElementById('loadingIndicator');
-        const topTermsDiv = document.getElementById('topTerms'); // For Top Hashtags
-        const topLinksDiv = document.getElementById('topLinks'); // Renamed from topWebsitesDiv
-        const topDomainsDiv = document.getElementById('topDomains'); // New for Top Websites (Domains)
+        const topTermsDiv = document.getElementById('topTerms'); 
+        const topLinksDiv = document.getElementById('topLinks'); 
+        const topDomainsDiv = document.getElementById('topDomains'); 
         const noPostsMessage = document.getElementById('noPostsMessage');
 
         // --- Analysis Data (synced with Firestore) ---
-        let termCounts = {}; // For hashtags
-        let linkCounts = {}; // Renamed from websiteCounts
-        let domainCounts = {}; // New for domains
+        // These will hold the ALL-TIME cumulative counts from the 'summary' document
+        let allTimeTermCounts = {}; 
+        let allTimeLinkCounts = {}; 
+        let allTimeDomainCounts = {}; 
+
+        // These will hold the counts for the CURRENTLY SELECTED timeframe
+        let currentDisplayTermCounts = {};
+        let currentDisplayLinkCounts = {};
+        let currentDisplayDomainCounts = {};
+
+        let currentSelectedTimeframe = 'allTime'; // Default timeframe
 
         // --- WebSocket Variables ---
         let ws = null;
@@ -238,7 +277,7 @@
 
         // Debounce variables for Firestore updates
         let debounceTimer = null;
-        const DEBOUNCE_DELAY = 1000; // 1 second debounce delay
+        const DEBOUNCE_DELAY = 1000; 
 
         // Stop words for term analysis (still relevant for hashtags)
         const stopWords = new Set([
@@ -261,17 +300,26 @@
             try {
                 const hostname = new URL(url).hostname;
                 const parts = hostname.split('.');
-                // For a simple base domain, take the last two parts (e.g., "example.com" from "sub.example.com")
-                if (parts.length > 1) {
+                // Handle cases like 'co.uk', 'com.au' etc. more robustly if needed,
+                // but for simplicity, we'll take the last two parts for most cases.
+                if (parts.length >= 2) {
+                    // Simple logic: take the last two parts. This might not be perfect for all TLDs.
                     return parts.slice(-2).join('.');
                 }
-                return hostname; // Fallback for single-part hostnames like 'localhost'
+                return hostname; 
             } catch (e) {
                 console.error("Error parsing base domain from URL:", url, e);
                 return 'Invalid Domain';
             }
         }
 
+        // Helper function to get YYYY-MM-DD format for daily aggregate document IDs
+        function getYYYYMMDD(date) {
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
 
         // --- Firebase Initialization ---
         function initializeFirebase() {
@@ -285,12 +333,11 @@
                         currentUserId = user.uid;
                         isFirebaseReady = true;
                         console.log("Firebase authenticated and ready. User ID:", currentUserId);
-                        setupFirestoreListener(); // Setup listener once authenticated
+                        setupFirestoreListener(); // Setup listener for all-time data
                         connectWebSocket(); // Connect WebSocket once Firebase is ready
+                        updateView(currentSelectedTimeframe); // Initial render based on default timeframe
                     } else {
-                        // Sign in anonymously if no user is authenticated
                         try {
-                            // Attempt anonymous sign-in
                             await signInAnonymously(auth);
                         } catch (error) {
                             console.error("Firebase Auth error:", error);
@@ -309,81 +356,56 @@
             }
         }
 
-        // --- Firestore Data Listener (onSnapshot) ---
+        // --- Firestore Data Listener (onSnapshot for All-Time Summary) ---
         function setupFirestoreListener() {
             if (!db || !isFirebaseReady || !currentUserId) {
                 console.warn("Firestore listener cannot be set up: Firebase not ready or user not authenticated.");
                 return;
             }
 
-            // Public data path for shared analysis
-            const analysisDocRef = doc(db, `artifacts/${appId}/public/data/grazeFeedAnalysis`, 'summary');
+            // Correctly form the document reference using separate arguments
+            const analysisDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'grazeFeedAnalysis', 'summary');
 
-            onSnapshot(analysisDocRef, async (docSnap) => { // Made async to allow await setDoc
+            onSnapshot(analysisDocRef, async (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    let currentTermCounts = data.termCounts || {}; 
-                    let currentLinkCounts = data.linkCounts || {}; // Get link counts (renamed)
-                    let currentDomainCounts = data.domainCounts || {}; // Get domain counts (new)
+                    allTimeTermCounts = data.termCounts || {}; 
+                    allTimeLinkCounts = data.linkCounts || {}; 
+                    allTimeDomainCounts = data.domainCounts || {}; 
 
-                    // --- Sanitize termCounts: Remove any non-hashtag entries ---
-                    let needsCleanup = false;
-                    const sanitizedTermCounts = {};
-                    for (const term in currentTermCounts) {
-                        if (term.startsWith('#')) {
-                            sanitizedTermCounts[term] = currentTermCounts[term];
-                        } else {
-                            needsCleanup = true; // Found a non-hashtag term, indicates old data
-                            console.warn(`Detected non-hashtag term "${term}" in Firestore. Initiating cleanup.`);
-                        }
-                    }
-
-                    if (needsCleanup) {
-                        // If cleanup is needed, update Firestore with only valid hashtags
-                        await setDoc(analysisDocRef, { termCounts: sanitizedTermCounts }, { merge: true })
-                            .then(() => console.log("Firestore termCounts cleaned up successfully."))
-                            .catch(e => console.error("Error cleaning up Firestore termCounts:", e));
-                        termCounts = sanitizedTermCounts; // Update local state immediately
-                    } else {
-                        termCounts = currentTermCounts; // No cleanup needed, use as is
-                    }
-
-                    linkCounts = currentLinkCounts; // Update local link counts
-                    domainCounts = currentDomainCounts; // Update local domain counts
-
-                    console.log("Firestore data received via onSnapshot:", { termCounts, linkCounts, domainCounts }); 
+                    console.log("Firestore All-Time data received via onSnapshot:", { allTimeTermCounts, allTimeLinkCounts, allTimeDomainCounts }); 
                 } else {
-                    // Document doesn't exist, initialize it with empty counts
-                    console.log("Analysis document does not exist, initializing with empty counts.");
+                    console.log("All-Time summary document does not exist, initializing with empty counts.");
                     setDoc(analysisDocRef, { 
                         termCounts: {},
-                        linkCounts: {}, // Initialize link counts
-                        domainCounts: {} // Initialize domain counts
+                        linkCounts: {},
+                        domainCounts: {}
                     }, { merge: true })
-                        .catch(e => console.error("Error creating analysis document:", e));
-                    termCounts = {};
-                    linkCounts = {}; // Initialize local link counts
-                    domainCounts = {}; // Initialize local domain counts
+                        .catch(e => console.error("Error creating all-time summary document:", e));
+                    allTimeTermCounts = {};
+                    allTimeLinkCounts = {};
+                    allTimeDomainCounts = {};
                 }
-                renderTopTerms(); // Renders hashtags
-                renderTopLinks(); // Renders links
-                renderTopDomains(); // Renders domains
+                // Only update the view if 'allTime' is currently selected to avoid overwriting other views
+                if (currentSelectedTimeframe === 'allTime') {
+                    updateView('allTime'); 
+                }
             }, (error) => {
-                console.error("Error listening to Firestore:", error);
+                console.error("Error listening to Firestore (All-Time Summary):", error);
                 connectionStatusElem.textContent = `Firestore Listener Error: ${error.message}`;
             });
         }
 
         // --- WebSocket Connection Logic ---
         function connectWebSocket() {
-            if (!isFirebaseReady) { // Ensure Firebase is ready before attempting WebSocket connection
+            if (!isFirebaseReady) { 
                 console.warn("Firebase is not ready, delaying WebSocket connection.");
-                setTimeout(connectWebSocket, 1000); // Retry after 1 second
+                setTimeout(connectWebSocket, 1000); 
                 return;
             }
 
             if (ws && ws.readyState === WebSocket.OPEN) {
-                return; // Already connected
+                return; 
             }
 
             loadingIndicatorElem.style.display = 'block';
@@ -393,7 +415,7 @@
 
             ws.onopen = () => {
                 console.log('WebSocket connected!');
-                connectionStatusElem.textContent = 'Connected'; // Changed text to "Connected"
+                connectionStatusElem.textContent = 'Connected'; 
                 connectionStatusElem.classList.remove('text-red-600', 'text-orange-600');
                 connectionStatusElem.classList.add('text-green-600');
                 loadingIndicatorElem.style.display = 'none';
@@ -404,15 +426,21 @@
             ws.onmessage = async (event) => {
                 try {
                     const data = JSON.parse(event.data);
-                    let authorDisplayName = 'User'; // Default display name
-                    let authorHandle = data.did; // Default to DID as handle
+                    let authorDisplayName = 'User'; 
+                    let authorHandle = data.did; 
                     let postText = '';
-                    let timestamp = ''; // Initialize timestamp as empty string
-                    let postEmbed = null; // Initialize embed data
+                    let timestamp = ''; 
+                    let postEmbed = null; 
 
-                    // Bluesky AT Protocol / Jetstream format parsing
                     if (data.commit && data.commit.record && data.commit.record.$type === 'app.bsky.feed.post') {
                         const commitData = data.commit;
-                        const post = commitData.record; // The actual post record
+                        const post = commitData.record; 
                         
-                        // Ensure post.text exists and is a string before as
+                        if (typeof post.text === 'string') {
+                            postText = post.text;
+                        } else {
+                            console.warn("Post record text is not a string or is missing, defaulting to empty string:", post.text);
+                            postText = ''; 
+                        }
+                        
+                        times
