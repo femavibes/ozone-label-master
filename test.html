@@ -344,31 +344,23 @@
                     let timestamp = new Date().toLocaleString();
 
                     // Bluesky AT Protocol / Jetstream format parsing
-                    // The Contrails stream sends 'commit' objects which contain 'blocks'
-                    // where the actual post record resides.
-                    if (data.$type === 'com.atproto.sync.subscribeRepos#commit' && data.blocks) {
-                        const commit = data; // The whole data object is the commit
-                        const blocks = data.blocks;
+                    // The Contrails stream sends 'commit' objects which contain the actual post data
+                    // The post record is found directly within the 'commit' object's 'record' field
+                    if (data.commit && data.commit.record && data.commit.record.$type === 'app.bsky.feed.post') {
+                        const commitData = data.commit;
+                        const post = commitData.record; // The actual post record
+                        
+                        authorHandle = data.did; // Author's DID is at the top level 'did'
+                        postText = post.text;
+                        timestamp = new Date(post.createdAt).toLocaleString(); // Use createdAt from the post record
 
-                        // Iterate through blocks to find post records
-                        for (const block of blocks) {
-                            // The actual record data is often nested within the block
-                            // We need to check the $type of the *record* within the block
-                            // The 'record' field is typically where the actual post data lives within a block
-                            if (block.record && block.record.$type === 'app.bsky.feed.post') {
-                                const post = block.record; // Access the nested record
-                                authorHandle = commit.repo; // Author's DID is in the commit's repo field
-                                postText = post.text;
-                                timestamp = new Date(commit.time).toLocaleString();
-                                console.log(`Detected a 'create' post operation.`);
-                                console.log(`Extracted Author: ${authorHandle}`);
-                                console.log(`Extracted Content: "${postText.substring(0, Math.min(postText.length, 100))}..."`);
-                                console.log(`Extracted Timestamp: ${timestamp}`);
-                                break; // Found the post, exit loop
-                            }
-                        }
+                        console.log(`Detected a 'create' post operation.`);
+                        console.log(`Extracted Author: ${authorHandle}`);
+                        console.log(`Extracted Content: "${postText.substring(0, Math.min(postText.length, 100))}..."`);
+                        console.log(`Extracted Timestamp: ${timestamp}`);
+                        
                     } else {
-                        console.log("WebSocket message is not a 'commit' or does not contain a recognized post record type.");
+                        console.log("WebSocket message is not a recognized post type or missing expected fields.");
                     }
 
                     if (postText && authorHandle !== 'Unknown Author') { // Only process if we successfully parsed content and author
@@ -531,3 +523,47 @@
     </script>
 </body>
 </html>
+```
+I've updated the `ws.onmessage` parsing logic in the `graze-live-feed-html` artifact.
+
+**The key change is in this block:**
+
+```javascript
+// Bluesky AT Protocol / Jetstream format parsing
+// The Contrails stream sends 'commit' objects which contain the actual post data
+// The post record is found directly within the 'commit' object's 'record' field
+if (data.commit && data.commit.record && data.commit.record.$type === 'app.bsky.feed.post') {
+    const commitData = data.commit;
+    const post = commitData.record; // Access the nested record
+    
+    authorHandle = data.did; // Author's DID is at the top level 'did'
+    postText = post.text;
+    timestamp = new Date(post.createdAt).toLocaleString(); // Use createdAt from the post record
+
+    console.log(`Detected a 'create' post operation.`);
+    console.log(`Extracted Author: ${authorHandle}`);
+    console.log(`Extracted Content: "${postText.substring(0, Math.min(postText.length, 100))}..."`);
+    console.log(`Extracted Timestamp: ${timestamp}`);
+    
+} else {
+    console.log("WebSocket message is not a recognized post type or missing expected fields.");
+}
+```
+
+**Reasoning for the change:**
+
+Your provided JSON sample showed that the actual post content (`app.bsky.feed.post`) is nested under `data.commit.record`, and the author's DID is at the top level `data.did`. The previous code was looking for `data.blocks` which wasn't present in your sample, and was trying to access `block.record` which was incorrect for this structure.
+
+This revised parsing logic should now correctly extract the `authorHandle`, `postText`, and `timestamp` from the messages you are receiving.
+
+**Next Steps for You:**
+
+1.  **Run this updated HTML code.**
+2.  **Open your browser's Developer Console (F12 -> Console tab).**
+3.  **Crucially, observe the console logs:**
+    * You should now see `Detected a 'create' post operation.`
+    * Followed by `Extracted Author:`, `Extracted Content:`, and `Extracted Timestamp:`. If these show correct data, the parsing is working!
+    * Then, look for `Attempting to update Firestore with new post data.`
+    * And finally, either `Firestore update successful!` or `Error updating Firestore analysis: Error: Missing or insufficient permissions.`.
+
+If you *still* get the "Missing or insufficient permissions" error after this, it means the Firestore security rules are still the problem. In that case, please **copy the *exact* rules from your Firebase Console's "Rules" tab and paste them here** so I can review them direct
