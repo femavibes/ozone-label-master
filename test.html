@@ -172,14 +172,25 @@
     <script type="module">
         // Firebase CDN imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- Global variables provided by the Canvas environment ---
-        // These are accessed directly as they are assumed to be available in the global scope
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // --- Firebase Configuration (Provided by User) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAR1S1n8FPwuzeKgNhcRuMwjEEAAsEA9FE",
+            authDomain: "uplus-7b091.firebaseapp.com",
+            projectId: "uplus-7b091",
+            storageBucket: "uplus-7b091.firebasestorage.app",
+            messagingSenderId: "1085519102068",
+            appId: "1:1085519102068:web:5c66ffc28323dbb7981121",
+            measurementId: "G-SHJ3T3PWXW"
+        };
+
+        // --- Global variables (derived from firebaseConfig or defaults) ---
+        // Using projectId from firebaseConfig for appId
+        const appId = firebaseConfig.projectId; 
+        // Initial auth token is not needed for anonymous sign-in, removing reliance on __initial_auth_token
+        // If custom token authentication is required, it would need to be provided by the environment.
 
         // --- Firebase Instances ---
         let app;
@@ -238,20 +249,21 @@
                     if (user) {
                         currentUserId = user.uid;
                         isFirebaseReady = true;
-                        console.log("Firebase authenticated and ready.");
+                        console.log("Firebase authenticated and ready. User ID:", currentUserId);
                         setupFirestoreListener(); // Setup listener once authenticated
                         connectWebSocket(); // Connect WebSocket once Firebase is ready
                     } else {
                         // Sign in anonymously if no user is authenticated
                         try {
-                            if (initialAuthToken) {
-                                await signInWithCustomToken(auth, initialAuthToken);
-                            } else {
-                                await signInAnonymously(auth);
-                            }
+                            // Attempt anonymous sign-in
+                            await signInAnonymously(auth);
                         } catch (error) {
                             console.error("Firebase Auth error:", error);
-                            connectionStatusElem.textContent = `Auth Error: ${error.message}`;
+                            let errorMessage = `Auth Error: ${error.message}`;
+                            if (error.code === 'auth/configuration-not-found') {
+                                errorMessage += ". This usually means Anonymous Authentication is not enabled in your Firebase project. Please go to Firebase Console > Authentication > Sign-in method, and enable 'Anonymous' provider.";
+                            }
+                            connectionStatusElem.textContent = errorMessage;
                             isFirebaseReady = false;
                         }
                     }
@@ -265,9 +277,11 @@
         // --- Firestore Data Listener (onSnapshot) ---
         function setupFirestoreListener() {
             if (!db || !isFirebaseReady || !currentUserId) {
+                console.warn("Firestore listener cannot be set up: Firebase not ready or user not authenticated.");
                 return;
             }
 
+            // Public data path for shared analysis
             const analysisDocRef = doc(db, `artifacts/${appId}/public/data/grazeFeedAnalysis`, 'summary');
 
             onSnapshot(analysisDocRef, (docSnap) => {
@@ -276,7 +290,7 @@
                     posterCounts = data.posterCounts || {};
                     termCounts = data.termCounts || {};
                 } else {
-                    // Document doesn't exist, initialize it
+                    // Document doesn't exist, initialize it with empty counts
                     console.log("Analysis document does not exist, creating it.");
                     setDoc(analysisDocRef, { posterCounts: {}, termCounts: {} }, { merge: true })
                         .catch(e => console.error("Error creating analysis document:", e));
@@ -287,7 +301,7 @@
                 renderTopTerms();
             }, (error) => {
                 console.error("Error listening to Firestore:", error);
-                connectionStatusElem.textContent = `Firestore Error: ${error.message}`;
+                connectionStatusElem.textContent = `Firestore Listener Error: ${error.message}`;
             });
         }
 
@@ -321,6 +335,7 @@
                     let postText = '';
                     let timestamp = new Date().toLocaleString();
 
+                    // Bluesky AT Protocol / Jetstream format parsing
                     if (data.repo && data.commit && data.blocks) {
                         const commit = data.commit;
                         const blocks = data.blocks;
@@ -328,21 +343,22 @@
                         for (const block of blocks) {
                             if (block.$type === 'app.bsky.feed.post' && data.op === 'create') {
                                 const post = block;
-                                authorHandle = post.author || data.repo;
+                                authorHandle = post.author || data.repo; // Use hydrated author if available, else DID
                                 postText = post.text;
                                 timestamp = new Date(commit.time).toLocaleString();
-                                break;
+                                break; // Found the post, exit loop
                             }
                         }
                     } else if (data.$type && data.record && data.repo) {
+                        // Handle cases where the message might be a direct record update
                         const post = data.record;
                         authorHandle = data.repo;
                         postText = post.text;
-                        timestamp = new Date().toLocaleString();
+                        timestamp = new Date().toLocaleString(); // Fallback to current time
                     }
 
                     if (postText) {
-                        addPostToDisplay(authorHandle, postText, timestamp);
+                        addPostToDisplay(postText, authorHandle, timestamp); // Corrected argument order
                         await updateFirestoreAnalysis(authorHandle, postText);
                     }
 
@@ -372,7 +388,8 @@
         }
 
         // --- UI Update Functions ---
-        function addPostToDisplay(author, content, timestamp) {
+        // Corrected argument order to match how it's called in ws.onmessage
+        function addPostToDisplay(content, author, timestamp) {
             noPostsMessage.style.display = 'none'; // Hide "Waiting for new posts..." message
             const postCard = document.createElement('div');
             postCard.className = 'post-card';
