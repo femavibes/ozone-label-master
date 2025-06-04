@@ -190,7 +190,7 @@
     padding: 10px 12px;
     font-size: 1rem;
     border: 1px solid var(--input-border);
-    border-radius: var(--border-radius); /* Uses variable */
+    border-radius: var(--border-radius);
     margin-bottom: 1.5em;
     box-sizing: border-box;
     background: var(--block-background);
@@ -201,7 +201,7 @@
   .label-block {
     background: var(--block-background);
     border: 1px solid var(--block-border);
-    border-radius: var(--border-radius); /* Uses variable */
+    border-radius: var(--border-radius);
     margin-bottom: 1.5em;
     overflow: hidden;
     transition: box-shadow 0.2s, background 0.3s ease, border-color 0.3s ease;
@@ -345,7 +345,7 @@
     border: 1px solid var(--block-border);
     padding: 1em;
     margin-top: 1em;
-    border-radius: var(--border-radius); /* Uses variable */
+    border-radius: var(--border-radius);
     background: var(--header-background);
     transition: background 0.3s ease, border-color 0.3s ease;
   }
@@ -2131,6 +2131,7 @@
     // Define common languages for the dropdown
     const commonLanguages = [
       { code: 'en', name: 'English' },
+      { code: 'en-GB', name: 'English (UK)' }, // Added UK English
       { code: 'es', name: 'Spanish' },
       { code: 'fr', name: 'French' },
       { code: 'de', name: 'German' },
@@ -2247,11 +2248,16 @@
         collapseBtn.textContent = isCollapsed ? 'Expand' : 'Collapse';
       };
 
+      // NEW: Confirmation for deleting a locale
       div.querySelector('.locale-remove-btn').onclick = () => {
-        div.remove();
-        saveFullSessionStateToLocalStorage(); // Save full session state
-        updateJSONOutput(); // Update JSON output display
-        updateTotalLabelCount(); // NEW: Update total label count
+        showCustomModal('Are you sure you want to delete this locale? This action cannot be undone.', 'confirm', (response) => {
+            if (response) {
+                div.remove();
+                saveFullSessionStateToLocalStorage(); // Save full session state
+                updateJSONOutput(); // Update JSON output display
+                updateTotalLabelCount(); // NEW: Update total label count
+            }
+        });
       };
 
       const nameInput = div.querySelector('.name');
@@ -2648,7 +2654,7 @@ Original description:
               </select>
             </div>
           </div>
-          <label>Adult Only: <input type="checkbox" class="adultOnly" ${finalAdultOnly ? 'checked' : ''} title="Mark if this label is for adult content only"></label>
+          <label class="adultOnly" style="margin-top: 0.5em;">Adult Only: <input type="checkbox" id="bulkAdultOnlyControl" title="Mark if this label is for adult content only"></label>
           <div class="locales-container">
             <strong>Locales:</strong>
           </div>
@@ -3719,7 +3725,7 @@ Original description:
                     const namePrompt = `Translate the following content moderation label name into ${targetLangName}. Only provide the translated text, no additional commentary.
 Original name:
 '${sourceName}'`;
-                    const translatedName = await callGeminiAPI(prompt);
+                    const translatedName = await callGeminiAPI(namePrompt); // Changed prompt variable name
                     nameInput.value = translatedName;
                 }
 
@@ -3729,12 +3735,12 @@ Original name:
                     const descriptionPrompt = `Translate the following content moderation label description into ${targetLangName}. Only provide the translated text, no additional commentary.
 Original description:
 '${sourceDescription}'`;
-                    const translatedDescription = await callGeminiAPI(prompt);
+                    const translatedDescription = await callGeminiAPI(descriptionPrompt); // Changed prompt variable name
                     descriptionTextarea.value = translatedDescription;
                 }
                 translationsPerformed++;
             } catch (error) {
-                issues.push(`Failed to translate for locale ${sourceLangCode} to ${targetLangName}: ${error.message}`);
+                issues.push(`Failed to translate for locale ${targetLangName}: ${error.message}`); // Corrected error message
                 translationsFailed++;
             }
         }
@@ -3940,6 +3946,7 @@ Original description:
           };
       } else {
           // Set defaults if no session data
+          // Default to 'en' for defaultLocaleLanguage if not set
           categories = [];
           defaultLocaleLanguage = 'en';
           descriptionSnippets = [];
@@ -4176,7 +4183,7 @@ Original description:
               // Update global state variables from imported data first
               categories = parsedData.categories || [];
               defaultLocaleLanguage = parsedData.defaultLocaleLanguage || '';
-              descriptionSnippets = parsedData.descriptionSnippets || [];
+              descriptionSnippets = parsedData.CdescriptionSnippets || [];
               geminiApiKey = parsedData.geminiApiKey !== undefined ? parsedData.geminiApiKey : '';
               isPrideMode = parsedData.isPrideMode !== undefined ? parsedData.isPrideMode : false;
               defaultNewLabelSettings = parsedData.defaultNewLabelSettings || {
