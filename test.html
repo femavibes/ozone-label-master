@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Graze Social Feeds</title>
+    <title>Graze Social Feed & Analysis</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -19,20 +19,11 @@
         }
         .main-wrapper {
             display: flex;
-            flex-direction: column; /* Stack sections on small screens */
+            flex-direction: column; /* Always stack sections */
             gap: 30px; /* Space between the two main sections */
             width: 100%;
-            max-width: 1200px; /* Wider max-width for dual content */
+            max-width: 800px; /* Adjusted max-width for single column */
             margin: auto;
-        }
-        @media (min-width: 1024px) { /* Side-by-side on larger screens */
-            .main-wrapper {
-                flex-direction: row;
-            }
-            .section-wrapper {
-                flex: 1; /* Each section takes equal width */
-                min-width: 45%; /* Ensure they don't get too narrow */
-            }
         }
 
         .section-card {
@@ -97,13 +88,6 @@
             font-size: 1.2rem;
             color: #666;
         }
-        .iframe-embed {
-            width: 100%;
-            height: 600px; /* Adjust height as needed for the iframe */
-            border: none;
-            border-radius: 8px;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
         .feed-name-display {
             font-size: 1.2rem;
             font-weight: 600;
@@ -142,29 +126,12 @@
                         </div>
                     </div>
                     <div>
-                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Top Terms</h3>
-                        <div id="topTerms">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Top Hashtags</h3>
+                        <div id="topTerms"> <!-- Renamed from topTerms to topHashtags conceptually -->
                             <p class="text-gray-500 text-center">No posts yet to analyze.</p>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Section for Iframe Embed -->
-        <div class="section-wrapper">
-            <div class="section-card">
-                <h2 class="section-title">Urbanism+</h2>
-                <iframe
-                    src="https://graze.social/feeds/embed/3654"
-                    title="Urbanism+ Social Feed"
-                    class="iframe-embed"
-                    allowFullScreen
-                ></iframe>
-                <p class="text-sm text-gray-600 mt-4 text-center">
-                    This is the original embed using an iframe, which offers a pre-styled view of the feed.
-                    Content within this iframe cannot be directly accessed or analyzed by this page due to browser security.
-                </p>
             </div>
         </div>
     </div>
@@ -211,7 +178,7 @@
         const connectionStatusElem = document.getElementById('connectionStatus');
         const loadingIndicatorElem = document.getElementById('loadingIndicator');
         const topPostersDiv = document.getElementById('topPosters');
-        const topTermsDiv = document.getElementById('topTerms');
+        const topTermsDiv = document.getElementById('topTerms'); // Still use topTermsDiv for consistency in JS
         const feedNameDisplay = document.getElementById('feedNameDisplay').querySelector('span');
         const noPostsMessage = document.getElementById('noPostsMessage');
 
@@ -222,6 +189,10 @@
         // --- WebSocket Variables ---
         let ws = null;
         let reconnectInterval = null;
+
+        // Debounce variables for Firestore updates
+        let debounceTimer = null;
+        const DEBOUNCE_DELAY = 1000; // 1 second debounce delay
 
         // Stop words for term analysis
         const stopWords = new Set([
@@ -300,7 +271,7 @@
                     termCounts = {};
                 }
                 renderTopPosters(); // Re-render analysis whenever data changes
-                renderTopTerms();
+                renderTopTerms(); // Still calls renderTopTerms, but it will render hashtags
             }, (error) => {
                 console.error("Error listening to Firestore:", error);
                 connectionStatusElem.textContent = `Firestore Listener Error: ${error.message}`;
@@ -339,23 +310,27 @@
                     const data = JSON.parse(event.data);
                     console.log('Received raw WebSocket message:', data); // Log the raw data for inspection
 
-                    let authorHandle = 'Unknown Author';
+                    let authorDisplayName = 'User'; // Default display name
+                    let authorHandle = data.did; // Default to DID as handle
                     let postText = '';
                     let timestamp = new Date().toLocaleString();
 
                     // Bluesky AT Protocol / Jetstream format parsing
-                    // The Contrails stream sends 'commit' objects which contain the actual post data
-                    // The post record is found directly within the 'commit' object's 'record' field
                     if (data.commit && data.commit.record && data.commit.record.$type === 'app.bsky.feed.post') {
                         const commitData = data.commit;
                         const post = commitData.record; // The actual post record
                         
-                        authorHandle = data.did; // Author's DID is at the top level 'did'
+                        // Attempt to extract handle and display name from the 'author' object if available
+                        // The 'author' object is typically present in the 'info' message type from Contrails,
+                        // but not always directly in the 'commit' message type for every post.
+                        // For now, we'll continue to use the DID as the handle for analysis.
+                        // If a more hydrated stream is available, this logic can be updated.
+                        
                         postText = post.text;
                         timestamp = new Date(post.createdAt).toLocaleString(); // Use createdAt from the post record
 
                         console.log(`Detected a 'create' post operation.`);
-                        console.log(`Extracted Author: ${authorHandle}`);
+                        console.log(`Extracted Author DID: ${authorHandle}`);
                         console.log(`Extracted Content: "${postText.substring(0, Math.min(postText.length, 100))}..."`);
                         console.log(`Extracted Timestamp: ${timestamp}`);
                         
@@ -364,9 +339,11 @@
                     }
 
                     if (postText && authorHandle !== 'Unknown Author') { // Only process if we successfully parsed content and author
-                        addPostToDisplay(postText, authorHandle, timestamp);
-                        console.log("Attempting to update Firestore with new post data.");
-                        await updateFirestoreAnalysis(authorHandle, postText);
+                        // Pass both display name (generic) and handle (DID) to addPostToDisplay
+                        addPostToDisplay(postText, authorDisplayName, authorHandle, timestamp);
+                        console.log("Scheduling Firestore update via debounce.");
+                        // Call debounced update function. Use the DID as the key for analysis.
+                        debouncedUpdateFirestoreAnalysis(authorHandle, postText);
                     } else {
                         console.log("Skipping Firestore update: Post text or author not found in message or not a recognized post type.");
                     }
@@ -397,12 +374,16 @@
         }
 
         // --- UI Update Functions ---
-        function addPostToDisplay(content, author, timestamp) {
+        // Updated to accept display name and handle separately
+        function addPostToDisplay(content, displayName, handle, timestamp) {
             noPostsMessage.style.display = 'none'; // Hide "Waiting for new posts..." message
             const postCard = document.createElement('div');
             postCard.className = 'post-card';
             postCard.innerHTML = `
-                <div class="post-author">${author}</div>
+                <div class="post-author">
+                    <div class="text-gray-700">${displayName}</div> <!-- Display name -->
+                    <div class="text-blue-600 text-sm">@${handle}</div> <!-- Display handle with @ prefix -->
+                </div>
                 <div class="post-content">${content}</div>
                 <div class="post-timestamp">${timestamp}</div>
             `;
@@ -418,55 +399,71 @@
             }
         }
 
-        // --- Firestore Update Function ---
-        async function updateFirestoreAnalysis(author, text) {
-            if (!db || !isFirebaseReady) {
-                console.warn("Firestore not ready for update. Cannot update analysis.");
-                return;
+        // --- Debounced Firestore Update Function ---
+        // This function accumulates updates and writes to Firestore only after a delay.
+        let accumulatedUpdates = { posterCounts: {}, termCounts: {} };
+
+        function debouncedUpdateFirestoreAnalysis(authorDid, text) { // Now accepts authorDid
+            // Accumulate updates locally first
+            accumulatedUpdates.posterCounts[authorDid] = (accumulatedUpdates.posterCounts[authorDid] || 0) + 1;
+
+            // --- IMPORTANT: Only count actual hashtags for termCounts ---
+            // This regex now specifically looks for words starting with '#'
+            const hashtags = text.toLowerCase().match(/#\b\w+\b/g) || []; 
+            hashtags.forEach(tag => {
+                accumulatedUpdates.termCounts[tag] = (accumulatedUpdates.termCounts[tag] || 0) + 1;
+            });
+
+            // Clear any existing timer
+            if (debounceTimer) {
+                clearTimeout(debounceTimer);
             }
 
-            const analysisDocRef = doc(db, `artifacts/${appId}/public/data/grazeFeedAnalysis`, 'summary');
-
-            try {
-                const docSnap = await getDoc(analysisDocRef);
-                let currentPosterCounts = {};
-                let currentTermCounts = {};
-
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    currentPosterCounts = data.posterCounts || {};
-                    currentTermCounts = data.termCounts || {};
-                    console.log("Existing Firestore data before update:", { currentPosterCounts, currentTermCounts });
-                } else {
-                    console.log("Firestore document does not exist, will create with initial empty counts.");
+            // Set a new timer to execute the actual Firestore update after DEBOUNCE_DELAY
+            debounceTimer = setTimeout(async () => {
+                if (!db || !isFirebaseReady) {
+                    console.warn("Firestore not ready for update after debounce. Cannot update analysis.");
+                    return;
                 }
 
-                currentPosterCounts[author] = (currentPosterCounts[author] || 0) + 1;
+                const analysisDocRef = doc(db, `artifacts/${appId}/public/data/grazeFeedAnalysis`, 'summary');
 
-                const wordsAndHashtags = text.toLowerCase().match(/(#?\b\w+\b)/g) || [];
-                wordsAndHashtags.forEach(item => {
-                    if (item.startsWith('#')) {
-                        currentTermCounts[item] = (currentTermCounts[item] || 0) + 1;
-                    } else if (!stopWords.has(item) && item.length > 2) {
-                        currentTermCounts[item] = (currentTermCounts[item] || 0) + 1;
+                try {
+                    const docSnap = await getDoc(analysisDocRef);
+                    let currentPosterCounts = {};
+                    let currentTermCounts = {}; // This will now only store hashtags
+
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        currentPosterCounts = data.posterCounts || {};
+                        currentTermCounts = data.termCounts || {};
                     }
-                });
 
-                await setDoc(analysisDocRef, {
-                    posterCounts: currentPosterCounts,
-                    termCounts: currentTermCounts
-                }, { merge: true });
-                console.log("Firestore update successful!");
-                console.log("Updated Firestore data (local state):", { posterCounts: currentPosterCounts, termCounts: currentTermCounts });
+                    // Merge accumulated updates with current Firestore data
+                    for (const authorKey in accumulatedUpdates.posterCounts) {
+                        currentPosterCounts[authorKey] = (currentPosterCounts[authorKey] || 0) + accumulatedUpdates.posterCounts[authorKey];
+                    }
+                    for (const termKey in accumulatedUpdates.termCounts) { // Only hashtags are in accumulatedUpdates.termCounts now
+                        currentTermCounts[termKey] = (currentTermCounts[termKey] || 0) + accumulatedUpdates.termCounts[termKey];
+                    }
 
+                    await setDoc(analysisDocRef, {
+                        posterCounts: currentPosterCounts,
+                        termCounts: currentTermCounts
+                    }, { merge: true });
+                    console.log("Firestore update successful (debounced)!");
+                    console.log("Updated Firestore data (local state):", { posterCounts: currentPosterCounts, termCounts: currentTermCounts });
 
-            } catch (e) {
-                console.error("Error updating Firestore analysis:", e);
-                // This is where Firestore security rule errors would typically appear
-                if (e.code === 'permission-denied') {
-                    console.error("Firestore Permission Denied: Check your Firestore Security Rules! Ensure authenticated users can write to /artifacts/{appId}/public/data/grazeFeedAnalysis/summary");
+                    // Reset accumulated updates after successful write
+                    accumulatedUpdates = { posterCounts: {}, termCounts: {} };
+
+                } catch (e) {
+                    console.error("Error updating Firestore analysis (debounced):", e);
+                    if (e.code === 'permission-denied') {
+                        console.error("Firestore Permission Denied: Check your Firestore Security Rules! Ensure authenticated users can write to /artifacts/{appId}/public/data/grazeFeedAnalysis/summary");
+                    }
                 }
-            }
+            }, DEBOUNCE_DELAY);
         }
 
         // --- Render Functions for Analysis ---
@@ -480,31 +477,33 @@
                 topPostersDiv.innerHTML = '<p class="text-gray-500 text-center">No posts yet to analyze.</p>';
                 return;
             }
-            sortedPosters.forEach(([author, count]) => {
+            sortedPosters.forEach(([authorDid, count]) => { // Now expects authorDid
                 const item = document.createElement('div');
                 item.className = 'analysis-item';
+                // Display DID as the handle in the leaderboard for now due to hydration limitations
                 item.innerHTML = `
-                    <span class="analysis-label">${author}</span>
+                    <span class="analysis-label">User<br/>@${authorDid}</span>
                     <span class="analysis-value">${count} posts</span>
                 `;
                 topPostersDiv.appendChild(item);
             });
         }
 
-        function renderTopTerms() {
+        function renderTopTerms() { // This function now renders hashtags
             const sortedTerms = Object.entries(termCounts)
                 .sort(([, countA], [, countB]) => countB - countA)
-                .slice(0, 5); // Top 5 terms
+                .slice(0, 5); // Top 5 hashtags
 
             topTermsDiv.innerHTML = ''; // Clear previous content
             if (sortedTerms.length === 0) {
-                topTermsDiv.innerHTML = '<p class="text-gray-500 text-center">No posts yet to analyze.</p>';
+                topTermsDiv.innerHTML = '<p class="text-gray-500 text-center">No hashtags yet to analyze.</p>';
                 return;
             }
             sortedTerms.forEach(([term, count]) => {
                 const item = document.createElement('div');
                 item.className = 'analysis-item';
-                const displayTerm = term.startsWith('#') ? term : term;
+                // Ensure hashtag always starts with # for display
+                const displayTerm = term.startsWith('#') ? term : `#${term}`; 
                 item.innerHTML = `
                     <span class="analysis-label">${displayTerm}</span>
                     <span class="analysis-value">${count} uses</span>
@@ -523,47 +522,3 @@
     </script>
 </body>
 </html>
-```
-I've updated the `ws.onmessage` parsing logic in the `graze-live-feed-html` artifact.
-
-**The key change is in this block:**
-
-```javascript
-// Bluesky AT Protocol / Jetstream format parsing
-// The Contrails stream sends 'commit' objects which contain the actual post data
-// The post record is found directly within the 'commit' object's 'record' field
-if (data.commit && data.commit.record && data.commit.record.$type === 'app.bsky.feed.post') {
-    const commitData = data.commit;
-    const post = commitData.record; // Access the nested record
-    
-    authorHandle = data.did; // Author's DID is at the top level 'did'
-    postText = post.text;
-    timestamp = new Date(post.createdAt).toLocaleString(); // Use createdAt from the post record
-
-    console.log(`Detected a 'create' post operation.`);
-    console.log(`Extracted Author: ${authorHandle}`);
-    console.log(`Extracted Content: "${postText.substring(0, Math.min(postText.length, 100))}..."`);
-    console.log(`Extracted Timestamp: ${timestamp}`);
-    
-} else {
-    console.log("WebSocket message is not a recognized post type or missing expected fields.");
-}
-```
-
-**Reasoning for the change:**
-
-Your provided JSON sample showed that the actual post content (`app.bsky.feed.post`) is nested under `data.commit.record`, and the author's DID is at the top level `data.did`. The previous code was looking for `data.blocks` which wasn't present in your sample, and was trying to access `block.record` which was incorrect for this structure.
-
-This revised parsing logic should now correctly extract the `authorHandle`, `postText`, and `timestamp` from the messages you are receiving.
-
-**Next Steps for You:**
-
-1.  **Run this updated HTML code.**
-2.  **Open your browser's Developer Console (F12 -> Console tab).**
-3.  **Crucially, observe the console logs:**
-    * You should now see `Detected a 'create' post operation.`
-    * Followed by `Extracted Author:`, `Extracted Content:`, and `Extracted Timestamp:`. If these show correct data, the parsing is working!
-    * Then, look for `Attempting to update Firestore with new post data.`
-    * And finally, either `Firestore update successful!` or `Error updating Firestore analysis: Error: Missing or insufficient permissions.`.
-
-If you *still* get the "Missing or insufficient permissions" error after this, it means the Firestore security rules are still the problem. In that case, please **copy the *exact* rules from your Firebase Console's "Rules" tab and paste them here** so I can review them direct
