@@ -154,10 +154,10 @@
         <!-- Section for Iframe Embed -->
         <div class="section-wrapper">
             <div class="section-card">
-                <h2 class="section-title">Graze Social Feed (Iframe Embed)</h2>
+                <h2 class="section-title">Urbanism+</h2>
                 <iframe
                     src="https://graze.social/feeds/embed/3654"
-                    title="Graze Social Feed"
+                    title="Urbanism+ Social Feed"
                     class="iframe-embed"
                     allowFullScreen
                 ></iframe>
@@ -202,7 +202,8 @@
         // --- Configuration ---
         const GRAZE_FEED_URI = 'at://did:plc:lptjvw6ut224kwrj7ub3sqbe/app.bsky.feed.generator/aaaotfjzjplna';
         const WEBSOCKET_URL = `wss://api.graze.social/app/contrail?feed=${GRAZE_FEED_URI}`;
-        const FEED_NAME = GRAZE_FEED_URI.split('/').pop();
+        // Extract the programmatic feed name from the URI
+        const PROGRAMMATIC_FEED_NAME = GRAZE_FEED_URI.split('/').pop();
         const RECONNECT_DELAY = 5000; // 5 seconds
 
         // --- DOM Elements ---
@@ -497,7 +498,7 @@
 
         // --- Initialize on Window Load ---
         window.onload = function () {
-            feedNameDisplay.textContent = FEED_NAME; // Display the feed name
+            feedNameDisplay.textContent = PROGRAMMATIC_FEED_NAME; // Display the programmatic feed name
             initializeFirebase(); // Start Firebase initialization and auth
             renderTopPosters(); // Render initial empty state for analysis
             renderTopTerms();
