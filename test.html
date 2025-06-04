@@ -126,14 +126,26 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                     <div>
-                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Top Posters</h3>
-                        <div id="topPosters">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Top Hashtags</h3>
+                        <div id="topTerms">
+                            <p class="text-gray-500 text-center">No hashtags yet to analyze.</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Top Hours for Posts</h3>
+                        <div id="topHours">
                             <p class="text-gray-500 text-center">No posts yet to analyze.</p>
                         </div>
                     </div>
                     <div>
-                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Top Hashtags</h3>
-                        <div id="topTerms">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Top Content Types</h3>
+                        <div id="topContentTypes">
+                            <p class="text-gray-500 text-center">No posts yet to analyze.</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Top Emojis</h3>
+                        <div id="topEmojis">
                             <p class="text-gray-500 text-center">No posts yet to analyze.</p>
                         </div>
                     </div>
@@ -199,14 +211,21 @@
         const postsContainer = document.getElementById('postsContainer');
         const connectionStatusElem = document.getElementById('connectionStatus');
         const loadingIndicatorElem = document.getElementById('loadingIndicator');
-        const topPostersDiv = document.getElementById('topPosters');
-        const topTermsDiv = document.getElementById('topTerms');
-        const feedNameDisplay = document.getElementById('feedNameDisplay'); // No longer query span, as element is removed
+        const topPostersDiv = document.getElementById('topPosters'); // Still used for rendering, but logic for counting removed
+        const topTermsDiv = document.getElementById('topTerms'); // For Top Hashtags
+        const topHoursDiv = document.getElementById('topHours'); // For Top Hours
+        const topContentTypesDiv = document.getElementById('topContentTypes'); // For Top Content Types
+        const topEmojisDiv = document.getElementById('topEmojis'); // For Top Emojis
+        const feedNameDisplay = document.getElementById('feedNameDisplay'); 
         const noPostsMessage = document.getElementById('noPostsMessage');
 
         // --- Analysis Data (synced with Firestore) ---
-        let posterCounts = {};
-        let termCounts = {};
+        // Removed posterCounts from here, as it's no longer a primary ranking metric.
+        // If needed for internal logic (e.g., unique user check), it would be managed locally.
+        let termCounts = {}; // For hashtags
+        let hourlyCounts = {}; // For top hours
+        let contentTypeCounts = {}; // For content types
+        let emojiCounts = {}; // For emojis
 
         // --- WebSocket Variables ---
         let ws = null;
@@ -216,7 +235,7 @@
         let debounceTimer = null;
         const DEBOUNCE_DELAY = 1000; // 1 second debounce delay
 
-        // Stop words for term analysis
+        // Stop words for term analysis (still relevant for hashtags)
         const stopWords = new Set([
             'a', 'an', 'the', 'and', 'or', 'but', 'for', 'nor', 'on', 'at', 'to', 'from', 'by',
             'with', 'in', 'of', 'is', 'am', 'are', 'was', 'were', 'be', 'been', 'being', 'have',
@@ -231,6 +250,10 @@
             'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very',
             's', 't', 'can', 'will', 'just', 'don', 'should', 'now'
         ]);
+
+        // Regex to find emojis (covers a broad range of Unicode emoji blocks)
+        const emojiRegex = /(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/g;
+
 
         // --- Firebase Initialization ---
         function initializeFirebase() {
@@ -281,8 +304,11 @@
             onSnapshot(analysisDocRef, async (docSnap) => { // Made async to allow await setDoc
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    posterCounts = data.posterCounts || {};
-                    let currentTermCounts = data.termCounts || {}; // Use a temporary variable for terms
+                    // posterCounts = data.posterCounts || {}; // Removed, no longer needed for display
+                    let currentTermCounts = data.termCounts || {}; 
+                    let currentHourlyCounts = data.hourlyCounts || {};
+                    let currentContentTypeCounts = data.contentTypeCounts || {};
+                    let currentEmojiCounts = data.emojiCounts || {};
 
                     // --- Sanitize termCounts: Remove any non-hashtag entries ---
                     let needsCleanup = false;
@@ -305,17 +331,32 @@
                     } else {
                         termCounts = currentTermCounts; // No cleanup needed, use as is
                     }
-                    console.log("Firestore data received via onSnapshot:", { posterCounts, termCounts }); // Log received data
+
+                    hourlyCounts = currentHourlyCounts;
+                    contentTypeCounts = currentContentTypeCounts;
+                    emojiCounts = currentEmojiCounts;
+
+                    console.log("Firestore data received via onSnapshot:", { termCounts, hourlyCounts, contentTypeCounts, emojiCounts }); 
                 } else {
                     // Document doesn't exist, initialize it with empty counts
                     console.log("Analysis document does not exist, initializing with empty counts.");
-                    setDoc(analysisDocRef, { posterCounts: {}, termCounts: {} }, { merge: true })
+                    setDoc(analysisDocRef, { 
+                        termCounts: {}, 
+                        hourlyCounts: {}, 
+                        contentTypeCounts: {}, 
+                        emojiCounts: {} 
+                    }, { merge: true })
                         .catch(e => console.error("Error creating analysis document:", e));
-                    posterCounts = {};
                     termCounts = {};
+                    hourlyCounts = {};
+                    contentTypeCounts = {};
+                    emojiCounts = {};
                 }
-                renderTopPosters(); // Re-render analysis whenever data changes
-                renderTopTerms(); // Still calls renderTopTerms, but it will render hashtags
+                // renderTopPosters(); // Removed, no longer needed
+                renderTopTerms(); // Renders hashtags
+                renderTopHours(); // Renders top hours
+                renderTopContentTypes(); // Renders top content types
+                renderTopEmojis(); // Renders top emojis
             }, (error) => {
                 console.error("Error listening to Firestore:", error);
                 connectionStatusElem.textContent = `Firestore Listener Error: ${error.message}`;
@@ -357,31 +398,23 @@
                     let authorDisplayName = 'User'; // Default display name
                     let authorHandle = data.did; // Default to DID as handle
                     let postText = '';
-                    let timestamp = new Date().toLocaleString();
+                    let timestamp = ''; // Initialize timestamp as empty string
 
                     // Bluesky AT Protocol / Jetstream format parsing
                     if (data.commit && data.commit.record && data.commit.record.$type === 'app.bsky.feed.post') {
                         const commitData = data.commit;
                         const post = commitData.record; // The actual post record
                         
-                        // IMPORTANT: The Contrails stream for 'subscribeRepos#commit' typically provides
-                        // only the DID (data.did) for the author directly within the message.
-                        // It does NOT usually include the hydrated handle or display name.
-                        // To get handle/display name, a separate API call to Bluesky (e.g., app.bsky.actor.getProfile)
-                        // would be needed for each DID. This is not feasible client-side due to CORS/rate limits.
-                        // Therefore, we will continue to use the DID as the handle for now.
-                        // The 'authorDisplayName' will remain generic "User" or could be derived from DID if desired.
-                        
                         postText = post.text;
-                        timestamp = new Date(post.createdAt).toLocaleString(); // Use createdAt from the post record
+                        timestamp = post.createdAt; // Use ISO string for accurate date parsing
 
                         // Even though postsContainer is hidden, we still call addPostToDisplay
                         // to ensure the parsing logic is exercised and logged.
-                        addPostToDisplay(postText, authorDisplayName, authorHandle, timestamp);
+                        addPostToDisplay(postText, authorDisplayName, authorHandle, new Date(timestamp).toLocaleString()); // Display formatted timestamp
                         
                         console.log("Scheduling Firestore update via debounce.");
                         // Call debounced update function. Use the DID as the key for analysis.
-                        debouncedUpdateFirestoreAnalysis(authorHandle, postText);
+                        debouncedUpdateFirestoreAnalysis(authorHandle, postText, timestamp, post.embed); // Pass embed data
                     } else {
                         console.log("WebSocket message is not a recognized post type or missing expected fields.");
                     }
@@ -412,10 +445,8 @@
         }
 
         // --- UI Update Functions ---
-        // Updated to accept display name and handle separately
+        // This function is still called to process and log, but the postsContainer is hidden.
         function addPostToDisplay(content, displayName, handle, timestamp) {
-            // This function is still called to process and log, but the postsContainer is hidden.
-            // noPostsMessage.style.display = 'none'; // No longer needed as postsContainer is hidden
             const postCard = document.createElement('div');
             postCard.className = 'post-card';
             postCard.innerHTML = `
@@ -440,18 +471,48 @@
 
         // --- Debounced Firestore Update Function ---
         // This function accumulates updates and writes to Firestore only after a delay.
-        let accumulatedUpdates = { posterCounts: {}, termCounts: {} };
+        let accumulatedUpdates = { 
+            termCounts: {}, 
+            hourlyCounts: {}, 
+            contentTypeCounts: {}, 
+            emojiCounts: {} 
+        };
 
-        function debouncedUpdateFirestoreAnalysis(authorDid, text) { // Now accepts authorDid
-            // Accumulate updates locally first
-            accumulatedUpdates.posterCounts[authorDid] = (accumulatedUpdates.posterCounts[authorDid] || 0) + 1;
-
-            // --- IMPORTANT: Only count actual hashtags for termCounts ---
-            // This regex now specifically looks for words starting with '#'
+        async function debouncedUpdateFirestoreAnalysis(authorDid, text, timestamp, embed) { 
+            // --- Hashtag Counting ---
             const hashtags = text.toLowerCase().match(/#\b\w+\b/g) || []; 
             hashtags.forEach(tag => {
                 accumulatedUpdates.termCounts[tag] = (accumulatedUpdates.termCounts[tag] || 0) + 1;
             });
+
+            // --- Hourly Counting ---
+            const date = new Date(timestamp);
+            const hour = date.getHours(); // 0-23
+            accumulatedUpdates.hourlyCounts[hour] = (accumulatedUpdates.hourlyCounts[hour] || 0) + 1;
+
+            // --- Content Type Counting ---
+            if (embed && embed.$type) {
+                let contentType = 'Other Embed';
+                if (embed.$type === 'app.bsky.embed.external') {
+                    contentType = 'External Link';
+                } else if (embed.$type === 'app.bsky.embed.images') {
+                    contentType = 'Image(s)';
+                } else if (embed.$type === 'app.bsky.embed.record') {
+                    contentType = 'Record Embed (Quote/Reply)';
+                } else if (embed.$type === 'app.bsky.embed.recordWithMedia') {
+                    contentType = 'Record with Media';
+                }
+                accumulatedUpdates.contentTypeCounts[contentType] = (accumulatedUpdates.contentTypeCounts[contentType] || 0) + 1;
+            } else {
+                accumulatedUpdates.contentTypeCounts['Text Only'] = (accumulatedUpdates.contentTypeCounts['Text Only'] || 0) + 1;
+            }
+
+            // --- Emoji Counting ---
+            const emojis = text.match(emojiRegex) || [];
+            emojis.forEach(emoji => {
+                accumulatedUpdates.emojiCounts[emoji] = (accumulatedUpdates.emojiCounts[emoji] || 0) + 1;
+            });
+
 
             // Clear any existing timer
             if (debounceTimer) {
@@ -469,32 +530,42 @@
 
                 try {
                     const docSnap = await getDoc(analysisDocRef);
-                    let currentPosterCounts = {};
-                    let currentTermCounts = {}; // This will now only store hashtags
+                    let currentData = {
+                        termCounts: {},
+                        hourlyCounts: {},
+                        contentTypeCounts: {},
+                        emojiCounts: {}
+                    };
 
                     if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        currentPosterCounts = data.posterCounts || {};
-                        currentTermCounts = data.termCounts || {};
+                        currentData = docSnap.data();
                     }
 
                     // Merge accumulated updates with current Firestore data
-                    for (const authorKey in accumulatedUpdates.posterCounts) {
-                        currentPosterCounts[authorKey] = (currentPosterCounts[authorKey] || 0) + accumulatedUpdates.posterCounts[authorKey];
+                    for (const key in accumulatedUpdates.termCounts) {
+                        currentData.termCounts[key] = (currentData.termCounts[key] || 0) + accumulatedUpdates.termCounts[key];
                     }
-                    for (const termKey in accumulatedUpdates.termCounts) { // Only hashtags are in accumulatedUpdates.termCounts now
-                        currentTermCounts[termKey] = (currentTermCounts[termKey] || 0) + accumulatedUpdates.termCounts[termKey];
+                    for (const key in accumulatedUpdates.hourlyCounts) {
+                        currentData.hourlyCounts[key] = (currentData.hourlyCounts[key] || 0) + accumulatedUpdates.hourlyCounts[key];
+                    }
+                    for (const key in accumulatedUpdates.contentTypeCounts) {
+                        currentData.contentTypeCounts[key] = (currentData.contentTypeCounts[key] || 0) + accumulatedUpdates.contentTypeCounts[key];
+                    }
+                    for (const key in accumulatedUpdates.emojiCounts) {
+                        currentData.emojiCounts[key] = (currentData.emojiCounts[key] || 0) + accumulatedUpdates.emojiCounts[key];
                     }
 
-                    await setDoc(analysisDocRef, {
-                        posterCounts: currentPosterCounts,
-                        termCounts: currentTermCounts
-                    }, { merge: true });
+                    await setDoc(analysisDocRef, currentData, { merge: true });
                     console.log("Firestore update successful (debounced)!");
-                    console.log("Updated Firestore data (local state):", { posterCounts: currentPosterCounts, termCounts: currentTermCounts });
+                    console.log("Updated Firestore data (local state):", currentData);
 
                     // Reset accumulated updates after successful write
-                    accumulatedUpdates = { posterCounts: {}, termCounts: {} };
+                    accumulatedUpdates = { 
+                        termCounts: {}, 
+                        hourlyCounts: {}, 
+                        contentTypeCounts: {}, 
+                        emojiCounts: {} 
+                    };
 
                 } catch (e) {
                     console.error("Error updating Firestore analysis (debounced):", e);
@@ -506,27 +577,7 @@
         }
 
         // --- Render Functions for Analysis ---
-        function renderTopPosters() {
-            const sortedPosters = Object.entries(posterCounts)
-                .sort(([, countA], [, countB]) => countB - countA)
-                .slice(0, 5); // Top 5 posters
-
-            topPostersDiv.innerHTML = ''; // Clear previous content
-            if (sortedPosters.length === 0) {
-                topPostersDiv.innerHTML = '<p class="text-gray-500 text-center">No posts yet to analyze.</p>';
-                return;
-            }
-            sortedPosters.forEach(([authorDid, count]) => { // Now expects authorDid
-                const item = document.createElement('div');
-                item.className = 'analysis-item';
-                // Display DID as the handle in the leaderboard for now due to hydration limitations
-                item.innerHTML = `
-                    <span class="analysis-label">User<br/>@${authorDid}</span>
-                    <span class="analysis-value">${count} posts</span>
-                `;
-                topPostersDiv.appendChild(item);
-            });
-        }
+        // Removed renderTopPosters() as it's no longer needed.
 
         function renderTopTerms() { // This function now renders hashtags
             const sortedTerms = Object.entries(termCounts)
@@ -551,12 +602,78 @@
             });
         }
 
+        function renderTopHours() {
+            const sortedHours = Object.entries(hourlyCounts)
+                .sort(([, countA], [, countB]) => countB - countA)
+                .slice(0, 5); // Top 5 hours
+
+            topHoursDiv.innerHTML = '';
+            if (sortedHours.length === 0) {
+                topHoursDiv.innerHTML = '<p class="text-gray-500 text-center">No posts yet to analyze.</p>';
+                return;
+            }
+            sortedHours.forEach(([hour, count]) => {
+                const item = document.createElement('div');
+                item.className = 'analysis-item';
+                const displayHour = `${hour}:00 - ${hour}:59`;
+                item.innerHTML = `
+                    <span class="analysis-label">${displayHour}</span>
+                    <span class="analysis-value">${count} posts</span>
+                `;
+                topHoursDiv.appendChild(item);
+            });
+        }
+
+        function renderTopContentTypes() {
+            const sortedContentTypes = Object.entries(contentTypeCounts)
+                .sort(([, countA], [, countB]) => countB - countA)
+                .slice(0, 5); // Top 5 content types
+
+            topContentTypesDiv.innerHTML = '';
+            if (sortedContentTypes.length === 0) {
+                topContentTypesDiv.innerHTML = '<p class="text-gray-500 text-center">No posts yet to analyze.</p>';
+                return;
+            }
+            sortedContentTypes.forEach(([type, count]) => {
+                const item = document.createElement('div');
+                item.className = 'analysis-item';
+                item.innerHTML = `
+                    <span class="analysis-label">${type}</span>
+                    <span class="analysis-value">${count} posts</span>
+                `;
+                topContentTypesDiv.appendChild(item);
+            });
+        }
+
+        function renderTopEmojis() {
+            const sortedEmojis = Object.entries(emojiCounts)
+                .sort(([, countA], [, countB]) => countB - countA)
+                .slice(0, 5); // Top 5 emojis
+
+            topEmojisDiv.innerHTML = '';
+            if (sortedEmojis.length === 0) {
+                topEmojisDiv.innerHTML = '<p class="text-gray-500 text-center">No posts yet to analyze.</p>';
+                return;
+            }
+            sortedEmojis.forEach(([emoji, count]) => {
+                const item = document.createElement('div');
+                item.className = 'analysis-item';
+                item.innerHTML = `
+                    <span class="analysis-label">${emoji}</span>
+                    <span class="analysis-value">${count} uses</span>
+                `;
+                topEmojisDiv.appendChild(item);
+            });
+        }
+
         // --- Initialize on Window Load ---
         window.onload = function () {
-            // feedNameDisplay.textContent = PROGRAMMATIC_FEED_NAME; // This element is now removed
             initializeFirebase(); // Start Firebase initialization and auth
-            renderTopPosters(); // Render initial empty state for analysis
+            // Initial render calls for all analysis sections
             renderTopTerms();
+            renderTopHours();
+            renderTopContentTypes();
+            renderTopEmojis();
         };
     </script>
 </body>
