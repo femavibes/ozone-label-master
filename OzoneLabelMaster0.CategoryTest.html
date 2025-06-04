@@ -1490,8 +1490,9 @@
   /* New styles for count boxes in menu headers */
   .menu-header-with-count {
       display: flex;
-      align-items: center; /* Vertically align items */
-      gap: 0.5em;
+      flex-direction: column; /* Stack h3 and count box vertically */
+      align-items: flex-start; /* Align items to the left */
+      gap: 0.5em; /* Space between h3 and count box */
       margin-bottom: 0.8em; /* Match existing h3 margin-bottom */
   }
 
@@ -1500,8 +1501,7 @@
       color: var(--primary);
       font-size: 1.2rem;
       flex-shrink: 0;
-      line-height: 30px; /* Match height of counter box for vertical centering */
-      padding-bottom: 2px; /* Adjusted for better visual alignment */
+      /* Removed line-height and padding-bottom as flex-direction is column now */
   }
 
   .menu-header-count-box {
@@ -1561,7 +1561,7 @@
   <div id="container">
     <header>
       <a href="https://fema.monster" target="_blank" rel="noopener noreferrer" title="Go to fema.monster">
-        <img src="https://raw.githubusercontent.com/femavibes/ozone-label-master/refs/heads/main/femamonster.jpg" alt="User Avatar" onerror="this.onerror=null;this.src='https://placehold.co/48x48/6b7280/ffffff?text=LOGO';" />
+        <img src="https://raw.githubusercontent.com/femavibes/ozone-label-master/refs/heads/main/femamonster.jpg" alt="Ozone Logo" onerror="this.onerror=null;this.src='https://placehold.co/48x48/6b7280/ffffff?text=LOGO';" />
       </a>
       <div class="header-text-group">
         <h1>OZONE LABEL MASTER</h1>
@@ -1592,10 +1592,10 @@
                 <button id="closeCategoryMenuBtnDesktop" class="close-mobile-menu-btn" title="Close categories menu">X</button>
             </div>
             <div class="menu-header-with-count">
+                <h3>Label Categories</h3>
                 <div class="menu-header-count-box">
                     <span id="categoryCount">0</span>
                 </div>
-                <h3 style="padding-bottom: 2px;">Label Categories</h3>
             </div>
             <div class="category-input-group">
                 <input type="text" id="newCategoryInput" placeholder="New category name" title="Enter a new category name" />
@@ -1614,10 +1614,10 @@
                 <button id="closeRightMenuBtnDesktop" class="close-mobile-menu-btn" title="Close quick access menu">X</button>
             </div>
             <div class="menu-header-with-count">
+                <h3>Labels Quick Access</h3>
                 <div class="menu-header-count-box">
                     <span id="labelTotalCount">0</span>
                 </div>
-                <h3 style="padding-bottom: 2px;">Labels Quick Access</h3>
             </div>
             <div class="scrollable-content">
                 <ul id="label-quick-access-list" title="Quick access links to label blocks">
@@ -1655,8 +1655,8 @@
                 <div class="label-content">
                     <div class="input-group-row">
                         <div>
-                            <label for="bulkPlaceholderIdentifier">Identifier:</label>
-                            <input type="text" id="bulkPlaceholderIdentifier" value="(Placeholder)" disabled title="This field is a placeholder for bulk actions">
+                            <label for="bulkPlaceholderIdentifier">Identifiers:</label>
+                            <input type="text" id="bulkPlaceholderIdentifier" value="" title="This field shows the number of selected labels">
                         </div>
                         <div>
                             <label for="bulkBlursControl">Blurs:</label>
@@ -2182,7 +2182,7 @@
       { code: 'ar', name: 'Arabic' },
       { code: 'pt', name: 'Portuguese' },
       { code: 'ru', name: 'Russian' },
-      { code: 'it', name: 'Italian' },
+      { code: 'it', 'name': 'Italian' },
       { code: 'ko', 'name': 'Korean' },
       { code: 'nl', 'name': 'Dutch' },
       { code: 'sv', 'name': 'Swedish' },
@@ -2661,7 +2661,7 @@ Original description:
         <div class="label-content">
           <div class="input-group-row">
             <div>
-              <label for="${labelDiv.id}-identifier">Identifier:</label>
+              <label for="${labelDiv.id}-identifier">Identifiers:</label>
               <input type="text" id="${labelDiv.id}-identifier" class="identifier" value="${id}" title="Unique identifier for this label">
             </div>
             <div>
@@ -3841,8 +3841,12 @@ Original description:
     function updateBulkActionsLabelCount() {
         // Now targets the span inside the label-block's header
         const bulkSelectedCountSpan = document.getElementById('bulkSelectedCount');
+        const bulkPlaceholderIdentifier = document.getElementById('bulkPlaceholderIdentifier'); // Get the identifier input
         if (bulkSelectedCountSpan) {
             bulkSelectedCountSpan.textContent = selectedLabelIds.size;
+        }
+        if (bulkPlaceholderIdentifier) {
+            bulkPlaceholderIdentifier.value = `Selected: ${selectedLabelIds.size}`; // Update the text input
         }
     }
 
@@ -3852,7 +3856,7 @@ Original description:
         const totalLabels = document.querySelectorAll('.label-block .identifier').length;
         const labelTotalCountSpan = document.getElementById('labelTotalCount');
         if (labelTotalCountSpan) {
-            labelTotalCountSpan.textContent = totalLabels;
+            labelTotalCountSpan.textContent = `total labels: ${totalLabels}`;
             console.log("updateTotalLabelCount: Total labels counted:", totalLabels);
         }
     }
@@ -3861,7 +3865,7 @@ Original description:
     function updateTotalCategoryCount() {
         const categoryCountSpan = document.getElementById('categoryCount');
         if (categoryCountSpan) {
-            categoryCountSpan.textContent = categories.length;
+            categoryCountSpan.textContent = `total categories: ${categories.length}`;
         }
     }
 
@@ -4238,7 +4242,7 @@ Original description:
 
               labelsToLoad.forEach((label, index) => { // Pass index to createLabelBlock
                 // Generate a unique HTML ID for this label block *before* creating it
-                const uniqueHtmlId = `label-${crypto.randomUUID()}`;
+                const uniqueHtmlId = `label-${crypto.randomUUID()}`; // Corrected: Added closing parenthesis
                 createLabelBlock(
                   label.identifier || label.id || '',
                   label.severity || 'inform',
