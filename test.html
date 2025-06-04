@@ -405,7 +405,14 @@
                         const commitData = data.commit;
                         const post = commitData.record; // The actual post record
                         
-                        postText = post.text;
+                        // Ensure post.text exists and is a string before assigning
+                        if (typeof post.text === 'string') {
+                            postText = post.text;
+                        } else {
+                            console.warn("Post record text is not a string or is missing, defaulting to empty string:", post.text);
+                            postText = ''; // Ensure it's an empty string
+                        }
+                        
                         timestamp = post.createdAt; // Use ISO string for accurate date parsing
 
                         // Even though postsContainer is hidden, we still call addPostToDisplay
@@ -480,7 +487,8 @@
 
         async function debouncedUpdateFirestoreAnalysis(authorDid, text, timestamp, embed) { 
             // --- Hashtag Counting ---
-            const hashtags = text.toLowerCase().match(/#\b\w+\b/g) || []; 
+            // Use optional chaining to safely call toLowerCase and match
+            const hashtags = text?.toLowerCase().match(/#\b\w+\b/g) || []; 
             hashtags.forEach(tag => {
                 accumulatedUpdates.termCounts[tag] = (accumulatedUpdates.termCounts[tag] || 0) + 1;
             });
@@ -508,7 +516,8 @@
             }
 
             // --- Emoji Counting ---
-            const emojis = text.match(emojiRegex) || [];
+            // Use optional chaining to safely call match
+            const emojis = text?.match(emojiRegex) || [];
             emojis.forEach(emoji => {
                 accumulatedUpdates.emojiCounts[emoji] = (accumulatedUpdates.emojiCounts[emoji] || 0) + 1;
             });
@@ -582,20 +591,20 @@
         function renderTopTerms() { // This function now renders hashtags
             const sortedTerms = Object.entries(termCounts)
                 .sort(([, countA], [, countB]) => countB - countA)
-                .slice(0, 5); // Top 5 hashtags
+                .slice(0, 20); // Top 20 hashtags
 
             topTermsDiv.innerHTML = ''; // Clear previous content
             if (sortedTerms.length === 0) {
                 topTermsDiv.innerHTML = '<p class="text-gray-500 text-center">No hashtags yet to analyze.</p>';
                 return;
             }
-            sortedTerms.forEach(([term, count]) => {
+            sortedTerms.forEach(([term, count], index) => { // Added index for numbering
                 const item = document.createElement('div');
                 item.className = 'analysis-item';
                 // Ensure hashtag always starts with # for display
                 const displayTerm = term.startsWith('#') ? term : `#${term}`; 
                 item.innerHTML = `
-                    <span class="analysis-label">${displayTerm}</span>
+                    <span class="analysis-label">${index + 1}. ${displayTerm}</span>
                     <span class="analysis-value">${count} uses</span>
                 `;
                 topTermsDiv.appendChild(item);
@@ -605,19 +614,19 @@
         function renderTopHours() {
             const sortedHours = Object.entries(hourlyCounts)
                 .sort(([, countA], [, countB]) => countB - countA)
-                .slice(0, 5); // Top 5 hours
+                .slice(0, 20); // Top 20 hours
 
             topHoursDiv.innerHTML = '';
             if (sortedHours.length === 0) {
                 topHoursDiv.innerHTML = '<p class="text-gray-500 text-center">No posts yet to analyze.</p>';
                 return;
             }
-            sortedHours.forEach(([hour, count]) => {
+            sortedHours.forEach(([hour, count], index) => { // Added index for numbering
                 const item = document.createElement('div');
                 item.className = 'analysis-item';
                 const displayHour = `${hour}:00 - ${hour}:59`;
                 item.innerHTML = `
-                    <span class="analysis-label">${displayHour}</span>
+                    <span class="analysis-label">${index + 1}. ${displayHour}</span>
                     <span class="analysis-value">${count} posts</span>
                 `;
                 topHoursDiv.appendChild(item);
@@ -627,18 +636,18 @@
         function renderTopContentTypes() {
             const sortedContentTypes = Object.entries(contentTypeCounts)
                 .sort(([, countA], [, countB]) => countB - countA)
-                .slice(0, 5); // Top 5 content types
+                .slice(0, 20); // Top 20 content types
 
             topContentTypesDiv.innerHTML = '';
             if (sortedContentTypes.length === 0) {
                 topContentTypesDiv.innerHTML = '<p class="text-gray-500 text-center">No posts yet to analyze.</p>';
                 return;
             }
-            sortedContentTypes.forEach(([type, count]) => {
+            sortedContentTypes.forEach(([type, count], index) => { // Added index for numbering
                 const item = document.createElement('div');
                 item.className = 'analysis-item';
                 item.innerHTML = `
-                    <span class="analysis-label">${type}</span>
+                    <span class="analysis-label">${index + 1}. ${type}</span>
                     <span class="analysis-value">${count} posts</span>
                 `;
                 topContentTypesDiv.appendChild(item);
@@ -648,18 +657,18 @@
         function renderTopEmojis() {
             const sortedEmojis = Object.entries(emojiCounts)
                 .sort(([, countA], [, countB]) => countB - countA)
-                .slice(0, 5); // Top 5 emojis
+                .slice(0, 20); // Top 20 emojis
 
             topEmojisDiv.innerHTML = '';
             if (sortedEmojis.length === 0) {
                 topEmojisDiv.innerHTML = '<p class="text-gray-500 text-center">No posts yet to analyze.</p>';
                 return;
             }
-            sortedEmojis.forEach(([emoji, count]) => {
+            sortedEmojis.forEach(([emoji, count], index) => { // Added index for numbering
                 const item = document.createElement('div');
                 item.className = 'analysis-item';
                 item.innerHTML = `
-                    <span class="analysis-label">${emoji}</span>
+                    <span class="analysis-label">${index + 1}. ${emoji}</span>
                     <span class="analysis-value">${count} uses</span>
                 `;
                 topEmojisDiv.appendChild(item);
