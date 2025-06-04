@@ -313,7 +313,7 @@
             }
         }
 
-        // Helper function to get YYYY-MM-DD format for daily aggregate document IDs
+        // Helper function to getYYYY-MM-DD format for daily aggregate document IDs
         function getYYYYMMDD(date) {
             const year = date.getFullYear();
             const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -363,8 +363,8 @@
                 return;
             }
 
-            // Correctly form the document reference using separate arguments
-            const analysisDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'grazeFeedAnalysis', 'summary');
+            // Corrected path for summary document: artifacts/{appId}/public/data/summaries/grazeFeedAnalysisSummary
+            const analysisDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'summaries', 'grazeFeedAnalysisSummary');
 
             onSnapshot(analysisDocRef, async (docSnap) => {
                 if (docSnap.exists()) {
@@ -443,4 +443,388 @@
                             postText = ''; 
                         }
                         
-                        times
+                        timestamp = post.createdAt; 
+                        postEmbed = post.embed; 
+
+                        addPostToDisplay(postText, authorDisplayName, authorHandle, new Date(timestamp).toLocaleString()); 
+                        
+                        console.log("Scheduling Firestore update via debounce.");
+                        debouncedUpdateFirestoreAnalysis(authorHandle, postText, postEmbed); 
+                    } else {
+                        console.log("WebSocket message is not a recognized post type or missing expected fields.");
+                    }
+
+                } catch (e) {
+                    console.error('Failed to parse message or process data:', e);
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                connectionStatusElem.textContent = 'WebSocket error. Trying to reconnect...';
+                connectionStatusElem.classList.remove('text-green-600', 'text-orange-600');
+                connectionStatusElem.classList.add('text-red-600');
+                loadingIndicatorElem.style.display = 'none';
+            };
+
+            ws.onclose = (event) => {
+                console.warn('WebSocket closed:', event);
+                connectionStatusElem.textContent = `Disconnected. Code: ${event.code}, Reason: ${event.reason}. Reconnecting in ${RECONNECT_DELAY / 1000}s...`;
+                connectionStatusElem.classList.remove('text-green-600', 'text-red-600');
+                connectionStatusElem.classList.add('text-orange-600');
+                loadingIndicatorElem.style.display = 'none';
+                if (!reconnectInterval) {
+                    reconnectInterval = setInterval(connectWebSocket, RECONNECT_DELAY);
+                }
+            };
+        }
+
+        // --- UI Update Functions ---
+        function addPostToDisplay(content, displayName, handle, timestamp) {
+            const postCard = document.createElement('div');
+            postCard.className = 'post-card';
+            postCard.innerHTML = `
+                <div class="post-author">
+                    <div class="text-gray-700">${displayName}</div> 
+                    <div class="text-blue-600 text-sm">@${handle}</div> 
+                </div>
+                <div class="post-content">${content}</div>
+                <div class="post-timestamp">${timestamp}</div>
+            `;
+            if (postsContainer.firstChild) {
+                postsContainer.insertBefore(postCard, postsContainer.firstChild);
+            } else {
+                postsContainer.appendChild(postCard);
+            }
+            while (postsContainer.children.length > 50) {
+                postsContainer.removeChild(postsContainer.lastChild);
+            }
+        }
+
+        // --- Debounced Firestore Update Function ---
+        let accumulatedUpdates = { 
+            termCounts: {},
+            linkCounts: {},
+            domainCounts: {}
+        };
+
+        async function debouncedUpdateFirestoreAnalysis(authorDid, text, embed) { 
+            accumulatedUpdates = {
+                termCounts: accumulatedUpdates.termCounts || {},
+                linkCounts: accumulatedUpdates.linkCounts || {},
+                domainCounts: accumulatedUpdates.domainCounts || {}
+            };
+
+            const safeText = String(text || '');
+            
+            // --- Hashtag Counting ---
+            let hashtags = [];
+            try {
+                const matchedHashtags = safeText.toLowerCase().match(/#\b\w+\b/g);
+                hashtags = matchedHashtags ? [...matchedHashtags] : []; 
+            } catch (e) {
+                console.error("Error during hashtag matching:", e, "Text:", safeText);
+                hashtags = []; 
+            }
+            hashtags.forEach(tag => {
+                accumulatedUpdates.termCounts[tag] = (accumulatedUpdates.termCounts[tag] || 0) + 1;
+            });
+
+            // --- Link and Domain Counting ---
+            let extractedLink = null;
+            if (embed && embed.$type === 'app.bsky.embed.external' && embed.external && embed.external.uri) {
+                extractedLink = embed.external.uri;
+                accumulatedUpdates.linkCounts[extractedLink] = (accumulatedUpdates.linkCounts[extractedLink] || 0) + 1;
+
+                const baseDomain = getBaseDomain(extractedLink);
+                if (baseDomain && baseDomain !== 'Invalid Domain') {
+                    accumulatedUpdates.domainCounts[baseDomain] = (accumulatedUpdates.domainCounts[baseDomain] || 0) + 1;
+                }
+            }
+
+
+            // Clear any existing timer
+            if (debounceTimer) {
+                clearTimeout(debounceTimer);
+            }
+
+            debounceTimer = setTimeout(async () => {
+                if (!db || !isFirebaseReady) {
+                    console.warn("Firestore not ready for update after debounce. Cannot update analysis.");
+                    return;
+                }
+
+                // Corrected path for summary document: artifacts/{appId}/public/data/summaries/grazeFeedAnalysisSummary
+                const summaryDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'summaries', 'grazeFeedAnalysisSummary');
+                const today = new Date();
+                const dailyDocId = getYYYYMMDD(today);
+                // Corrected path for daily aggregates: artifacts/{appId}/public/data/dailyAggregates/{date}
+                const dailyDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'dailyAggregates', dailyDocId); 
+
+                try {
+                    // 1. Update All-Time Summary
+                    const summarySnap = await getDoc(summaryDocRef);
+                    let currentSummaryData = {
+                        termCounts: {},
+                        linkCounts: {},
+                        domainCounts: {}
+                    };
+                    if (summarySnap.exists()) {
+                        currentSummaryData = summarySnap.data();
+                        currentSummaryData.termCounts = currentSummaryData.termCounts || {};
+                        currentSummaryData.linkCounts = currentSummaryData.linkCounts || {};
+                        currentSummaryData.domainCounts = currentSummaryData.domainCounts || {};
+                    }
+
+                    for (const key in accumulatedUpdates.termCounts) {
+                        currentSummaryData.termCounts[key] = (currentSummaryData.termCounts[key] || 0) + accumulatedUpdates.termCounts[key];
+                    }
+                    for (const key in accumulatedUpdates.linkCounts) {
+                        currentSummaryData.linkCounts[key] = (currentSummaryData.linkCounts[key] || 0) + accumulatedUpdates.linkCounts[key];
+                    }
+                    for (const key in accumulatedUpdates.domainCounts) {
+                        currentSummaryData.domainCounts[key] = (currentSummaryData.domainCounts[key] || 0) + accumulatedUpdates.domainCounts[key];
+                    }
+                    await setDoc(summaryDocRef, currentSummaryData, { merge: true });
+
+                    // 2. Update Daily Aggregate
+                    const dailySnap = await getDoc(dailyDocRef);
+                    let currentDailyData = {
+                        termCounts: {},
+                        linkCounts: {},
+                        domainCounts: {}
+                    };
+                    if (dailySnap.exists()) {
+                        currentDailyData = dailySnap.data();
+                        currentDailyData.termCounts = currentDailyData.termCounts || {};
+                        currentDailyData.linkCounts = currentDailyData.linkCounts || {};
+                        currentDailyData.domainCounts = currentDailyData.domainCounts || {};
+                    }
+
+                    for (const key in accumulatedUpdates.termCounts) {
+                        currentDailyData.termCounts[key] = (currentDailyData.termCounts[key] || 0) + accumulatedUpdates.termCounts[key];
+                    }
+                    for (const key in accumulatedUpdates.linkCounts) {
+                        currentDailyData.linkCounts[key] = (currentDailyData.linkCounts[key] || 0) + accumulatedUpdates.linkCounts[key];
+                    }
+                    for (const key in accumulatedUpdates.domainCounts) {
+                        currentDailyData.domainCounts[key] = (currentDailyData.domainCounts[key] || 0) + accumulatedUpdates.domainCounts[key];
+                    }
+                    await setDoc(dailyDocRef, currentDailyData, { merge: true });
+
+                    console.log("Firestore update successful (debounced)!");
+
+                    // Reset accumulated updates after successful write
+                    accumulatedUpdates = { 
+                        termCounts: {},
+                        linkCounts: {},
+                        domainCounts: {}
+                    };
+
+                    // Re-render the current view to reflect latest data
+                    updateView(currentSelectedTimeframe);
+
+                } catch (e) {
+                    console.error("Error updating Firestore analysis (debounced):", e);
+                    // Updated error message to reflect the correct paths for security rules
+                    console.error("Firestore Permission Denied: Check your Firestore Security Rules! Ensure authenticated users can write to /artifacts/{appId}/public/data/summaries/grazeFeedAnalysisSummary AND /artifacts/{appId}/public/data/dailyAggregates/{date}");
+                }
+            }, DEBOUNCE_DELAY);
+        }
+
+        // --- Data Fetching Functions for different timeframes ---
+
+        async function fetchDailyData() {
+            const today = new Date();
+            const dailyDocId = getYYYYMMDD(today);
+            // Corrected path for daily aggregates
+            const dailyDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'dailyAggregates', dailyDocId); 
+            try {
+                const docSnap = await getDoc(dailyDocRef);
+                if (docSnap.exists()) {
+                    return docSnap.data();
+                }
+                return { termCounts: {}, linkCounts: {}, domainCounts: {} };
+            } catch (e) {
+                console.error("Error fetching daily data:", e);
+                return { termCounts: {}, linkCounts: {}, domainCounts: {} };
+            }
+        }
+
+        async function fetchTimeframeData(days) {
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(endDate.getDate() - days);
+
+            // Corrected path for daily aggregates collection
+            const dailyAggregatesRef = collection(db, 'artifacts', appId, 'public', 'data', 'dailyAggregates'); 
+            const q = query(dailyAggregatesRef); 
+            
+            try {
+                const querySnapshot = await getDocs(q);
+                let aggregatedTermCounts = {};
+                let aggregatedLinkCounts = {};
+                let aggregatedDomainCounts = {};
+
+                querySnapshot.forEach((doc) => {
+                    const docDateStr = doc.id; //YYYY-MM-DD
+                    const [year, month, day] = docDateStr.split('-').map(Number);
+                    const docDate = new Date(year, month - 1, day); // Month is 0-indexed
+
+                    // Only include documents within the specified date range
+                    if (docDate >= startDate && docDate <= endDate) {
+                        const data = doc.data();
+                        const terms = data.termCounts || {};
+                        const links = data.linkCounts || {};
+                        const domains = data.domainCounts || {};
+
+                        for (const term in terms) {
+                            aggregatedTermCounts[term] = (aggregatedTermCounts[term] || 0) + terms[term];
+                        }
+                        for (const link in links) {
+                            aggregatedLinkCounts[link] = (aggregatedLinkCounts[link] || 0) + links[link];
+                        }
+                        for (const domain in domains) {
+                            aggregatedDomainCounts[domain] = (aggregatedDomainCounts[domain] || 0) + domains[domain];
+                        }
+                    }
+                });
+                return { 
+                    termCounts: aggregatedTermCounts, 
+                    linkCounts: aggregatedLinkCounts, 
+                    domainCounts: aggregatedDomainCounts 
+                };
+            } catch (e) {
+                console.error(`Error fetching data for last ${days} days:`, e);
+                return { termCounts: {}, linkCounts: {}, domainCounts: {} };
+            }
+        }
+
+
+        // --- Update View Function based on Timeframe ---
+        async function updateView(timeframe) {
+            currentSelectedTimeframe = timeframe;
+            let dataToDisplay = { termCounts: {}, linkCounts: {}, domainCounts: {} };
+
+            if (!isFirebaseReady) {
+                console.warn("Firebase not ready for view update.");
+                return;
+            }
+
+            switch (timeframe) {
+                case 'allTime':
+                    dataToDisplay = {
+                        termCounts: allTimeTermCounts,
+                        linkCounts: allTimeLinkCounts,
+                        domainCounts: allTimeDomainCounts
+                    };
+                    break;
+                case 'day':
+                    dataToDisplay = await fetchDailyData();
+                    break;
+                case 'week':
+                    dataToDisplay = await fetchTimeframeData(7);
+                    break;
+                case 'month':
+                    dataToDisplay = await fetchTimeframeData(30);
+                    break;
+                default:
+                    dataToDisplay = {
+                        termCounts: allTimeTermCounts,
+                        linkCounts: allTimeLinkCounts,
+                        domainCounts: allTimeDomainCounts
+                    };
+            }
+
+            currentDisplayTermCounts = dataToDisplay.termCounts;
+            currentDisplayLinkCounts = dataToDisplay.linkCounts;
+            currentDisplayDomainCounts = dataToDisplay.domainCounts;
+
+            renderTopTerms(currentDisplayTermCounts);
+            renderTopLinks(currentDisplayLinkCounts);
+            renderTopDomains(currentDisplayDomainCounts);
+        }
+
+        // --- Render Functions for Analysis ---
+        // These now accept the specific counts object to render
+        function renderTopTerms(counts) { 
+            const sortedTerms = Object.entries(counts)
+                .sort(([, countA], [, countB]) => countB - countA)
+                .slice(0, 20); 
+
+            topTermsDiv.innerHTML = ''; 
+            if (sortedTerms.length === 0) {
+                topTermsDiv.innerHTML = '<p class="text-gray-500 text-center">No hashtags yet to analyze.</p>';
+                return;
+            }
+            sortedTerms.forEach(([term, count], index) => { 
+                const item = document.createElement('div');
+                item.className = 'analysis-item';
+                const displayTerm = term.startsWith('#') ? term : `#${term}`; 
+                item.innerHTML = `
+                    <span class="analysis-label">${index + 1}. ${displayTerm}</span>
+                    <span class="analysis-value">${count} uses</span>
+                `;
+                topTermsDiv.appendChild(item);
+            });
+        }
+
+        function renderTopLinks(counts) { 
+            const sortedLinks = Object.entries(counts)
+                .sort(([, countA], [, countB]) => countB - countA)
+                .slice(0, 20); 
+
+            topLinksDiv.innerHTML = ''; 
+            if (sortedLinks.length === 0) {
+                topLinksDiv.innerHTML = '<p class="text-gray-500 text-center">No links yet to analyze.</p>';
+                return;
+            }
+            sortedLinks.forEach(([url, count], index) => { 
+                const item = document.createElement('div');
+                item.className = 'analysis-item';
+                const displayUrl = url.length > 50 ? url.substring(0, 47) + '...' : url;
+                item.innerHTML = `
+                    <span class="analysis-label"><a href="${url}" target="_blank" class="text-blue-500 hover:underline">${index + 1}. ${displayUrl}</a></span>
+                    <span class="analysis-value">${count} shares</span>
+                `;
+                topLinksDiv.appendChild(item); 
+            });
+        }
+
+        function renderTopDomains(counts) { 
+            const sortedDomains = Object.entries(counts)
+                .sort(([, countA], [, countB]) => countB - countA)
+                .slice(0, 20); 
+
+            topDomainsDiv.innerHTML = ''; 
+            if (sortedDomains.length === 0) {
+                topDomainsDiv.innerHTML = '<p class="text-gray-500 text-center">No domains yet to analyze.</p>';
+                return;
+            }
+            sortedDomains.forEach(([domain, count], index) => { 
+                const item = document.createElement('div');
+                item.className = 'analysis-item';
+                item.innerHTML = `
+                    <span class="analysis-label"><a href="http://${domain}" target="_blank" class="text-blue-500 hover:underline">${index + 1}. ${domain}</a></span>
+                    <span class="analysis-value">${count} shares</span>
+                `;
+                topDomainsDiv.appendChild(item); 
+            });
+        }
+
+        // --- Event Listeners for Timeframe Selector ---
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('input[name="timeframe"]').forEach(radio => {
+                radio.addEventListener('change', (event) => {
+                    updateView(event.target.value);
+                });
+            });
+        });
+
+        // --- Initialize on Window Load ---
+        window.onload = function () {
+            initializeFirebase(); 
+        };
+    </script>
+</body>
+</html>
