@@ -459,7 +459,13 @@
         };
 
         async function debouncedUpdateFirestoreAnalysis(authorDid, text, embed) { // Added embed parameter
-            // Ensure text is a string to prevent errors
+            // Ensure accumulatedUpdates always has the expected structure at the start of the function call
+            // This is a more robust way to ensure properties exist than separate if checks.
+            accumulatedUpdates = {
+                termCounts: accumulatedUpdates.termCounts || {},
+                websiteCounts: accumulatedUpdates.websiteCounts || {}
+            };
+
             const safeText = String(text || '');
             
             // --- Hashtag Counting ---
@@ -476,10 +482,6 @@
             });
 
             // --- Website Counting ---
-            // Ensure accumulatedUpdates.websiteCounts is an object before using it
-            if (typeof accumulatedUpdates.websiteCounts !== 'object' || accumulatedUpdates.websiteCounts === null) {
-                accumulatedUpdates.websiteCounts = {};
-            }
             if (embed && embed.$type === 'app.bsky.embed.external' && embed.external && embed.external.uri) {
                 const uri = embed.external.uri;
                 // You might want to normalize the URI (e.g., remove query params, force HTTPS)
@@ -511,6 +513,9 @@
 
                     if (docSnap.exists()) {
                         currentData = docSnap.data();
+                        // Ensure properties exist on fetched data before merging
+                        currentData.termCounts = currentData.termCounts || {};
+                        currentData.websiteCounts = currentData.websiteCounts || {};
                     }
 
                     // Merge accumulated updates with current Firestore data
