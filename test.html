@@ -79,9 +79,10 @@
         }
         .analysis-item {
             display: flex;
-            justify-content: space-between;
+            align-items: flex-start; /* Align items to the top if label wraps */
             padding: 8px 0;
             border-bottom: 1px dashed #eee;
+            gap: 10px; /* Add a small gap between label and value */
         }
         .analysis-item:last-child {
             border-bottom: none;
@@ -89,10 +90,15 @@
         .analysis-label {
             font-weight: 500;
             color: #555;
+            flex-grow: 1; /* Allow it to grow */
+            word-break: break-word; /* Ensure long words break */
+            min-width: 0; /* Important for flex items to shrink properly */
         }
         .analysis-value {
             font-weight: bold;
             color: #2c3e50;
+            flex-shrink: 0; /* Prevent it from shrinking */
+            white-space: nowrap; /* Keep the count on one line */
         }
         .loading-indicator {
             text-align: center;
