@@ -190,7 +190,7 @@
     padding: 10px 12px;
     font-size: 1rem;
     border: 1px solid var(--input-border);
-    border-radius: var(--border-radius); /* Uses variable */
+    border-radius: var(--border-radius);
     margin-bottom: 1.5em;
     box-sizing: border-box;
     background: var(--block-background);
@@ -201,7 +201,7 @@
   .label-block {
     background: var(--block-background);
     border: 1px solid var(--block-border);
-    border-radius: var(--border-radius); /* Uses variable */
+    border-radius: var(--border-radius);
     margin-bottom: 1.5em;
     overflow: hidden;
     transition: box-shadow 0.2s, background 0.3s ease, border-color 0.3s ease;
@@ -345,7 +345,7 @@
     border: 1px solid var(--block-border);
     padding: 1em;
     margin-top: 1em;
-    border-radius: var(--border-radius); /* Uses variable */
+    border-radius: var(--border-radius);
     background: var(--header-background);
     transition: background 0.3s ease, border-color 0.3s ease;
   }
@@ -749,12 +749,20 @@
     display: none;
   }
 
+  /* Adjusted styling for menu headers to include count box */
   #floating-menu h3, #category-menu h3, #bulk-actions-menu h3 {
-    margin-top: 0;
+    margin: 0; /* Remove default h3 margin */
     color: var(--primary);
     font-size: 1.2rem;
-    margin-bottom: 0.8em;
-    flex-shrink: 0; /* Prevent title from shrinking */
+    flex-shrink: 0;
+  }
+
+  /* New flex container for menu headers with count boxes */
+  .menu-header-with-count-box {
+      display: flex;
+      justify-content: space-between; /* Pushes h3 to left, count box to right */
+      align-items: center;
+      margin-bottom: 0.8em; /* Consistent spacing below header */
   }
 
   #floating-menu ul, #category-menu ul {
@@ -810,8 +818,8 @@
     border: 2px dashed var(--primary);
   }
 
-  /* Quick Access Label Number Box */
-  #floating-menu .label-number-box {
+  /* Quick Access Label Number Box (reused for header counts) */
+  .label-number-box {
     background: var(--gray);
     color: white;
     padding: 0.3em 0.6em;
@@ -1213,24 +1221,6 @@
     margin-left: auto;
   }
 
-  /* Style for the label number box */
-  .label-number-box {
-    background: var(--gray);
-    color: white;
-    padding: 0.3em 0.6em;
-    border-radius: var(--border-radius);
-    font-size: 0.9em;
-    font-weight: 600;
-    flex-shrink: 0;
-    min-width: 30px;
-    text-align: center;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.3em;
-  }
-
   /* Style for the enabled toggle in the header */
   .enabled-toggle-header {
     display: flex;
@@ -1260,18 +1250,18 @@
   .snippet-management-section {
       display: flex;
       flex-direction: column;
-      gap: 0.5em;
+      /* Reduced gap to tighten spacing */
+      gap: 0.25em; /* Reduced from 0.5em */
   }
 
   .snippet-management-section .snippet-input-group {
       display: flex;
       flex-direction: column;
-      /* Reduced gap to tighten spacing */
-      gap: 0.25em; /* Reduced from 0.5em */
+      gap: 0.25em;
   }
   /* Adjust label margin within snippet-input-group to bring closer to title */
   .snippet-management-section .snippet-input-group label {
-      margin-top: 0.25em; /* Reduced from 0.5em */
+      margin-top: 0.25em;
   }
   .snippet-management-section .snippet-input-group label:first-child {
       margin-top: 0; /* No top margin for the very first label */
@@ -1282,7 +1272,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 0; /* Reduced from 0.5em */
+      margin-top: 0; /* Adjusted from 0.25em to 0 */
   }
 
   .snippet-management-section .snippet-actions button {
@@ -1293,7 +1283,7 @@
   /* Bulk Translate Modal Specific Styles */
   #bulkTranslateModal .modal-lang-options {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fR));
       gap: 0.5em;
       margin-bottom: 1em;
       padding: 0.5em;
@@ -1487,41 +1477,13 @@
       font-size: 1.2em; /* Larger icon size */
   }
 
-  /* New styles for count boxes in menu headers */
-  .menu-header-with-count {
-      display: flex;
-      align-items: center; /* Vertically align items */
-      gap: 0.5em;
-      margin-bottom: 0.8em; /* Match existing h3 margin-bottom */
+  /* Specific adjustments for Bulk Edit Label Settings */
+  .label-content .adultOnly {
+      margin-top: 0.5em; /* Reduce gap above Adult Only checkbox */
   }
-
-  .menu-header-with-count h3 {
-      margin: 0; /* Remove default h3 margin to allow centering */
-      color: var(--primary);
-      font-size: 1.2rem;
-      flex-shrink: 0;
-      line-height: 30px; /* Match height of counter box for vertical centering */
+  .label-content > div:last-of-type { /* Target the div containing Apply/Set Default buttons */
+      margin-top: 0.5em; /* Reduce gap between Adult Only and buttons */
   }
-
-  .menu-header-count-box {
-    background: var(--gray);
-    color: white;
-    padding: 0.3em 0.6em;
-    border-radius: var(--border-radius);
-    font-size: 0.9em;
-    font-weight: 600;
-    flex-shrink: 0;
-    min-width: 30px;
-    height: 30px; /* Fixed height for consistency */
-    text-align: center;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* Removed gap: 0.3em; if it's just a number, no internal gap needed */
-  }
-
-
 </style>
 
 </head>
@@ -1544,8 +1506,8 @@
     <button id="undoBtn" class="left-menu-button" disabled title="Undo the last change">↩️</button>
     <button id="redoBtn" class="left-menu-button" disabled title="Redo the last undone change">↪️</button>
     <div class="separator"></div>
-    <button id="saveSessionFileBtn" class="left-menu-button" title="Download current labels and categories as a session file (.ozm)">📥</button>
-    <button id="loadSessionFileBtn" class="left-menu-button" title="Load labels and categories from a session file (.ozm or .json)">📤</button>
+    <button id="saveSessionFileBtn" class="left-menu-button" title="Download current labels, categories, snippets, and app settings as a session file (.ozm)">📥</button>
+    <button id="loadSessionFileBtn" class="left-menu-button" title="Load labels, categories, snippets, and app settings from a session file (.ozm or .json)">📤</button>
     <input type="file" id="sessionFileInput" accept=".json,.ozm" style="display:none" />
     <div class="separator"></div>
     <button id="optionsBtn" class="left-menu-button" title="Open options menu">⚙️</button>
@@ -1558,7 +1520,7 @@
       </a>
       <div class="header-text-group">
         <h1>OZONE LABEL MASTER</h1>
-        <p>version 1.05</p>
+        <p>version 1.11</p>
       </div>
     </header>
 
@@ -1584,11 +1546,12 @@
                 <h3>Categories</h3>
                 <button id="closeCategoryMenuBtnDesktop" class="close-mobile-menu-btn" title="Close categories menu">X</button>
             </div>
-            <div class="menu-header-with-count">
-                <div class="menu-header-count-box">
+            <!-- Reverted to flex header with count box -->
+            <div class="menu-header-with-count-box">
+                <h3>Label Categories</h3>
+                <div class="label-number-box">
                     <span id="categoryCount">0</span>
                 </div>
-                <h3>Label Categories</h3>
             </div>
             <div class="category-input-group">
                 <input type="text" id="newCategoryInput" placeholder="New category name" title="Enter a new category name" />
@@ -1606,11 +1569,12 @@
                 <h3>Quick Access</h3>
                 <button id="closeRightMenuBtnDesktop" class="close-mobile-menu-btn" title="Close quick access menu">X</button>
             </div>
-            <div class="menu-header-with-count">
-                <div class="menu-header-count-box">
+            <!-- Reverted to flex header with count box -->
+            <div class="menu-header-with-count-box">
+                <h3>Labels Quick Access</h3>
+                <div class="label-number-box">
                     <span id="labelTotalCount">0</span>
                 </div>
-                <h3>Labels Quick Access</h3>
             </div>
             <div class="scrollable-content">
                 <ul id="label-quick-access-list" title="Quick access links to label blocks">
@@ -1625,11 +1589,13 @@
             <h3>Bulk Actions</h3>
             <button id="closeBulkActionsMenuBtnDesktop" class="close-mobile-menu-btn" title="Close bulk actions menu">X</button>
         </div>
-        <h3>Bulk Actions</h3>
+        <!-- Removed menu-header-with-count for Bulk Actions heading -->
+        <h3 style="padding-bottom: 2px;">Bulk Actions</h3>
 
-        <div class="scrollable-content"> <!-- NEW: Wrap all bulk action groups in a scrollable content div -->
+        <div class="scrollable-content">
             <div class="label-block" style="margin-bottom: 1em;">
                 <div class="label-header" style="cursor: default;">
+                    <!-- Moved the correct count box here -->
                     <div class="label-number-box">
                         <span id="bulkSelectedCount" class="label-number">0</span>
                     </div>
@@ -1646,8 +1612,8 @@
                 <div class="label-content">
                     <div class="input-group-row">
                         <div>
-                            <label for="bulkPlaceholderIdentifier">Identifier:</label>
-                            <input type="text" id="bulkPlaceholderIdentifier" value="(Placeholder)" disabled title="This field is a placeholder for bulk actions">
+                            <label for="bulkPlaceholderIdentifier">Identifiers:</label>
+                            <input type="text" id="bulkPlaceholderIdentifier" value="" title="This field shows the number of selected labels">
                         </div>
                         <div>
                             <label for="bulkBlursControl">Blurs:</label>
@@ -1679,8 +1645,8 @@
                             </select>
                         </div>
                     </div>
-                    <label style="margin-top: 1em;">Adult Only: <input type="checkbox" id="bulkAdultOnlyControl" title="Mark if this label is for adult content only"></label>
-                    <div style="display: flex; justify-content: space-between; gap: 0.5em; margin-top: 1em;">
+                    <label class="adultOnly" style="margin-top: 0.5em;">Adult Only: <input type="checkbox" id="bulkAdultOnlyControl" title="Mark if this label is for adult content only"></label>
+                    <div style="display: flex; justify-content: space-between; gap: 0.5em; margin-top: 0.5em;">
                         <button id="bulkApplyPropertiesBtn" class="action-button" style="flex-grow: 1;" title="Apply selected property changes to target labels">Apply Selected Properties</button>
                         <button id="setDefaultLabelPropertiesBtn" class="action-button blue-button" style="flex-shrink: 0;" title="Set current Blurs, Severity, and Default Setting as defaults for new labels">Set Default</button>
                     </div>
@@ -1725,18 +1691,18 @@
             </div>
 
             <div class="bulk-action-group snippet-management-section">
-                <h3>Description Snippets</h3>
+                <h3 style="margin-bottom: 0.25em;">Description Snippets</h3>
                 <div class="snippet-input-group">
                     <label for="newSnippetName">Snippet Name:</label>
                     <input type="text" id="newSnippetName" placeholder="e.g., 'Common Disclaimer'" title="Enter a name for your snippet">
                     <label for="newSnippetContent">Snippet Content:</label>
-                    <textarea id="newSnippetContent" placeholder="Enter the prewritten text here..." title="Enter the text content of your snippet"></textarea>
+                    <textarea id="newSnippetContent" placeholder="Enter the prewritten text here..." style="margin-bottom: 0;" title="Enter the text content of your snippet"></textarea>
                 </div>
-                <div class="snippet-actions">
+                <div class="snippet-actions" style="margin-top: 0;">
                     <button id="addSnippetBtn" class="action-button" style="background: var(--primary); color: white;" title="Add this text as a reusable snippet">Add Snippet</button>
                     <button id="viewSnippetsBtn" class="action-button blue-button" title="View, edit, or delete existing snippets">View Snippets</button>
                 </div>
-                <div class="bulk-action-row" style="margin-top: 0.25em; display: flex; align-items: center; gap: 0.5em;">
+                <div class="bulk-action-row" style="margin-top: 0.5em; display: flex; align-items: center; gap: 0.5em;">
                     <label for="bulkApplySnippetSelect" style="margin-top: 0;">Apply Snippet:</label>
                     <select id="bulkApplySnippetSelect" style="flex-grow: 1;" title="Select a snippet to apply to descriptions">
                         <option value="">(Select Snippet)</option>
@@ -1744,7 +1710,7 @@
                     <button id="bulkApplySnippetBtn" class="action-button" disabled title="Apply the selected snippet to descriptions of target labels">Apply</button>
                 </div>
             </div>
-        </div> <!-- End of scrollable-content -->
+        </div>
     </div>
   </div>
 
@@ -1973,9 +1939,9 @@
 
     // This function saves the current working state to local storage for persistence across sessions.
     function saveFullSessionStateToLocalStorage() {
-      const currentLabels = getLabelsData();
+      const currentLabels = getLabelsData(); // This returns the array of label objects with 'enabled' and 'category'
       const currentSessionState = {
-        labels: currentLabels,
+        labels: currentLabels, // This `labels` array contains the `category` and `enabled` properties for each label
         categories: categories,
         defaultLocaleLanguage: defaultLocaleLanguage,
         descriptionSnippets: descriptionSnippets,
@@ -1997,16 +1963,17 @@
     function addVersionToHistory() {
       showLoadingOverlay('Saving version...');
       try {
-        const currentLabels = getLabelsData();
+        const currentLabels = getLabelsData(); // Gets labels including the 'enabled' and 'category'
         const versionData = {
-          labelValues: currentLabels.map(label => label.identifier), // New structure
-          labelValueDefinitions: currentLabels, // New structure
+          labelValues: currentLabels.filter(label => label.enabled).map(label => label.identifier), // Only enabled labels
+          // For history, we save the full internal representation including 'enabled' and 'category'
+          labels: currentLabels, // Save all labels with their 'enabled' state and category
           categories: categories, // Include categories in history snapshot
           timestamp: new Date().toISOString(), // Use ISO string for date
           defaultLocaleLanguage: defaultLocaleLanguage, // Include default locale language in history snapshot
           descriptionSnippets: descriptionSnippets,
           geminiApiKey: geminiApiKey, // NEW: Include Gemini API Key in history snapshot
-          isPrideMode: isPrideMode, // NEW: Include Pride Mode state in history snapshot
+          isPrideMode: isPrideMode, // NEW: Include Pride Mode state
           defaultNewLabelSettings: defaultNewLabelSettings // NEW: Include default new label settings
         };
 
@@ -2046,65 +2013,29 @@
 
       const sessionData = JSON.parse(stateJson);
 
-      // Load Labels
-      const dataLabels = sessionData.labelValueDefinitions || sessionData.labels; // Support old and new formats
+      // Load Labels: Prioritize `labels` (new format with category/enabled), then fallback to old `labelValueDefinitions` (old)
+      const dataLabels = sessionData.labels || sessionData.labelValueDefinitions;
       document.getElementById('labels-container').innerHTML = ''; // Ensure a clean slate
       dataLabels.forEach((label, index) => { // Pass index to createLabelBlock
         // Generate a unique HTML ID for this label block *before* creating it
         const uniqueHtmlId = `label-${crypto.randomUUID()}`;
         createLabelBlock(
-          label.identifier || label.id || '', // Backward compatibility
+          label.identifier || label.id || '', // Backward compatibility for 'id'
           label.severity || 'inform',
           label.blurs || 'content',
           label.defaultSetting || 'ignore',
-          label.adultOnly || false,
-          label.enabled !== undefined ? label.enabled : true,
+          label.adultOnly !== undefined ? label.adultOnly : false, // Ensure adultOnly state is loaded
+          label.enabled !== undefined ? label.enabled : true, // Ensure enabled state is loaded
           label.locales || [],
-          label.category || '',
+          label.category || '', // Load category
           index === 0, // Pass true if it's the first label being loaded
           uniqueHtmlId // Pass the generated ID
         );
       });
 
-      // Load Categories
-      categories = sessionData.categories || [];
-      selectedCategoryNames.clear(); // Clear selection on load
-      renderCategoryMenu(); // Re-render category menu
-      updateLabelCategoryDropdowns(); // Update dropdowns in existing labels
-
-      // Load Default Locale Language
-      defaultLocaleLanguage = sessionData.defaultLocaleLanguage || '';
-      populateDefaultLocaleLanguageSelect(); // Update the dropdown in the options modal
-
-      // Load Description Snippets
-      descriptionSnippets = sessionData.descriptionSnippets || [];
-      // No longer rendering snippet list in main UI, just populate dropdown
-      populateBulkApplySnippetSelect(); // Populate the bulk apply snippet dropdown
-
-      // NEW: Load Gemini API Key
-      geminiApiKey = sessionData.geminiApiKey || '';
-      const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
-      if (geminiApiKeyInput) {
-          geminiApiKeyInput.value = geminiApiKey;
-      }
-
-      // NEW: Load Pride Mode state
-      isPrideMode = sessionData.isPrideMode || false;
-      const prideModeCheckbox = document.getElementById('prideModeCheckbox');
-      if (prideModeCheckbox) {
-          prideModeCheckbox.checked = isPrideMode;
-          applyPrideMode(isPrideMode);
-      }
-
-      // NEW: Load default new label settings
-      defaultNewLabelSettings = sessionData.defaultNewLabelSettings || {
-          blurs: 'content',
-          severity: 'inform',
-          defaultSetting: 'ignore',
-          adultOnly: false,
-          enabled: true
-      };
-
+      // Categories and other global settings are loaded BEFORE loadState is called in DOMContentLoaded now.
+      // So, no need to load them here again directly from sessionData.
+      // They are already in global variables.
 
       updateJSONOutput(); // Update JSON output display
       updateFloatingMenu();
@@ -2114,8 +2045,8 @@
       updateLabelNumbers(); // Update numbers after loading state
       console.log("selectedLabelIds after loadState:", selectedLabelIds);
       recalculateSelectedLabels(); // Recalculate selected labels and update counts/checkboxes
-      updateTotalLabelCount(); // NEW: Update total label count after loading state
-      updateTotalCategoryCount(); // NEW: Update total category count after loading state
+      updateTotalLabelCount(); // NEW: Update total label count
+      updateTotalCategoryCount(); // NEW: Update total category count
     }
 
     // Undo the last change
@@ -2123,7 +2054,33 @@
       console.log('Undo called. Before:', { history: history.length, index: historyIndex });
       if (historyIndex > 0) {
         historyIndex--;
-        loadState(history[historyIndex]);
+        // When reverting, load the full state including categories, snippets, etc.
+        const stateToRevert = JSON.parse(history[historyIndex]);
+        categories = stateToRevert.categories || [];
+        defaultLocaleLanguage = stateToRevert.defaultLocaleLanguage || '';
+        descriptionSnippets = stateToRevert.descriptionSnippets || [];
+        geminiApiKey = stateToRevert.geminiApiKey || '';
+        isPrideMode = stateToRevert.isPrideMode || false;
+        defaultNewLabelSettings = stateToRevert.defaultNewLabelSettings || {
+            blurs: 'content', severity: 'inform', defaultSetting: 'ignore', adultOnly: false, enabled: true
+        };
+
+        // Re-render UI elements that depend on these global variables
+        renderCategoryMenu();
+        updateLabelCategoryDropdowns(); // Ensure dropdowns are updated with current categories
+        populateDefaultLocaleLanguageSelect();
+        populateBulkApplySnippetSelect();
+        const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
+        if (geminiApiKeyInput) {
+            geminiApiKeyInput.value = geminiApiKey;
+        }
+        const prideModeCheckbox = document.getElementById('prideModeCheckbox');
+        if (prideModeCheckbox) {
+            prideModeCheckbox.checked = isPrideMode;
+            applyPrideMode(isPrideMode);
+        }
+
+        loadState(history[historyIndex]); // Load labels
       }
       console.log('Undo called. After:', { history: history.length, index: historyIndex });
     }
@@ -2133,7 +2090,33 @@
       console.log('Redo called. Before:', { history: history.length, index: historyIndex });
       if (historyIndex < history.length - 1) {
         historyIndex++;
-        loadState(history[historyIndex]);
+        // When redoing, load the full state including categories, snippets, etc.
+        const stateToRevert = JSON.parse(history[historyIndex]);
+        categories = stateToRevert.categories || [];
+        defaultLocaleLanguage = stateToRevert.defaultLocaleLanguage || '';
+        descriptionSnippets = stateToRevert.descriptionSnippets || [];
+        geminiApiKey = stateToRevert.geminiApiKey || '';
+        isPrideMode = stateToRevert.isPrideMode || false;
+        defaultNewLabelSettings = stateToRevert.defaultNewLabelSettings || {
+            blurs: 'content', severity: 'inform', defaultSetting: 'ignore', adultOnly: false, enabled: true
+        };
+
+        // Re-render UI elements that depend on these global variables
+        renderCategoryMenu();
+        updateLabelCategoryDropdowns(); // Ensure dropdowns are updated with current categories
+        populateDefaultLocaleLanguageSelect();
+        populateBulkApplySnippetSelect();
+        const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
+        if (geminiApiKeyInput) {
+            geminiApiKeyInput.value = geminiApiKey;
+        }
+        const prideModeCheckbox = document.getElementById('prideModeCheckbox');
+        if (prideModeCheckbox) {
+            prideModeCheckbox.checked = isPrideMode;
+            applyPrideMode(isPrideMode);
+        }
+
+        loadState(history[historyIndex]); // Load labels
       }
       console.log('Redo called. After:', { history: history.length, index: historyIndex });
     }
@@ -2148,6 +2131,7 @@
     // Define common languages for the dropdown
     const commonLanguages = [
       { code: 'en', name: 'English' },
+      { code: 'en-GB', name: 'English (UK)' }, // Added UK English
       { code: 'es', name: 'Spanish' },
       { code: 'fr', name: 'French' },
       { code: 'de', name: 'German' },
@@ -2156,7 +2140,7 @@
       { code: 'ar', name: 'Arabic' },
       { code: 'pt', name: 'Portuguese' },
       { code: 'ru', name: 'Russian' },
-      { code: 'it', name: 'Italian' },
+      { code: 'it', 'name': 'Italian' },
       { code: 'ko', 'name': 'Korean' },
       { code: 'nl', 'name': 'Dutch' },
       { code: 'sv', 'name': 'Swedish' },
@@ -2264,11 +2248,16 @@
         collapseBtn.textContent = isCollapsed ? 'Expand' : 'Collapse';
       };
 
+      // NEW: Confirmation for deleting a locale
       div.querySelector('.locale-remove-btn').onclick = () => {
-        div.remove();
-        saveFullSessionStateToLocalStorage(); // Save full session state
-        updateJSONOutput(); // Update JSON output display
-        updateTotalLabelCount(); // NEW: Update total label count
+        showCustomModal('Are you sure you want to delete this locale? This action cannot be undone.', 'confirm', (response) => {
+            if (response) {
+                div.remove();
+                saveFullSessionStateToLocalStorage(); // Save full session state
+                updateJSONOutput(); // Update JSON output display
+                updateTotalLabelCount(); // NEW: Update total label count
+            }
+        });
       };
 
       const nameInput = div.querySelector('.name');
@@ -2544,14 +2533,17 @@ Original description:
             const sourceDescription = descriptionTextarea.value.trim();
             const targetLabelId = div.closest('.label-block').id;
 
-            // Open the bulk translate modal first
-            populateBulkTranslateLanguageOptionsModal(sourceLangCode);
-            document.getElementById('bulkTranslateModal').style.display = 'flex';
+            // Wrap the bulk translate action with the API key check
+            checkApiKeyAndProceed(() => {
+                // Open the bulk translate modal first
+                populateBulkTranslateLanguageOptionsModal(sourceLangCode);
+                document.getElementById('bulkTranslateModal').style.display = 'flex';
 
-            // Set up the start button for the bulk translate modal
-            document.getElementById('startBulkTranslateBtn').onclick = () => {
-                performBulkTranslate(sourceLangCode, sourceName, sourceDescription, targetLabelId);
-            };
+                // Set up the start button for the bulk translate modal
+                document.getElementById('startBulkTranslateBtn').onclick = () => {
+                    performBulkTranslate(sourceLangCode, sourceName, sourceDescription, targetLabelId);
+                };
+            });
         };
       }
 
@@ -2579,7 +2571,7 @@ Original description:
 
     // Function to create a new label block
     function createLabelBlock(id = '', severity = '', blurs = '', defaultSetting = '', adultOnly = false, enabled = true, locales = [], category = '', isFirstLabel = false, htmlId = `label-${crypto.randomUUID()}`) { // Added htmlId parameter
-      console.log(`createLabelBlock called for ID: "${id}" (HTML ID: ${htmlId}). Current label blocks BEFORE append:`, document.querySelectorAll('.label-block').length);
+      console.log(`Creating label block for ID: ${id}, Category: "${category}"`); // ADD THIS LOG
 
       const container = document.getElementById('labels-container');
       const labelDiv = document.createElement('div');
@@ -2598,6 +2590,7 @@ Original description:
       const finalSeverity = severity || defaultNewLabelSettings.severity;
       const finalBlurs = blurs || defaultNewLabelSettings.blurs;
       const finalDefaultSetting = defaultSetting || defaultNewLabelSettings.defaultSetting;
+      // FIX: Ensure adultOnly also uses the default if not explicitly provided
       const finalAdultOnly = adultOnly !== undefined ? adultOnly : defaultNewLabelSettings.adultOnly;
       const finalEnabled = enabled !== undefined ? enabled : defaultNewLabelSettings.enabled;
 
@@ -2632,7 +2625,7 @@ Original description:
         <div class="label-content">
           <div class="input-group-row">
             <div>
-              <label for="${labelDiv.id}-identifier">Identifier:</label>
+              <label for="${labelDiv.id}-identifier">Identifiers:</label>
               <input type="text" id="${labelDiv.id}-identifier" class="identifier" value="${id}" title="Unique identifier for this label">
             </div>
             <div>
@@ -2662,7 +2655,7 @@ Original description:
               </select>
             </div>
           </div>
-          <label>Adult Only: <input type="checkbox" class="adultOnly" ${finalAdultOnly ? 'checked' : ''} title="Mark if this label is for adult content only"></label>
+          <label class="adultOnly" style="margin-top: 0.5em;">Adult Only: <input type="checkbox" id="${labelDiv.id}-adultOnly" ${finalAdultOnly ? 'checked' : ''} title="Mark if this label is for adult content only"></label>
           <div class="locales-container">
             <strong>Locales:</strong>
           </div>
@@ -2671,8 +2664,6 @@ Original description:
       `;
 
       container.appendChild(labelDiv);
-      console.log(`createLabelBlock finished for ID: "${id}" (HTML ID: ${htmlId}). Current label blocks AFTER append:`, document.querySelectorAll('.label-block').length);
-
 
       const collapseBtn = labelDiv.querySelector('.collapse-btn');
       const labelContent = labelDiv.querySelector('.label-content');
@@ -2710,14 +2701,13 @@ Original description:
       const severitySelect = labelDiv.querySelector('.severity');
       const blursSelect = labelDiv.querySelector('.blurs');
       const defaultSettingSelect = labelDiv.querySelector('.defaultSetting');
-      const adultOnlyCheckbox = labelDiv.querySelector('.adultOnly');
+      const adultOnlyCheckbox = labelDiv.querySelector(`#${labelDiv.id}-adultOnly`); // FIX: Target adultOnly checkbox by its unique ID
       const enabledCheckbox = labelDiv.querySelector('.enabled');
       const bulkSelectCheckbox = labelDiv.querySelector('.bulk-select-checkbox'); // New bulk select checkbox
 
-      // Set initial category
-      if (category) {
-          categorySelect.value = category;
-      }
+      // Populate category dropdown options and set the value
+      updateLabelCategoryDropdownsForSingleSelect(categorySelect, category);
+
 
       // Event listener for bulk select checkbox
       bulkSelectCheckbox.addEventListener('change', () => {
@@ -2725,10 +2715,13 @@ Original description:
       });
 
       // Use 'change' for select and checkbox, 'input' for text inputs
-      [severitySelect, blursSelect, defaultSettingSelect].forEach(elem => {
+      [severitySelect, blursSelect, defaultSettingSelect, adultOnlyCheckbox, enabledCheckbox].forEach(elem => { // FIX: Added adultOnlyCheckbox here
         elem.addEventListener('change', () => {
-            saveFullSessionStateToLocalStorage(); // Save full session state
-            updateJSONOutput(); // Update JSON output display
+          if(elem.classList.contains('enabled')) {
+            updateLabelBlockVisualState(labelDiv);
+          }
+          saveFullSessionStateToLocalStorage(); // Save full session state
+          updateJSONOutput(); // Update JSON output display
         });
       });
 
@@ -2739,16 +2732,6 @@ Original description:
           recalculateSelectedLabels(); // Recalculate selected labels when a label's category changes
       });
 
-
-      [adultOnlyCheckbox, enabledCheckbox].forEach(elem => {
-        elem.addEventListener('change', () => {
-          if(elem.classList.contains('enabled')) {
-            updateLabelBlockVisualState(labelDiv);
-          }
-          saveFullSessionStateToLocalStorage(); // Save full session state
-          updateJSONOutput(); // Update JSON output display
-        });
-      });
 
       identifierInput.addEventListener('input', () => {
         labelIdentifierDisplay.textContent = identifierInput.value || identifierPlaceholder; // Update the text in the yellow box
@@ -2796,7 +2779,7 @@ Original description:
 
       updateLabelBlockVisualState(labelDiv);
       addDragHandlers(labelDiv);
-      updateLabelCategoryDropdowns(); // Update category dropdown for this new label
+      // updateLabelCategoryDropdowns(); // This is now called globally once all categories are loaded
       updateLabelNumbers(); // Update numbers after adding a new label
       updateTotalLabelCount(); // NEW: Update total label count after adding a new label
       recalculateSelectedLabels(); // Recalculate selected labels and update counts/checkboxes
@@ -2876,34 +2859,30 @@ Original description:
       console.log(`getLabelsData called. Found ${labelDivs.length} label blocks.`);
 
       labelDivs.forEach(labelDiv => {
-        // IMPORTANT: Only process label blocks that have a valid identifier input.
-        // This helps filter out any temporary or uninitialized elements.
         const identifierInput = labelDiv.querySelector('.identifier');
         if (!identifierInput) {
             console.warn(`Skipping label block ${labelDiv.id} in getLabelsData: Missing identifier input.`);
-            return; // Skip this labelDiv if it's not fully formed
+            return;
         }
 
         const identifier = identifierInput.value.trim();
-        console.log(`  - Processing label block ID: ${labelDiv.id}, Identifier: "${identifier}"`);
-
         const severitySelect = labelDiv.querySelector('.severity');
-        const severity = severitySelect ? severitySelect.value : 'inform'; // Default to 'inform'
+        const severity = severitySelect ? severitySelect.value : 'inform';
 
         const blursSelect = labelDiv.querySelector('.blurs');
-        const blurs = blursSelect ? blursSelect.value : 'content'; // Default to 'content'
+        const blurs = blursSelect ? blursSelect.value : 'content';
 
         const defaultSettingSelect = labelDiv.querySelector('.defaultSetting');
-        const defaultSetting = defaultSettingSelect ? defaultSettingSelect.value : 'ignore'; // Default to 'ignore'
+        const defaultSetting = defaultSettingSelect ? defaultSettingSelect.value : 'ignore';
 
-        const adultOnlyCheckbox = labelDiv.querySelector('.adultOnly');
-        const adultOnly = adultOnlyCheckbox ? adultOnlyCheckbox.checked : false; // Default to false
+        const adultOnlyCheckbox = labelDiv.querySelector(`#${labelDiv.id}-adultOnly`); // FIX: Get the adultOnly checkbox by its unique ID
+        const adultOnly = adultOnlyCheckbox ? adultOnlyCheckbox.checked : false; // FIX: Use .checked to get boolean value
 
         const enabledCheckbox = labelDiv.querySelector('.enabled');
-        const enabled = enabledCheckbox ? enabledCheckbox.checked : true; // Default to true
+        const enabled = enabledCheckbox ? enabledCheckbox.checked : true; // Capture enabled state for internal use
 
         const categorySelect = labelDiv.querySelector('.label-category');
-        const category = categorySelect ? categorySelect.value : ''; // Default to empty string
+        const category = categorySelect ? categorySelect.value : '';
 
         const locales = [];
         labelDiv.querySelectorAll('.locale-block').forEach(localeDiv => {
@@ -2916,36 +2895,50 @@ Original description:
           const descriptionTextarea = localeDiv.querySelector('.description');
           const description = descriptionTextarea ? descriptionTextarea.value.trim() : '';
 
-          if(lang || name || description) { // Only push if at least one field has content
+          if(lang || name || description) {
             locales.push({lang, name, description});
           }
         });
 
-        labels.push({
-          identifier, // Use 'identifier' property name
+        // Create a label object that includes 'enabled' and 'category' for internal processing
+        const labelData = {
+          identifier,
           severity,
           blurs,
           defaultSetting,
           adultOnly,
-          enabled,
-          locales,
-          category: category || undefined // Only include if not empty
-        });
+          enabled, // Include 'enabled' here for internal state management and .ozm export
+          locales
+        };
+
+        // Add category only if it's not empty, for internal state and .ozm export
+        if (category) {
+            labelData.category = category;
+        }
+
+        labels.push(labelData);
       });
-      return labels;
+      return labels; // This array now contains label objects with 'enabled' and 'category' properties
     }
 
     // Function to generate and display the JSON output, and save state
-    function updateJSONOutput() { // Renamed from updateJSON
-      const currentLabels = getLabelsData(); // This returns the array of label objects as currently structured
+    function updateJSONOutput() {
+      const currentLabels = getLabelsData(); // This returns the array of label objects as currently structured, including 'enabled' and 'category'
 
-      const labelValues = currentLabels.map(label => label.identifier); // Extract only the identifiers
+      // Filter labelValues to include only identifiers of enabled labels
+      const labelValues = currentLabels
+        .filter(label => label.enabled) // Filter based on the 'enabled' property
+        .map(label => label.identifier);
+
+      // labelValueDefinitions should include all labels, but WITHOUT the 'enabled' property.
+      // The 'category' property SHOULD be included if present.
       const labelValueDefinitions = currentLabels.map(label => {
-          const { category, ...rest } = label; // Exclude category from JSON output
+          const { enabled, ...rest } = label; // Destructure to exclude 'enabled'
+          // 'rest' now contains all other properties including 'category' if it exists.
           return rest;
       });
 
-      updateDuplicateWarning(labelValues); // Use labelValues for duplicate check
+      updateDuplicateWarning(labelValues);
 
       const output = {
         labelValues: labelValues,
@@ -2954,10 +2947,9 @@ Original description:
 
       document.getElementById('output').textContent = JSON.stringify(output, null, 2);
       saveFullSessionStateToLocalStorage(); // Save current state to local storage for persistence
-      updateFloatingMenu(); // Always update floating menu when JSON changes
-      updateMoveButtons(); // Update state of move buttons after JSON changes
+      updateFloatingMenu();
+      updateMoveButtons();
 
-      // If not suppressing save (i.e., it's a user-initiated change), add to history
       if (!suppressSave) {
           addStateToHistoryForUndoAndRedo();
       }
@@ -2969,10 +2961,10 @@ Original description:
         // Prevent adding to history if suppressSave is true (e.g., during loadState)
         if (suppressSave) return;
 
-        const currentLabels = getLabelsData();
-        // Ensure history also saves in the new format
+        const currentLabels = getLabelsData(); // Gets labels including the 'enabled' and 'category' properties
+        // Ensure history also saves in the new format, including 'labels' array with 'enabled' and 'category'
         const stateToSave = JSON.stringify({
-          labelValueDefinitions: currentLabels,
+          labels: currentLabels, // Save all labels with their 'enabled' state and category (for internal tool state)
           categories: categories,
           defaultLocaleLanguage: defaultLocaleLanguage,
           descriptionSnippets: descriptionSnippets,
@@ -3198,7 +3190,7 @@ Original description:
       categories.forEach((categoryName, index) => {
         const listItem = document.createElement('li');
         listItem.className = 'category-list-item';
-        listItem.setAttribute('draggable', 'true'); // Make categories draggable
+        listItem.setAttribute('draggable', 'true'); // Make list items draggable
         listItem.dataset.categoryName = categoryName; // Store category name for drag/drop
         listItem.dataset.index = index; // Store index for drag/drop
 
@@ -3330,6 +3322,24 @@ Original description:
       });
     }
 
+    // NEW: Function to update a single label's category dropdown
+    function updateLabelCategoryDropdownsForSingleSelect(selectElement, selectedCategory) {
+        selectElement.innerHTML = '<option value="">(No Category)</option>'; // Reset options
+        categories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.textContent = cat;
+            if (cat === selectedCategory) {
+                option.selected = true;
+            }
+            selectElement.appendChild(option);
+        });
+        // Ensure the selected category is set after options are populated
+        selectElement.value = selectedCategory;
+        console.log(`Updated category dropdown for select: ${selectElement.id}, set value to: "${selectElement.value}"`);
+    }
+
+
     // --- Bulk Actions Functions ---
     function applyBulkProperties() {
       if (selectedLabelIds.size === 0) {
@@ -3351,7 +3361,7 @@ Original description:
               const blursSelect = labelDiv.querySelector('.blurs');
               const severitySelect = labelDiv.querySelector('.severity');
               const defaultSettingSelect = labelDiv.querySelector('.defaultSetting');
-              const adultOnlyCheckbox = labelDiv.querySelector('.adultOnly');
+              const adultOnlyCheckbox = labelDiv.querySelector(`#${labelDiv.id}-adultOnly`); // FIX: Target the adultOnly checkbox by its unique ID
               const enabledCheckbox = labelDiv.querySelector('.enabled');
 
               if (bulkBlursControl) blursSelect.value = bulkBlursControl;
@@ -3365,7 +3375,7 @@ Original description:
               blursSelect.dispatchEvent(new Event('change'));
               severitySelect.dispatchEvent(new Event('change'));
               defaultSettingSelect.dispatchEvent(new Event('change'));
-              adultOnlyCheckbox.dispatchEvent(new Event('change'));
+              adultOnlyCheckbox.dispatchEvent(new Event('change')); // FIX: Trigger change for adultOnly
               enabledCheckbox.dispatchEvent(new Event('change'));
             }
           });
@@ -3516,7 +3526,7 @@ Original description:
         select.innerHTML = '<option value="">(Select Snippet)</option>';
         descriptionSnippets.forEach((snippet, index) => {
             const option = document.createElement('option');
-            option.value = index; // This is good, it's the numerical index
+            option.value = index; // Use index as value to retrieve snippet
             option.textContent = snippet.name;
             select.appendChild(option);
         });
@@ -3597,8 +3607,8 @@ Original description:
                 
                 const addSnippetBtn = document.getElementById('addSnippetBtn');
                 addSnippetBtn.dataset.editIndex = index; // Store index for update
-                addSnippetBtn.textContent = 'Update Snippet';
-                addSnippetBtn.style.background = '#f59e0b'; // Amber color
+                addSnippetBtn.textContent = 'Add Snippet';
+                addBtn.style.background = 'var(--primary)'; // Reset to primary color
                 
                 document.getElementById('viewSnippetsModal').style.display = 'none'; // Close modal
             };
@@ -3709,7 +3719,7 @@ Original description:
                     const namePrompt = `Translate the following content moderation label name into ${targetLangName}. Only provide the translated text, no additional commentary.
 Original name:
 '${sourceName}'`;
-                    const translatedName = await callGeminiAPI(namePrompt);
+                    const translatedName = await callGeminiAPI(namePrompt); // Changed prompt variable name
                     nameInput.value = translatedName;
                 }
 
@@ -3719,12 +3729,12 @@ Original name:
                     const descriptionPrompt = `Translate the following content moderation label description into ${targetLangName}. Only provide the translated text, no additional commentary.
 Original description:
 '${sourceDescription}'`;
-                    const translatedDescription = await callGeminiAPI(descriptionPrompt);
+                    const translatedDescription = await callGeminiAPI(descriptionPrompt); // Changed prompt variable name
                     descriptionTextarea.value = translatedDescription;
                 }
                 translationsPerformed++;
             } catch (error) {
-                issues.push(`Failed to translate for locale ${sourceLangCode} to ${targetLangName}: ${error.message}`);
+                issues.push(`Failed to translate for locale ${targetLangName}: ${error.message}`); // Corrected error message
                 translationsFailed++;
             }
         }
@@ -3786,9 +3796,14 @@ Original description:
 
     // NEW: Function to update the count of selected labels in the bulk actions menu
     function updateBulkActionsLabelCount() {
+        // Now targets the span inside the label-block's header
         const bulkSelectedCountSpan = document.getElementById('bulkSelectedCount');
+        const bulkPlaceholderIdentifier = document.getElementById('bulkPlaceholderIdentifier'); // Get the identifier input
         if (bulkSelectedCountSpan) {
             bulkSelectedCountSpan.textContent = selectedLabelIds.size;
+        }
+        if (bulkPlaceholderIdentifier) {
+            bulkPlaceholderIdentifier.value = `Selected: ${selectedLabelIds.size}`; // Update the text input
         }
     }
 
@@ -3798,7 +3813,7 @@ Original description:
         const totalLabels = document.querySelectorAll('.label-block .identifier').length;
         const labelTotalCountSpan = document.getElementById('labelTotalCount');
         if (labelTotalCountSpan) {
-            labelTotalCountSpan.textContent = totalLabels;
+            labelTotalCountSpan.textContent = totalLabels; // Changed to just the number
             console.log("updateTotalLabelCount: Total labels counted:", totalLabels);
         }
     }
@@ -3807,7 +3822,7 @@ Original description:
     function updateTotalCategoryCount() {
         const categoryCountSpan = document.getElementById('categoryCount');
         if (categoryCountSpan) {
-            categoryCountSpan.textContent = categories.length;
+            categoryCountSpan.textContent = categories.length; // Changed to just the number
         }
     }
 
@@ -3833,26 +3848,34 @@ Original description:
             }
         });
 
-        // 2. Add labels from selected categories
-        const categorySelected = new Set();
-        allLabelDivs.forEach(labelDiv => {
-            const categorySelect = labelDiv.querySelector('.label-category');
-            if (categorySelect && selectedCategoryNames.has(categorySelect.value)) {
-                categorySelected.add(labelDiv.id);
+        // 2. Determine which categories are selected
+        const currentlySelectedCategories = new Set();
+        document.querySelectorAll('.category-select-checkbox').forEach(checkbox => {
+            if (checkbox.checked) {
+                currentlySelectedCategories.add(checkbox.dataset.categoryName);
             }
         });
+        selectedCategoryNames = currentlySelectedCategories; // Update global set
 
-        // 3. Combine both sets into the final selectedLabelIds
-        // A label is selected if it's individually selected OR its category is selected
+
+        // 3. Populate newSelectedLabelIds based on individual and category selections
         allLabelDivs.forEach(labelDiv => {
-            if (individuallySelected.has(labelDiv.id) || categorySelected.has(labelDiv.id)) {
+            const categorySelect = labelDiv.querySelector('.label-category');
+            const labelCategory = categorySelect ? categorySelect.value : '';
+
+            // A label is selected if:
+            // a) it was individually selected, OR
+            // b) its category is selected AND it's not individually deselected (if that were an option)
+            // The current logic allows individual deselection to override category selection.
+            if (individuallySelected.has(labelDiv.id) || currentlySelectedCategories.has(labelCategory)) {
                 newSelectedLabelIds.add(labelDiv.id);
             }
         });
 
-        selectedLabelIds = newSelectedLabelIds; // Update the global set
+        // 4. Update the global selectedLabelIds
+        selectedLabelIds = newSelectedLabelIds;
 
-        // 4. Update all UI checkboxes to reflect the new state of selectedLabelIds
+        // 5. Update all UI checkboxes to reflect the new state of selectedLabelIds
         document.querySelectorAll('.label-block .bulk-select-checkbox').forEach(checkbox => {
             checkbox.checked = selectedLabelIds.has(checkbox.dataset.labelId);
         });
@@ -3860,13 +3883,14 @@ Original description:
             checkbox.checked = selectedLabelIds.has(checkbox.dataset.labelId);
         });
 
-        // 5. Update the category checkboxes in the category menu
+        // 6. Update the category checkboxes in the category menu (already done by renderCategoryMenu)
+        // This ensures the category checkbox reflects the `selectedCategoryNames` set.
         document.querySelectorAll('.category-select-checkbox').forEach(checkbox => {
             checkbox.checked = selectedCategoryNames.has(checkbox.dataset.categoryName);
         });
 
 
-        // 6. Update the bulk actions counter
+        // 7. Update the bulk actions counter
         updateBulkActionsLabelCount();
         populateBulkApplySnippetSelect(); // Update button disabled state
     }
@@ -3887,7 +3911,8 @@ Original description:
       if (savedStateString) {
           try {
               const parsed = JSON.parse(savedStateString);
-              const labelsArray = parsed.labelValueDefinitions || parsed.labels;
+              // Check for the new `labels` key first, then fallback to old `labelValueDefinitions` or `labels`
+              const labelsArray = parsed.labels || parsed.labelValueDefinitions;
 
               if (labelsArray && Array.isArray(labelsArray) && labelsArray.length > 0) {
                   sessionDataToLoad = parsed;
@@ -3901,6 +3926,55 @@ Original description:
           }
       }
 
+      // --- NEW ORDERING OF INITIALIZATION ---
+
+      // 1. Load categories and default settings FIRST from sessionDataToLoad if available
+      if (sessionDataToLoad) {
+          categories = sessionDataToLoad.categories || [];
+          defaultLocaleLanguage = sessionDataToLoad.defaultLocaleLanguage || '';
+          descriptionSnippets = sessionDataToLoad.descriptionSnippets || [];
+          geminiApiKey = sessionDataToLoad.geminiApiKey || '';
+          isPrideMode = sessionDataToLoad.isPrideMode || false;
+          defaultNewLabelSettings = sessionDataToLoad.defaultNewLabelSettings || {
+              blurs: 'content', severity: 'inform', defaultSetting: 'ignore', adultOnly: false, enabled: true
+          };
+      } else {
+          // Set defaults if no session data
+          // Default to 'en' for defaultLocaleLanguage if not set
+          categories = [];
+          defaultLocaleLanguage = 'en';
+          descriptionSnippets = [];
+          geminiApiKey = '';
+          isPrideMode = false;
+          defaultNewLabelSettings = {
+              blurs: 'content', severity: 'inform', defaultSetting: 'ignore', adultOnly: false, enabled: true
+          };
+      }
+
+      // 2. Initialize UI elements that depend on global variables
+      const themeToggle = document.getElementById('checkbox');
+      const currentTheme = localStorage.getItem('theme');
+      if (currentTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeToggle.checked = true;
+      }
+
+      const prideModeCheckbox = document.getElementById('prideModeCheckbox');
+      if (prideModeCheckbox) {
+          prideModeCheckbox.checked = isPrideMode;
+          applyPrideMode(isPrideMode);
+      }
+      const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
+      if (geminiApiKeyInput) {
+          geminiApiKeyInput.value = geminiApiKey;
+      }
+      populateDefaultLocaleLanguageSelect(); // Populate default locale dropdown
+
+      // 3. Render category menu and update label category dropdowns (so options exist before labels are added)
+      renderCategoryMenu(); // This populates the categories array and the category list UI
+      updateLabelCategoryDropdowns(); // This populates the options in all label category dropdowns
+
+      // 4. Load labels (if sessionDataToLoad) or create default label
       if (sessionDataToLoad) {
           console.log("DOMContentLoaded: Calling loadState with existing data.");
           loadState(JSON.stringify(sessionDataToLoad));
@@ -3915,22 +3989,10 @@ Original description:
               defaultNewLabelSettings.adultOnly,
               defaultNewLabelSettings.enabled,
               [{lang: 'en', name: 'Example Label', description: 'This is an example label for demonstration purposes.'}],
-              '',
+              '', // No category for the default example label
               true
           );
           console.log("DOMContentLoaded: Default example label created. Current label blocks:", document.querySelectorAll('.label-block').length);
-          geminiApiKey = '';
-          const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
-          if (geminiApiKeyInput) {
-              geminiApiKeyInput.value = geminiApiKey;
-          }
-          isPrideMode = false; // Ensure pride mode is off by default on fresh run
-          const prideModeCheckbox = document.getElementById('prideModeCheckbox');
-          if (prideModeCheckbox) {
-              prideModeCheckbox.checked = false;
-              applyPrideMode(false);
-          }
-
           console.log("DOMContentLoaded: Calling updateJSONOutput after default creation.");
           updateJSONOutput();
       }
@@ -4006,8 +4068,8 @@ Original description:
                 const text = pasteJsonTextarea.value;
                 const parsedData = JSON.parse(text);
 
-                // Check if it's the old format (labels array) or new format (labelValueDefinitions)
-                const labelsToLoad = parsedData.labelValueDefinitions || parsedData.labels;
+                // Check for the new `labels` key first, then fallback to old `labelValueDefinitions` or `labels`
+                const labelsToLoad = parsedData.labels || parsedData.labelValueDefinitions;
 
                 if (!Array.isArray(labelsToLoad)) {
                   throw new Error('Invalid JSON format. Expected an array of labels.');
@@ -4019,6 +4081,31 @@ Original description:
 
 
                 document.getElementById('labels-container').innerHTML = ''; // Clear existing
+                
+                // Update global state variables from pasted data first
+                categories = parsedData.categories || [];
+                defaultLocaleLanguage = parsedData.defaultLocaleLanguage || '';
+                descriptionSnippets = parsedData.descriptionSnippets || [];
+                geminiApiKey = parsedData.geminiApiKey !== undefined ? parsedData.geminiApiKey : '';
+                isPrideMode = parsedData.isPrideMode !== undefined ? parsedData.isPrideMode : false;
+                defaultNewLabelSettings = parsedData.defaultNewLabelSettings || {
+                    blurs: 'content', severity: 'inform', defaultSetting: 'ignore', adultOnly: false, enabled: true
+                };
+
+                // Re-render UI elements that depend on these global variables
+                renderCategoryMenu(); // Re-render category menu
+                updateLabelCategoryDropdowns(); // Re-populate dropdowns with new categories
+                populateDefaultLocaleLanguageSelect();
+                populateBulkApplySnippetSelect();
+                if (geminiApiKeyInput) {
+                    geminiApiKeyInput.value = geminiApiKey;
+                }
+                if (prideModeCheckbox) {
+                    prideModeCheckbox.checked = isPrideMode;
+                    applyPrideMode(isPrideMode);
+                }
+
+
                 labelsToLoad.forEach((label, index) => { // Pass index to createLabelBlock
                   // Generate a unique HTML ID for this label block *before* creating it
                   const uniqueHtmlId = `label-${crypto.randomUUID()}`;
@@ -4027,59 +4114,14 @@ Original description:
                     label.severity || 'inform',
                     label.blurs || 'content',
                     label.defaultSetting || 'ignore',
-                    label.adultOnly || false,
-                    label.enabled !== undefined ? label.enabled : true,
+                    label.adultOnly !== undefined ? label.adultOnly : false, // Ensure adultOnly state is loaded
+                    label.enabled !== undefined ? label.enabled : true, // Ensure enabled state is loaded
                     label.locales || [],
-                    label.category || '',
+                    label.category || '', // Load category
                     index === 0, // Pass true if it's the first label being loaded
                     uniqueHtmlId // Pass the generated ID
                   );
                 });
-
-                // If categories are present in the pasted JSON, update them
-                if (parsedData.categories && Array.isArray(parsedData.categories)) {
-                    categories = parsedData.categories;
-                    renderCategoryMenu();
-                    updateLabelCategoryDropdowns();
-                }
-
-                // If defaultLocaleLanguage is present, update it
-                if (parsedData.defaultLocaleLanguage) {
-                    defaultLocaleLanguage = parsedData.defaultLocaleLanguage;
-                    populateDefaultLocaleLanguageSelect();
-                }
-
-                // If descriptionSnippets are present, update them
-                if (parsedData.descriptionSnippets && Array.isArray(parsedData.descriptionSnippets)) {
-                    descriptionSnippets = parsedData.descriptionSnippets;
-                    // No longer calling renderSnippetManagementUI here
-                    populateBulkApplySnippetSelect();
-                }
-
-                // NEW: If geminiApiKey is present, update it
-                if (parsedData.geminiApiKey !== undefined) {
-                    geminiApiKey = parsedData.geminiApiKey;
-                    const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
-                    if (geminiApiKeyInput) {
-                        geminiApiKeyInput.value = geminiApiKey;
-                    }
-                }
-
-                // NEW: If isPrideMode is present, update it
-                if (parsedData.isPrideMode !== undefined) {
-                    isPrideMode = parsedData.isPrideMode;
-                    const prideModeCheckbox = document.getElementById('prideModeCheckbox');
-                    if (prideModeCheckbox) {
-                        prideModeCheckbox.checked = isPrideMode;
-                        applyPrideMode(isPrideMode);
-                    }
-                }
-
-                // NEW: If defaultNewLabelSettings is present, update it
-                if (parsedData.defaultNewLabelSettings !== undefined) {
-                    defaultNewLabelSettings = parsedData.defaultNewLabelSettings;
-                }
-
 
                 saveFullSessionStateToLocalStorage(); // Save the new state
                 updateJSONOutput(); // Update output and history
@@ -4104,7 +4146,7 @@ Original description:
       };
 
       document.getElementById('importJsonBtn').onclick = () => {
-        showCustomModal('Importing JSON from a file will overwrite your current labels. Are you sure?', 'confirm', (response) => {
+        showCustomModal('Importing JSON from a file will overwrite your current labels, categories, snippets, and settings. Are you sure?', 'confirm', (response) => {
           if (response) {
             document.getElementById('fileInput').click();
           }
@@ -4118,7 +4160,8 @@ Original description:
           reader.onload = (e) => {
             try {
               const parsedData = JSON.parse(e.target.result);
-              const labelsToLoad = parsedData.labelValueDefinitions || parsedData.labels;
+              // Check for the new `labels` key first, then fallback to old `labelValueDefinitions` or `labels`
+              const labelsToLoad = parsedData.labels || parsedData.labelValueDefinitions;
 
               if (!Array.isArray(labelsToLoad)) {
                 throw new Error('Invalid JSON format. Expected an array of labels.');
@@ -4130,6 +4173,31 @@ Original description:
 
 
               document.getElementById('labels-container').innerHTML = ''; // Clear existing
+
+              // Update global state variables from imported data first
+              categories = parsedData.categories || [];
+              defaultLocaleLanguage = parsedData.defaultLocaleLanguage || '';
+              descriptionSnippets = parsedData.CdescriptionSnippets || []; // Note: Potential typo `CdescriptionSnippets` -> `descriptionSnippets`
+              geminiApiKey = parsedData.geminiApiKey !== undefined ? parsedData.geminiApiKey : '';
+              isPrideMode = parsedData.isPrideMode !== undefined ? parsedData.isPrideMode : false;
+              defaultNewLabelSettings = parsedData.defaultNewLabelSettings || {
+                  blurs: 'content', severity: 'inform', defaultSetting: 'ignore', adultOnly: false, enabled: true
+              };
+
+              // Re-render UI elements that depend on these global variables
+              renderCategoryMenu(); // Re-render category menu
+              updateLabelCategoryDropdowns(); // Re-populate dropdowns with new categories
+              populateDefaultLocaleLanguageSelect();
+              populateBulkApplySnippetSelect();
+              if (geminiApiKeyInput) {
+                  geminiApiKeyInput.value = geminiApiKey;
+              }
+              if (prideModeCheckbox) {
+                  prideModeCheckbox.checked = isPrideMode;
+                  applyPrideMode(isPrideMode);
+              }
+
+
               labelsToLoad.forEach((label, index) => { // Pass index to createLabelBlock
                 // Generate a unique HTML ID for this label block *before* creating it
                 const uniqueHtmlId = `label-${crypto.randomUUID()}`;
@@ -4138,59 +4206,14 @@ Original description:
                   label.severity || 'inform',
                   label.blurs || 'content',
                   label.defaultSetting || 'ignore',
-                  label.adultOnly || false,
-                  label.enabled !== undefined ? label.enabled : true,
+                  label.adultOnly !== undefined ? label.adultOnly : false, // Ensure adultOnly state is loaded
+                  label.enabled !== undefined ? label.enabled : true, // Ensure enabled state is loaded
                   label.locales || [],
-                  label.category || '',
+                  label.category || '', // Load category
                   index === 0, // Pass true if it's the first label being loaded
                   uniqueHtmlId // Pass the generated ID
                 );
               });
-
-              // If categories are present in the imported JSON, update them
-              if (parsedData.categories && Array.isArray(parsedData.categories)) {
-                  categories = parsedData.categories;
-                  renderCategoryMenu();
-                  updateLabelCategoryDropdowns();
-              }
-
-              // If defaultLocaleLanguage is present, update it
-              if (parsedData.defaultLocaleLanguage) {
-                  defaultLocaleLanguage = parsedData.defaultLocaleLanguage;
-                  populateDefaultLocaleLanguageSelect();
-              }
-
-              // If descriptionSnippets are present, update them
-              if (parsedData.descriptionSnippets && Array.isArray(parsedData.descriptionSnippets)) {
-                  descriptionSnippets = parsedData.descriptionSnippets;
-                  // No longer calling renderSnippetManagementUI here
-                  populateBulkApplySnippetSelect();
-              }
-
-              // NEW: If geminiApiKey is present, update it
-              if (parsedData.geminiApiKey !== undefined) {
-                  geminiApiKey = parsedData.geminiApiKey;
-                  const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
-                  if (geminiApiKeyInput) {
-                      geminiApiKeyInput.value = geminiApiKey;
-                  }
-              }
-
-              // NEW: If isPrideMode is present, update it
-              if (parsedData.isPrideMode !== undefined) {
-                  isPrideMode = parsedData.isPrideMode;
-                  const prideModeCheckbox = document.getElementById('prideModeCheckbox');
-                  if (prideModeCheckbox) {
-                        prideModeCheckbox.checked = isPrideMode;
-                        applyPrideMode(isPrideMode);
-                  }
-              }
-
-              // NEW: If defaultNewLabelSettings is present, update it
-              if (parsedData.defaultNewLabelSettings !== undefined) {
-                  defaultNewLabelSettings = parsedData.defaultNewLabelSettings;
-              }
-
 
               saveFullSessionStateToLocalStorage(); // Save the new state
               updateJSONOutput(); // Update output and history
@@ -4458,13 +4481,7 @@ Original description:
       };
 
       // Theme Switch
-      const themeToggle = document.getElementById('checkbox');
-      const currentTheme = localStorage.getItem('theme');
-      if (currentTheme === 'dark') {
-        document.body.classList.add('dark-mode');
-        themeToggle.checked = true;
-      }
-
+      // Already handled earlier in the DOMContentLoaded for initial load
       themeToggle.addEventListener('change', function() {
         if (this.checked) {
           document.body.classList.add('dark-mode');
@@ -4476,36 +4493,26 @@ Original description:
       });
 
       // NEW: Pride Mode Toggle
-      const prideModeToggle = document.getElementById('prideModeCheckbox');
-      const savedPrideMode = localStorage.getItem('isPrideMode');
-      if (savedPrideMode === 'true') {
-          isPrideMode = true;
-          prideModeToggle.checked = true;
-          applyPrideMode(true);
-      } else {
-          isPrideMode = false;
-          prideModeToggle.checked = false;
-          applyPrideMode(false);
+      // Already handled earlier in the DOMContentLoaded for initial load
+      if (prideModeCheckbox) { // Check if element exists before adding listener
+        prideModeCheckbox.addEventListener('change', function() {
+            isPrideMode = this.checked;
+            applyPrideMode(isPrideMode);
+            localStorage.setItem('isPrideMode', isPrideMode);
+            saveFullSessionStateToLocalStorage(); // Save the new state
+        });
       }
-
-      prideModeToggle.addEventListener('change', function() {
-          isPrideMode = this.checked;
-          applyPrideMode(isPrideMode);
-          localStorage.setItem('isPrideMode', isPrideMode);
-          saveFullSessionStateToLocalStorage(); // Save the new state
-      });
 
 
       // Default Locale Language Select
-      const defaultLocaleLangSelect = document.getElementById('defaultLocaleLangSelect');
-      populateDefaultLocaleLanguageSelect(); // Populate on load
+      // Already populated earlier in DOMContentLoaded for initial load
       defaultLocaleLangSelect.addEventListener('change', () => {
           defaultLocaleLanguage = defaultLocaleLangSelect.value;
           saveFullSessionStateToLocalStorage();
       });
 
       // NEW: Gemini API Key Input in Options Modal
-      const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
+      // Already handled earlier in DOMContentLoaded for initial load
       if (geminiApiKeyInput) {
           geminiApiKeyInput.addEventListener('input', () => {
               geminiApiKey = geminiApiKeyInput.value.trim();
@@ -4575,7 +4582,7 @@ Original description:
       // Save Session File
       document.getElementById('saveSessionFileBtn').onclick = () => {
           const currentSessionState = {
-              labels: getLabelsData(),
+              labels: getLabelsData(), // This `labels` array contains the `category` and `enabled` properties for each label
               categories: categories,
               defaultLocaleLanguage: defaultLocaleLanguage,
               descriptionSnippets: descriptionSnippets,
@@ -4597,7 +4604,7 @@ Original description:
 
       // Load Session File
       document.getElementById('loadSessionFileBtn').onclick = () => {
-          showCustomModal('Loading a session file will overwrite your current labels, categories, and settings. Are you sure?', 'confirm', (response) => {
+          showCustomModal('Loading a session file will overwrite your current labels, categories, snippets, and settings. Are you sure?', 'confirm', (response) => {
               if (response) {
                   document.getElementById('sessionFileInput').click();
               }
@@ -4611,7 +4618,30 @@ Original description:
               reader.onload = (e) => {
                   try {
                       const sessionData = JSON.parse(e.target.result);
-                      loadState(JSON.stringify(sessionData)); // Use loadState to update everything
+                      // Update global state variables from imported data first
+                      categories = sessionData.categories || [];
+                      defaultLocaleLanguage = sessionData.defaultLocaleLanguage || '';
+                      descriptionSnippets = sessionData.descriptionSnippets || [];
+                      geminiApiKey = sessionData.geminiApiKey !== undefined ? sessionData.geminiApiKey : '';
+                      isPrideMode = sessionData.isPrideMode !== undefined ? sessionData.isPrideMode : false;
+                      defaultNewLabelSettings = sessionData.defaultNewLabelSettings || {
+                          blurs: 'content', severity: 'inform', defaultSetting: 'ignore', adultOnly: false, enabled: true
+                      };
+
+                      // Re-render UI elements that depend on these global variables
+                      renderCategoryMenu(); // Re-render category menu
+                      updateLabelCategoryDropdowns(); // Re-populate dropdowns with new categories
+                      populateDefaultLocaleLanguageSelect();
+                      populateBulkApplySnippetSelect();
+                      if (geminiApiKeyInput) {
+                          geminiApiKeyInput.value = geminiApiKey;
+                      }
+                      if (prideModeCheckbox) {
+                          prideModeCheckbox.checked = isPrideMode;
+                          applyPrideMode(isPrideMode);
+                      }
+
+                      loadState(JSON.stringify(sessionData)); // Use loadState to update labels
                       showCustomModal('Session file loaded successfully!', 'alert');
                   } catch (error) {
                       console.error('Error loading session file:', error);
@@ -4650,7 +4680,8 @@ Original description:
 
 
                 const date = new Date(version.timestamp).toLocaleString();
-                const labelCount = version.labelValueDefinitions ? version.labelValueDefinitions.length : 0;
+                // When displaying history, use the labels array from the history object
+                const labelCount = version.labels ? version.labels.length : 0;
                 const categoryCount = version.categories ? version.categories.length : 0;
                 const snippetCount = version.descriptionSnippets ? version.descriptionSnippets.length : 0;
 
@@ -4675,7 +4706,31 @@ Original description:
                 showCustomModal(`Are you sure you want to revert to Version ${indexToRevert + 1}? All unsaved changes will be lost.`, 'confirm', (response) => {
                     if (response) {
                         historyIndex = indexToRevert;
-                        loadState(history[historyIndex]);
+                        // When reverting, load the full state including categories, snippets, etc.
+                        const stateToRevert = JSON.parse(history[historyIndex]);
+                        categories = stateToRevert.categories || [];
+                        defaultLocaleLanguage = stateToRevert.defaultLocaleLanguage || '';
+                        descriptionSnippets = stateToRevert.descriptionSnippets || [];
+                        geminiApiKey = stateToRevert.geminiApiKey || '';
+                        isPrideMode = stateToRevert.isPrideMode || false;
+                        defaultNewLabelSettings = stateToRevert.defaultNewLabelSettings || {
+                            blurs: 'content', severity: 'inform', defaultSetting: 'ignore', adultOnly: false, enabled: true
+                        };
+
+                        // Re-render UI elements that depend on these global variables
+                        renderCategoryMenu();
+                        updateLabelCategoryDropdowns(); // Ensure dropdowns are updated with current categories
+                        populateDefaultLocaleLanguageSelect();
+                        populateBulkApplySnippetSelect();
+                        if (geminiApiKeyInput) {
+                            geminiApiKeyInput.value = geminiApiKey;
+                        }
+                        if (prideModeCheckbox) {
+                            prideModeCheckbox.checked = isPrideMode;
+                            applyPrideMode(isPrideMode);
+                        }
+
+                        loadState(history[historyIndex]); // Load labels
                         document.querySelector('.custom-modal-overlay').remove(); // Close history modal
                         showCustomModal(`Successfully reverted to Version ${indexToRevert + 1}.`, 'alert');
                     }
@@ -4708,8 +4763,7 @@ Original description:
       // --- End Post Preview Blur Logic ---
 
 
-      // Initial renders and updates for new counts
-      renderCategoryMenu();
+      // Initial renders and updates for new counts (some moved earlier)
       populateBulkApplySnippetSelect();
       updateLabelNumbers(); // Ensure initial numbering is correct
       updateMoveButtons(); // Ensure initial button states are correct
