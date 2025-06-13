@@ -21,8 +21,14 @@
     --border-radius: 4px; /* Changed to 4px for a more squared look */
     --label-box-background: hsl(180, 70%, 90%); /* Light teal for the identifier box */
     --label-box-text: hsl(180, 100%, 20%); /* Darker teal for contrast */
-    /* Pride Mode Background (Default to transparent for non-pride mode) */
-    --pride-background-image: none; /* Default to no image */
+
+    /* Background image sources (only used if a mode is active) */
+    --pride-background-image-src: url('https://raw.githubusercontent.com/femavibes/ozone-label-master/refs/heads/main/flag-36423_1920.png');
+    --trans-pride-background-image-src: url('https://raw.githubusercontent.com/femavibes/ozone-label-master/refs/heads/main/transgender-flag.png');
+    --blm-background-image-src: url('https://raw.githubusercontent.com/femavibes/ozone-label-master/refs/heads/main/BLM_flag.png');
+
+    /* Active background image, dynamically set by JavaScript */
+    --active-background-image: none;
   }
 
   /* Dark Mode Overrides */
@@ -43,15 +49,10 @@
     --label-box-text: hsl(180, 70%, 90%); /* Lighter text for contrast */
   }
 
-  /* Pride Mode Overrides (only background image) */
-  body.pride-mode {
-      --pride-background-image: url('https://raw.githubusercontent.com/femavibes/ozone-label-master/refs/heads/main/flag-36423_1920.png');
-  }
-
   body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: var(--light-gray); /* Default background */
-    background-image: var(--pride-background-image); /* Apply pride background if enabled */
+    background-image: var(--active-background-image); /* Apply active background image */
     background-size: cover; /* Cover the entire background */
     background-position: center; /* Center the image */
     background-attachment: fixed; /* Keep background fixed when scrolling */
@@ -1750,7 +1751,23 @@
       <div class="theme-switch-wrapper" style="margin-top: 0.5em;" title="Toggle gay pride background colors">
         <span class="theme-switch-label-text">Pride Mode</span>
         <label class="theme-switch" for="prideModeCheckbox">
-          <input type="checkbox" id="prideModeCheckbox" />
+          <input type="checkbox" id="prideModeCheckbox" data-mode="pride" />
+          <div class="slider round"></div>
+        </label>
+      </div>
+      <!-- NEW: Trans Pride Mode Toggle -->
+      <div class="theme-switch-wrapper" style="margin-top: 0.5em;" title="Toggle trans pride background colors">
+        <span class="theme-switch-label-text">Trans Pride Mode</span>
+        <label class="theme-switch" for="transPrideModeCheckbox">
+          <input type="checkbox" id="transPrideModeCheckbox" data-mode="trans-pride" />
+          <div class="slider round"></div>
+        </label>
+      </div>
+      <!-- NEW: BLM Mode Toggle -->
+      <div class="theme-switch-wrapper" style="margin-top: 0.5em;" title="Toggle Black Lives Matter background colors">
+        <span class="theme-switch-label-text">BLM Mode</span>
+        <label class="theme-switch" for="blmModeCheckbox">
+          <input type="checkbox" id="blmModeCheckbox" data-mode="blm" />
           <div class="slider round"></div>
         </label>
       </div>
@@ -1849,8 +1866,7 @@
     let defaultLocaleLanguage = ''; // New global variable for default locale language
     let descriptionSnippets = []; // New global variable for description snippets
     let geminiApiKey = ''; // NEW: Global variable for Gemini API Key
-    let pendingTranslationAction = null; // NEW: Stores the function to call after API key is provided
-    let isPrideMode = false; // NEW: Global variable for Pride Mode
+    let activeBackgroundMode = null; // NEW: Stores the currently active background mode ('pride', 'trans-pride', 'blm', or null)
 
     // NEW: Default settings for new labels
     let defaultNewLabelSettings = {
@@ -1946,7 +1962,7 @@
         defaultLocaleLanguage: defaultLocaleLanguage,
         descriptionSnippets: descriptionSnippets,
         geminiApiKey: geminiApiKey, // NEW: Save Gemini API Key
-        isPrideMode: isPrideMode, // NEW: Save Pride Mode state
+        activeBackgroundMode: activeBackgroundMode, // NEW: Save active background mode state
         defaultNewLabelSettings: defaultNewLabelSettings // NEW: Save default new label settings
       };
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(currentSessionState));
@@ -1973,7 +1989,7 @@
           defaultLocaleLanguage: defaultLocaleLanguage, // Include default locale language in history snapshot
           descriptionSnippets: descriptionSnippets,
           geminiApiKey: geminiApiKey, // NEW: Include Gemini API Key in history snapshot
-          isPrideMode: isPrideMode, // NEW: Include Pride Mode state
+          activeBackgroundMode: activeBackgroundMode, // NEW: Include active background mode state
           defaultNewLabelSettings: defaultNewLabelSettings // NEW: Include default new label settings
         };
 
@@ -2060,7 +2076,7 @@
         defaultLocaleLanguage = stateToRevert.defaultLocaleLanguage || '';
         descriptionSnippets = stateToRevert.descriptionSnippets || [];
         geminiApiKey = stateToRevert.geminiApiKey || '';
-        isPrideMode = stateToRevert.isPrideMode || false;
+        activeBackgroundMode = stateToRevert.activeBackgroundMode || null; // NEW: Load active background mode
         defaultNewLabelSettings = stateToRevert.defaultNewLabelSettings || {
             blurs: 'content', severity: 'inform', defaultSetting: 'ignore', adultOnly: false, enabled: true
         };
@@ -2074,11 +2090,7 @@
         if (geminiApiKeyInput) {
             geminiApiKeyInput.value = geminiApiKey;
         }
-        const prideModeCheckbox = document.getElementById('prideModeCheckbox');
-        if (prideModeCheckbox) {
-            prideModeCheckbox.checked = isPrideMode;
-            applyPrideMode(isPrideMode);
-        }
+        applyBackgroundMode(activeBackgroundMode); // NEW: Apply background mode from loaded state
 
         loadState(history[historyIndex]); // Load labels
       }
@@ -2096,7 +2108,7 @@
         defaultLocaleLanguage = stateToRevert.defaultLocaleLanguage || '';
         descriptionSnippets = stateToRevert.descriptionSnippets || [];
         geminiApiKey = stateToRevert.geminiApiKey || '';
-        isPrideMode = stateToRevert.isPrideMode || false;
+        activeBackgroundMode = stateToRevert.activeBackgroundMode || null; // NEW: Load active background mode
         defaultNewLabelSettings = stateToRevert.defaultNewLabelSettings || {
             blurs: 'content', severity: 'inform', defaultSetting: 'ignore', adultOnly: false, enabled: true
         };
@@ -2110,11 +2122,7 @@
         if (geminiApiKeyInput) {
             geminiApiKeyInput.value = geminiApiKey;
         }
-        const prideModeCheckbox = document.getElementById('prideModeCheckbox');
-        if (prideModeCheckbox) {
-            prideModeCheckbox.checked = isPrideMode;
-            applyPrideMode(isPrideMode);
-        }
+        applyBackgroundMode(activeBackgroundMode); // NEW: Apply background mode from loaded state
 
         loadState(history[historyIndex]); // Load labels
       }
@@ -2150,7 +2158,7 @@
       { code: 'id', 'name': 'Indonesian' },
       { code: 'th', 'name': 'Thai' },
       { code: 'hi', 'name': 'Hindi' },
-      { code: 'bn', 'name': 'Bengali' },
+      { code: 'bn', name: 'Bengali' },
       // Add more languages as needed
     ];
 
@@ -2969,7 +2977,7 @@ Original description:
           defaultLocaleLanguage: defaultLocaleLanguage,
           descriptionSnippets: descriptionSnippets,
           geminiApiKey: geminiApiKey, // NEW: Include Gemini API Key
-          isPrideMode: isPrideMode, // NEW: Include Pride Mode state
+          activeBackgroundMode: activeBackgroundMode, // NEW: Include active background mode state
           defaultNewLabelSettings: defaultNewLabelSettings // NEW: Include default new label settings
         });
 
@@ -3826,14 +3834,42 @@ Original description:
         }
     }
 
-    // NEW: Pride Mode Toggle Functionality
-    function applyPrideMode(enabled) {
-        if (enabled) {
-            document.body.classList.add('pride-mode');
+    // NEW: Background Mode Toggle Functionality (mutually exclusive)
+    function applyBackgroundMode(modeToActivate) {
+        const body = document.body;
+        // Remove all specific background mode classes
+        body.classList.remove('pride-mode', 'trans-pride-mode', 'blm-mode');
+        
+        // Reset the body's background image to none initially
+        document.documentElement.style.setProperty('--active-background-image', 'none');
+
+        // Uncheck all mode checkboxes in the options modal
+        const modeCheckboxes = document.querySelectorAll('#optionsModal input[type="checkbox"][data-mode]');
+        modeCheckboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+
+        // Apply the new mode
+        if (modeToActivate) {
+            activeBackgroundMode = modeToActivate;
+            // Set the appropriate CSS variable for the background image
+            if (modeToActivate === 'pride') {
+                document.documentElement.style.setProperty('--active-background-image', 'var(--pride-background-image-src)');
+                document.getElementById('prideModeCheckbox').checked = true;
+            } else if (modeToActivate === 'trans-pride') {
+                document.documentElement.style.setProperty('--active-background-image', 'var(--trans-pride-background-image-src)');
+                document.getElementById('transPrideModeCheckbox').checked = true;
+            } else if (modeToActivate === 'blm') {
+                document.documentElement.style.setProperty('--active-background-image', 'var(--blm-background-image-src)');
+                document.getElementById('blmModeCheckbox').checked = true;
+            }
         } else {
-            document.body.classList.remove('pride-mode');
+            activeBackgroundMode = null; // No background mode active
         }
+
+        saveFullSessionStateToLocalStorage(); // Save the new active mode
     }
+
 
     // NEW: Recalculate selected labels based on individual checkboxes and selected categories
     function recalculateSelectedLabels() {
@@ -3934,7 +3970,7 @@ Original description:
           defaultLocaleLanguage = sessionDataToLoad.defaultLocaleLanguage || '';
           descriptionSnippets = sessionDataToLoad.descriptionSnippets || [];
           geminiApiKey = sessionDataToLoad.geminiApiKey || '';
-          isPrideMode = sessionDataToLoad.isPrideMode || false;
+          activeBackgroundMode = sessionDataToLoad.activeBackgroundMode || null; // NEW: Load active background mode
           defaultNewLabelSettings = sessionDataToLoad.defaultNewLabelSettings || {
               blurs: 'content', severity: 'inform', defaultSetting: 'ignore', adultOnly: false, enabled: true
           };
@@ -3945,7 +3981,7 @@ Original description:
           defaultLocaleLanguage = 'en';
           descriptionSnippets = [];
           geminiApiKey = '';
-          isPrideMode = false;
+          activeBackgroundMode = null; // Default to no special background
           defaultNewLabelSettings = {
               blurs: 'content', severity: 'inform', defaultSetting: 'ignore', adultOnly: false, enabled: true
           };
@@ -3959,11 +3995,9 @@ Original description:
         themeToggle.checked = true;
       }
 
-      const prideModeCheckbox = document.getElementById('prideModeCheckbox');
-      if (prideModeCheckbox) {
-          prideModeCheckbox.checked = isPrideMode;
-          applyPrideMode(isPrideMode);
-      }
+      // NEW: Set background modes from loaded state
+      applyBackgroundMode(activeBackgroundMode);
+
       const geminiApiKeyInput = document.getElementById('geminiApiKeyInput');
       if (geminiApiKeyInput) {
           geminiApiKeyInput.value = geminiApiKey;
@@ -4085,9 +4119,9 @@ Original description:
                 // Update global state variables from pasted data first
                 categories = parsedData.categories || [];
                 defaultLocaleLanguage = parsedData.defaultLocaleLanguage || '';
-                descriptionSnippets = parsedData.descriptionSnippets || [];
+                descriptionSnippets = parsedData.descriptionSnippets || []; // Note: Potential typo `CdescriptionSnippets` -> `descriptionSnippets`
                 geminiApiKey = parsedData.geminiApiKey !== undefined ? parsedData.geminiApiKey : '';
-                isPrideMode = parsedData.isPrideMode !== undefined ? parsedData.isPrideMode : false;
+                activeBackgroundMode = parsedData.activeBackgroundMode !== undefined ? parsedData.activeBackgroundMode : null; // NEW: Load active background mode
                 defaultNewLabelSettings = parsedData.defaultNewLabelSettings || {
                     blurs: 'content', severity: 'inform', defaultSetting: 'ignore', adultOnly: false, enabled: true
                 };
@@ -4100,17 +4134,14 @@ Original description:
                 if (geminiApiKeyInput) {
                     geminiApiKeyInput.value = geminiApiKey;
                 }
-                if (prideModeCheckbox) {
-                    prideModeCheckbox.checked = isPrideMode;
-                    applyPrideMode(isPrideMode);
-                }
+                applyBackgroundMode(activeBackgroundMode); // NEW: Apply background mode from loaded state
 
 
                 labelsToLoad.forEach((label, index) => { // Pass index to createLabelBlock
                   // Generate a unique HTML ID for this label block *before* creating it
                   const uniqueHtmlId = `label-${crypto.randomUUID()}`;
                   createLabelBlock(
-                    label.identifier || label.id || '', // Support old 'id' or new 'identifier'
+                    label.identifier || label.id || '',
                     label.severity || 'inform',
                     label.blurs || 'content',
                     label.defaultSetting || 'ignore',
@@ -4177,9 +4208,9 @@ Original description:
               // Update global state variables from imported data first
               categories = parsedData.categories || [];
               defaultLocaleLanguage = parsedData.defaultLocaleLanguage || '';
-              descriptionSnippets = parsedData.CdescriptionSnippets || []; // Note: Potential typo `CdescriptionSnippets` -> `descriptionSnippets`
+              descriptionSnippets = parsedData.descriptionSnippets || []; // Note: Potential typo `CdescriptionSnippets` -> `descriptionSnippets`
               geminiApiKey = parsedData.geminiApiKey !== undefined ? parsedData.geminiApiKey : '';
-              isPrideMode = parsedData.isPrideMode !== undefined ? parsedData.isPrideMode : false;
+              activeBackgroundMode = parsedData.activeBackgroundMode !== undefined ? parsedData.activeBackgroundMode : null; // NEW: Load active background mode
               defaultNewLabelSettings = parsedData.defaultNewLabelSettings || {
                   blurs: 'content', severity: 'inform', defaultSetting: 'ignore', adultOnly: false, enabled: true
               };
@@ -4192,10 +4223,7 @@ Original description:
               if (geminiApiKeyInput) {
                   geminiApiKeyInput.value = geminiApiKey;
               }
-              if (prideModeCheckbox) {
-                  prideModeCheckbox.checked = isPrideMode;
-                  applyPrideMode(isPrideMode);
-              }
+              applyBackgroundMode(activeBackgroundMode); // NEW: Apply background mode from loaded state
 
 
               labelsToLoad.forEach((label, index) => { // Pass index to createLabelBlock
@@ -4273,7 +4301,7 @@ Original description:
             descriptionSnippets = []; // Clear snippets
             defaultLocaleLanguage = 'en'; // Reset default locale
             geminiApiKey = ''; // NEW: Clear API key on reset
-            isPrideMode = false; // NEW: Clear Pride Mode on reset
+            activeBackgroundMode = null; // NEW: Clear active background mode on reset
             // Reset default new label settings to initial values
             defaultNewLabelSettings = {
                 blurs: 'content',
@@ -4308,12 +4336,8 @@ Original description:
             if (geminiApiKeyInput) {
                 geminiApiKeyInput.value = geminiApiKey;
             }
-            // Update Pride Mode checkbox in options modal
-            const prideModeCheckbox = document.getElementById('prideModeCheckbox');
-            if (prideModeCheckbox) {
-                prideModeCheckbox.checked = false;
-                applyPrideMode(false);
-            }
+            // Update Background mode checkboxes in options modal
+            applyBackgroundMode(null); // Reset all background modes
             recalculateSelectedLabels(); // Recalculate selected labels and update counts/checkboxes
             updateTotalLabelCount(); // NEW: Update total label count
             updateTotalCategoryCount(); // NEW: Update total category count
@@ -4492,15 +4516,25 @@ Original description:
         }
       });
 
-      // NEW: Pride Mode Toggle
-      // Already handled earlier in the DOMContentLoaded for initial load
-      if (prideModeCheckbox) { // Check if element exists before adding listener
-        prideModeCheckbox.addEventListener('change', function() {
-            isPrideMode = this.checked;
-            applyPrideMode(isPrideMode);
-            localStorage.setItem('isPrideMode', isPrideMode);
-            saveFullSessionStateToLocalStorage(); // Save the new state
-        });
+      // NEW: Background Mode Toggles
+      const prideModeCheckbox = document.getElementById('prideModeCheckbox');
+      const transPrideModeCheckbox = document.getElementById('transPrideModeCheckbox');
+      const blmModeCheckbox = document.getElementById('blmModeCheckbox');
+
+      if (prideModeCheckbox) {
+          prideModeCheckbox.addEventListener('change', function() {
+              applyBackgroundMode(this.checked ? 'pride' : null);
+          });
+      }
+      if (transPrideModeCheckbox) {
+          transPrideModeCheckbox.addEventListener('change', function() {
+              applyBackgroundMode(this.checked ? 'trans-pride' : null);
+          });
+      }
+      if (blmModeCheckbox) {
+          blmModeCheckbox.addEventListener('change', function() {
+              applyBackgroundMode(this.checked ? 'blm' : null);
+          });
       }
 
 
@@ -4512,7 +4546,7 @@ Original description:
       });
 
       // NEW: Gemini API Key Input in Options Modal
-      // Already handled earlier in DOMContentLoaded for initial load
+      // Already handled earlier in the DOMContentLoaded for initial load
       if (geminiApiKeyInput) {
           geminiApiKeyInput.addEventListener('input', () => {
               geminiApiKey = geminiApiKeyInput.value.trim();
@@ -4587,7 +4621,7 @@ Original description:
               defaultLocaleLanguage: defaultLocaleLanguage,
               descriptionSnippets: descriptionSnippets,
               geminiApiKey: geminiApiKey, // NEW: Save Gemini API Key
-              isPrideMode: isPrideMode, // NEW: Save Pride Mode state
+              activeBackgroundMode: activeBackgroundMode, // NEW: Save active background mode state
               defaultNewLabelSettings: defaultNewLabelSettings // NEW: Save default new label settings
           };
           const blob = new Blob([JSON.stringify(currentSessionState, null, 2)], { type: 'application/json' });
@@ -4623,7 +4657,7 @@ Original description:
                       defaultLocaleLanguage = sessionData.defaultLocaleLanguage || '';
                       descriptionSnippets = sessionData.descriptionSnippets || [];
                       geminiApiKey = sessionData.geminiApiKey !== undefined ? sessionData.geminiApiKey : '';
-                      isPrideMode = sessionData.isPrideMode !== undefined ? sessionData.isPrideMode : false;
+                      activeBackgroundMode = sessionData.activeBackgroundMode !== undefined ? sessionData.activeBackgroundMode : null; // NEW: Load active background mode
                       defaultNewLabelSettings = sessionData.defaultNewLabelSettings || {
                           blurs: 'content', severity: 'inform', defaultSetting: 'ignore', adultOnly: false, enabled: true
                       };
@@ -4636,10 +4670,7 @@ Original description:
                       if (geminiApiKeyInput) {
                           geminiApiKeyInput.value = geminiApiKey;
                       }
-                      if (prideModeCheckbox) {
-                          prideModeCheckbox.checked = isPrideMode;
-                          applyPrideMode(isPrideMode);
-                      }
+                      applyBackgroundMode(activeBackgroundMode); // NEW: Apply background mode from loaded state
 
                       loadState(JSON.stringify(sessionData)); // Use loadState to update labels
                       showCustomModal('Session file loaded successfully!', 'alert');
@@ -4712,7 +4743,7 @@ Original description:
                         defaultLocaleLanguage = stateToRevert.defaultLocaleLanguage || '';
                         descriptionSnippets = stateToRevert.descriptionSnippets || [];
                         geminiApiKey = stateToRevert.geminiApiKey || '';
-                        isPrideMode = stateToRevert.isPrideMode || false;
+                        activeBackgroundMode = stateToRevert.activeBackgroundMode || null; // NEW: Load active background mode
                         defaultNewLabelSettings = stateToRevert.defaultNewLabelSettings || {
                             blurs: 'content', severity: 'inform', defaultSetting: 'ignore', adultOnly: false, enabled: true
                         };
@@ -4725,10 +4756,7 @@ Original description:
                         if (geminiApiKeyInput) {
                             geminiApiKeyInput.value = geminiApiKey;
                         }
-                        if (prideModeCheckbox) {
-                            prideModeCheckbox.checked = isPrideMode;
-                            applyPrideMode(isPrideMode);
-                        }
+                        applyBackgroundMode(activeBackgroundMode); // NEW: Apply background mode from loaded state
 
                         loadState(history[historyIndex]); // Load labels
                         document.querySelector('.custom-modal-overlay').remove(); // Close history modal
